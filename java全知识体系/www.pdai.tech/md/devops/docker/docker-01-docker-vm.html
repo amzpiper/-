@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  
+<!-- Mirrored from www.pdai.tech/md/devops/docker/docker-01-docker-vm.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:31:59 GMT -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>虚拟化技术 - Docker Vs. 虚拟机 | Java 全栈知识体系</title>
+    <meta name="generator" content="VuePress 1.8.2">
+    <link rel="icon" href="../../../favicon.ico">
+    <script src="../../../../hm.baidu.com/hma448.js?525d4abc4a8675472736969f817ceb47"></script>
+    <script defer="defer" async="async" src="../../../../pagead2.googlesyndication.com/pagead/js/f.txt"></script>
+    <meta name="description" content="包含: Java 基础, Java 部分源码, JVM, Spring, Spring Boot, Spring Cloud, 数据库原理, MySQL, ElasticSearch, MongoDB, Docker, k8s, CI&CD, Linux, DevOps, 分布式, 中间件, 开发工具, Git, IDE, 源码阅读，读书笔记, 开源项目...">
+    <meta property="article:modified_time" content="2021-09-27T13:15:21.000Z">
+    <meta property="og:title" content="虚拟化技术 - Docker Vs. 虚拟机">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="/md/devops/docker/docker-01-docker-vm.html">
+    <meta name="twitter:title" content="虚拟化技术 - Docker Vs. 虚拟机">
+    <meta name="twitter:url" content="/md/devops/docker/docker-01-docker-vm.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="robots" content="all">
+    <meta name="author" content="pdai">
+    <meta name="keywords" content="Java 全栈知识体系, java体系, java知识体系, java框架,java全栈,java学习路线,java全栈知识, java面试, 知识体系, java技术体系, java编程, java编程指南,java开发体系, java开发,java教程,java,java数据结构, 算法, 开发基础">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <link rel="preload" href="../../../assets/css/0.styles.d4bb5489.css" as="style"><link rel="preload" href="../../../assets/js/app.691e72ae.js" as="script"><link rel="preload" href="../../../assets/js/4.2e3efdf6.js" as="script"><link rel="preload" href="../../../assets/js/3.d77b006c.js" as="script"><link rel="preload" href="../../../assets/js/342.2e7e0e84.js" as="script">
+    <link rel="stylesheet" href="../../../assets/css/0.styles.d4bb5489.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="../../../index.html" class="home-link router-link-active"><!----> <span class="site-name">Java 全栈知识体系</span></a> <div class="links"><form id="search-form" role="search" class="algolia-search-wrapper search-box"><input id="algolia-search-input" class="search-query"></form> <nav class="nav-links can-hide"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav>  <ul class="sidebar-links"><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>工具清单</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../tool/tool-list-overview.html" class="sidebar-link">工具清单 - Overview</a></li><li><a href="../tool/tool-list-project-management.html" class="sidebar-link">工具清单 - 项目管理</a></li><li><a href="../tool/tool-list-ide.html" class="sidebar-link">工具清单 - IDE工具</a></li><li><a href="../tool/tool-list-kanban.html" class="sidebar-link">工具清单 - 看板工具</a></li><li><a href="../tool/tool-list-bug-tracking.html" class="sidebar-link">工具清单 - Bug追踪管理</a></li><li><a href="../tool/tool-list-cicd.html" class="sidebar-link">工具清单 - CI &amp; CD</a></li><li><a href="../tool/tool-list-api-management.html" class="sidebar-link">工具清单 - API管理</a></li><li><a href="../tool/tool-list-monitoring.html" class="sidebar-link">工具清单 - 监控工具</a></li><li><a href="../tool/tool-list-wiki-doc.html" class="sidebar-link">工具清单 - 文档/Wiki/Notes</a></li><li><a href="../tool/tool-list-file-management-share.html" class="sidebar-link">工具清单 - 文件管理和共享</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>开发工具详解</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../tool/tool-git.html" class="sidebar-link">工具详解 - Git 详解</a></li><li><a href="../tool/tool-ide.html" class="sidebar-link">工具详解 - Eclipse,STS,IDEA</a></li><li><a href="../tool/tool-maven.html" class="sidebar-link">工具详解 - Maven项目构建</a></li><li><a href="../tool/tool-maven-nexus.html" class="sidebar-link">工具详解 - Maven私有仓库Nexus</a></li><li><a href="../tool/tool-jenkins-gitlab.html" class="sidebar-link">工具详解 - Jenkins+Gitlab</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Linux</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../linux/linux.html" class="sidebar-link">Linux - Linux基础知识</a></li><li><a href="../linux/linux-zero-copy.html" class="sidebar-link">Linux - 零拷贝技术</a></li><li><a href="../linux/linux-usage.html" class="sidebar-link">Linux - Linux 常用</a></li><li><a href="../linux/linux-ab-test.html" class="sidebar-link">Linux - ab压力测试</a></li><li><a href="../linux/linux-curl.html" class="sidebar-link">Linux - Curl使用</a></li><li><a href="../linux/linux-service.html" class="sidebar-link">Linux - Linux创建自建服务</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading open"><span>容器化 - Docker</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="docker-00-overview.html" class="sidebar-link">Docker - Overview</a></li><li><a href="docker-01-docker-vm.html" aria-current="page" class="active sidebar-link">虚拟化技术 - Docker Vs. 虚拟机</a></li><li><a href="docker-02-basic.html" class="sidebar-link">Docker基础 - 入门基础和Helloworld</a></li><li><a href="docker-03-basic2.html" class="sidebar-link">Docker基础 - 仓库，镜像，容器详解</a></li><li><a href="docker-03-basic-web-app.html" class="sidebar-link">Docker基础 - 一个web应用实例</a></li><li><a href="docker-07-network.html" class="sidebar-link">Docker基础 - Docker网络使用和配置</a></li><li><a href="docker-06-data.html" class="sidebar-link">Docker基础 - Docker数据卷和数据管理</a></li><li><a href="docker-04-dockerfile.html" class="sidebar-link">Docker基础 - Dockerfile详解</a></li><li><a href="docker-05-compose.html" class="sidebar-link">Docker基础 - DockerCompose详解</a></li><li><a href="docker-08-layer.html" class="sidebar-link">Docker进阶 - Docker底层实现</a></li><li><a href="docker-09-security.html" class="sidebar-link">Docker进阶 - Docker安全相关</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>容器编排 - Kubernetes</span> <!----></p> <!----></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>服务网格 - Service Mesh</span> <!----></p> <!----></section></li></ul> </aside> <div><main class="page"> <div class="theme-default-content content__default"><h1 id="虚拟化技术---docker-vs-虚拟机"><a href="#虚拟化技术---docker-vs-虚拟机" class="header-anchor">¶</a> 虚拟化技术 - Docker Vs. 虚拟机</h1> <blockquote><p>人们为了提高系统及硬件资源的利用率而引入了<strong>虚拟化技术</strong>。虚拟化是一种<strong>资源管理技术</strong>，它可以各种实体资源抽像后再分隔，从而打破实体结构的限制，最大程度的提高资源的利用率。<strong>Docker属于软件虚拟化技术中的操作系统层虚拟化技术</strong>，它是基于LXC实现的一个应用容器引擎，Docker让开发者可以打包他们的应用及依赖环境到一个可移植的容器中，然后可以将这个容器快速部署开发、测试或生产环境中。了解本文从三个问题着手，<strong>什么是虚拟化技术，docker和虚拟机区别，docker可以用来做什么？</strong>@pdai</p></blockquote> <ul><li><a href="#%e8%99%9a%e6%8b%9f%e5%8c%96%e6%8a%80%e6%9c%af---docker-vs-%e8%99%9a%e6%8b%9f%e6%9c%ba">虚拟化技术 - Docker Vs. 虚拟机</a> <ul><li><a href="#%e4%bb%80%e4%b9%88%e6%98%af%e8%99%9a%e6%8b%9f%e5%8c%96%e6%8a%80%e6%9c%af">什么是虚拟化技术？</a> <ul><li><a href="#%e4%bb%80%e4%b9%88%e6%98%af%e8%99%9a%e6%8b%9f%e5%8c%96">什么是虚拟化</a></li> <li><a href="#%e8%99%9a%e6%8b%9f%e5%8c%96%e6%8a%80%e6%9c%af%e5%88%86%e7%b1%bb">虚拟化技术分类</a> <ul><li><a href="#%e7%a1%ac%e4%bb%b6%e8%99%9a%e6%8b%9f%e5%8c%96">硬件虚拟化</a></li> <li><a href="#%e8%bd%af%e4%bb%b6%e8%99%9a%e6%8b%9f%e5%8c%96">软件虚拟化</a></li></ul></li> <li><a href="#%e5%87%a0%e7%a7%8d%e8%99%9a%e6%8b%9f%e5%8c%96%e6%8a%80%e6%9c%af">几种虚拟化技术</a></li></ul></li> <li><a href="#docker%e8%99%9a%e6%8b%9f%e5%8c%96">Docker虚拟化</a> <ul><li><a href="#%e4%bb%80%e4%b9%88%e6%98%afdocker">什么是Docker？</a></li> <li><a href="#docker%e8%83%bd%e5%b9%b2%e4%bb%80%e4%b9%88">Docker能干什么？</a></li></ul></li> <li><a href="#docker%e5%92%8c%e8%99%9a%e6%8b%9f%e6%9c%ba%e7%9a%84%e5%8c%ba%e5%88%ab">Docker和虚拟机的区别？</a> <ul><li><a href="#%e5%9f%ba%e6%9c%ac%e5%af%b9%e6%af%94">基本对比</a></li> <li><a href="#%e8%99%9a%e6%8b%9f%e6%8a%80%e6%9c%af%e5%af%b9%e6%af%94">虚拟技术对比</a></li></ul></li> <li><a href="#%e5%8f%82%e8%80%83%e6%96%87%e7%ab%a0">参考文章</a></li></ul></li></ul> <h2 id="什么是虚拟化技术"><a href="#什么是虚拟化技术" class="header-anchor">¶</a> 什么是虚拟化技术？</h2> <h3 id="什么是虚拟化"><a href="#什么是虚拟化" class="header-anchor">¶</a> 什么是虚拟化</h3> <p>在计算机技术中，虚拟化（Virtualization）是一种资源管理技术。它是将计算机的各种实体资源，如：服务器、网络、内存及存储等，予以抽象、转换后呈现出来，打破实体结构间的不可切割的障碍，使用户可以用更好的方式来利用这些资源。</p> <p>虚拟化的目的是为了在同一个主机上运行多个系统或应用，从而提高系统资源的利用率，并带来降低成本、方便管理和容错容灾等好处。</p> <h3 id="虚拟化技术分类"><a href="#虚拟化技术分类" class="header-anchor">¶</a> 虚拟化技术分类</h3> <p>从实现形式来分，虚拟化技术可分为基于硬件的虚拟化和基于软件的虚拟化。</p> <h4 id="硬件虚拟化"><a href="#硬件虚拟化" class="header-anchor">¶</a> 硬件虚拟化</h4> <p>硬件虚拟化就是硬件物理平台本身提供了对特殊指令的截获和重定向的支持。支持虚拟化的硬件，也是一些基于硬件实现软件虚拟化技术的关键。在基于硬件实现软件虚拟化的技术中，在硬件是实现虚拟化的基础，硬件(主要是CPU)会为虚拟化软件提供支持，从而实现硬件资源的虚拟化。</p> <p>支持虚拟化的硬件有：</p> <ul><li><strong>Intel-VT-(Intel Virtualization Technology)</strong>，Intel公司为解决纯软件虚拟化解决方案在可靠性、安全性和性能上的不足而引进的技术。它可以让一个CPU工作起来像多个CPU在并行运行，从而使得在一部电脑内同时运行多个操作系统成为可能</li> <li><strong>AMD-V-(AMD Virtualization)</strong>，是AMD公司的虚拟化技术。它是对x86处理器系统架构的一组硬件扩展和硬件辅助虚拟化技术，可以简化纯软件的虚拟化解决方案，改进VMM（虚拟机监视器）的设计，更充分地利用硬件资源，提高服务器和数据中心的虚拟化效率</li></ul> <h4 id="软件虚拟化"><a href="#软件虚拟化" class="header-anchor">¶</a> 软件虚拟化</h4> <p>软件虚拟化就是利用软件技术，在现有的物理平台上实现对物理平台访问的截获和模拟。在软件虚拟化技术中，有些技术不需要硬件支持，如：QEMU；而有些软件虚拟化技术，则依赖硬件支持，如：VMware、KVM。</p> <p>对软件虚拟化进行细分，又可以分为以下几类：</p> <ul><li><strong>完全虚拟化</strong>：（Full Virtualization）虚拟机模拟完整的底层硬件环境和特权指令的执行过程，使客户机操作系统可以独立运行。支持完全虚拟化的软件有：Parallels Workstation、VirtualBox、Virtual Iron、Oracle VM、Virtual PC、Virtual Server、Hyper-V、VMware Workstation、QEMU等</li> <li><strong>硬件辅助虚拟化</strong>：（Hardware-assisted Virtualization）是指通过硬件辅助支持模拟运行环境，使客户机操作系统可以独立运行，实现完全虚拟化的功能。支持硬件辅助虚拟化的软件有：Linux KVM、VMware Workstation、VMware Fusion、Virtual PC、Xen、VirtualBox、Parallels Workstation等</li> <li><strong>部分虚拟化</strong>：（Partial Virtualization）只针对部分硬件资源进行虚拟化，虚拟机模拟部分底层硬件环境，特别是地址空间。这样的环境支持资源共享和线程独立，但是不允许建立独立的客户机操作系统。</li> <li><strong>平行虚拟化</strong>：（Para-Virtualization）虚拟机不需要模拟硬件，而是将部分硬件接口以软件的形式提供给客户机操作系统。如：早期的Xen。</li> <li><strong>操作系统层虚拟化</strong>：（OS-level virtualization）这种技术将操作系统内核虚拟化，可以允许使用者空间软件实例被分割成几个独立的单元，在内核中运行，而不是只有一个单一实例运行。这个软件实例，也被称为是一个容器（containers）、虚拟引擎（Virtualization engine）、虚拟专用服务器（virtual private servers）。每个容器的进程是独立的，对于使用者来说，就像是在使用自己的专用服务器。
+Docker容器技术就是属于操作系统层虚拟化的范畴。</li></ul> <h3 id="几种虚拟化技术"><a href="#几种虚拟化技术" class="header-anchor">¶</a> 几种虚拟化技术</h3> <p>虚拟化是通过软件的方式模拟实体服务器，其初衷是为了解决“一种应用占用一台服务器”模式所带来的服务器数量剧增的问题，从而降低数据中心复杂度，简化管理难度。在虚拟化的发展过程中，出现过以下主要虚拟化技术或产品：</p> <ul><li>Xen - 由剑桥大学开发的，一款开源的虚拟机监视器。采用ICA协议，它通过一种叫做准虚拟化的技术来获取高性能，甚至在一些与传统虚拟技术极度不友好的架构上（如：x86），Xen也有极佳的表现。Xen属于半虚拟化的技术，所以其性能损失非常小。Xen没有指令翻译，其或者使用使能理解和翻译虚拟操作系统发出的未修改指令的CPU（即：完全虚拟化）；或者修改操作系统，使它发出的指令最优化，便于在虚拟化环境中执行（即：准虚拟化）。</li> <li><strong>KVM</strong> - <strong>KVM是一个Linux kernel模块，可以使用modprobe来加载KVM，加载后还需要通过其他工具创建虚拟机。KVM是一个全虚拟化的解决方案，但需要CPU支持虚拟化功能。相比Xen来说，KVM可以更加方便的整合进Linux内核，但它还需要其它虚拟化软件（如：QEMU）才能实现虚拟化功能</strong>。</li> <li><strong>LXC</strong> - 即：<strong>Linux Container，Linux容器，是一种轻量级的虚拟化的手段。它可以提供轻量级的虚拟化，以隔离进程和资源，而且不需要提供指令解释机制以及全虚拟化的其他复杂性。容器会有效地将由单个操作系统管理的资源划分到孤立的组中，以更好地在孤立的组之间平衡有冲突的资源使用需求。</strong></li> <li><strong>OpenVZ</strong> - 是SWsoft公司开发的开源软件，是该公司Virtuozzo软件的基础产品，是基于Linux平台的操作系统级服务器虚拟化解决方案。通过OpenVZ，可以在单个物理服务器上创建多个相互隔离的虚拟专用服务器(VPS)并以最大的效率共享硬件和管理资源。其上运行虚拟服务器被称为VPS（Virtual Private Serve），每个VPS的运行环境和独立服务器完全一致。OpenVZ基于Linux系统内核及作业系统提供操作系统级虚拟化，在虚拟化过程中资源消耗非常小，官方宣称约1-2%。</li> <li><strong>Hyper-V</strong> - <strong>是微软件推出的一种虚拟化技术，可以采用半虚拟化或全虚拟的方式创建虚拟机。虽然它可以创建Windows或Linux操作系统，但其本身只能运行在Windows系统下，使用范围较为有限</strong>。</li> <li><strong>Oracle VM</strong> - Oracle推出的服务器虚拟化软件，基于开源的Xen技术，包括Oracle VM Server和Oracle VM Manager两部分。</li> <li><strong>VMWare</strong> - 是一家非常出名虚拟化软件公司，其产品涵盖服务器、桌面等各种虚拟化领域，如：<strong>VMware Workstation</strong> - 是一款桌面虚拟机软件，可以在一台实体机器上模拟完整的网络环境，并可运行多个Windows、DOS、Linux或Mac系统，是非常好的开发、测试、部署解决方案。从技术角度来说，VMware Workstation是一款完全虚拟化产品，可借助硬件辅助在不修改用户操作系统的情况下完整虚拟化操作系统。</li> <li><strong>VMware ESX Server</strong> - 是一款适用于任何系统环境的企业级的虚拟机软件，可以认为是VMware Server的升级版。相比VMware Workstation来说，其功能更加强大，可以用于构建高伸缩和高可靠企业级服务器，并可实现远程管理、高级资源管理控制等高级功能。</li></ul> <h2 id="docker虚拟化"><a href="#docker虚拟化" class="header-anchor">¶</a> Docker虚拟化</h2> <h3 id="什么是docker"><a href="#什么是docker" class="header-anchor">¶</a> 什么是Docker？</h3> <p>Docker是一个开源的应用容器引擎，它让开发者可以打包他们的应用以及依赖包到一个可移植的容器中，然后发布到安装了任何 Linux 发行版本的机器上。Docker基于LXC来实现类似VM的功能，可以在更有限的硬件资源上提供给用户更多的计算资源。与同VM等虚拟化的方式不同，LXC不属于全虚拟化、部分虚拟化或半虚拟化中的任何一个分类，而是一个操作系统级虚拟化。</p> <p>Docker是直接运行在宿主操作系统之上的一个容器，使用沙箱机制完全虚拟出一个完整的操作，容器之间不会有任何接口，从而让容器与宿主机之间、容器与容器之间隔离的更加彻底。每个容器会有自己的权限管理，独立的网络与存储栈，及自己的资源管理能，使同一台宿主机上可以友好的共存多个容器。</p> <p>Docker借助Linux的内核特性，如：控制组（Control Group）、命名空间（Namespace）等，并直接调用操作系统的系统调用接口。从而降低每个容器的系统开销，并实现降低容器复杂度、启动快、资源占用小等特征。</p> <h3 id="docker能干什么"><a href="#docker能干什么" class="header-anchor">¶</a> Docker能干什么？</h3> <ul><li><strong>简化配置</strong></li></ul> <p>这是Docker公司宣传的Docker的主要使用场景。虚拟机的最大好处是能在你的硬件设施上运行各种配置不一样的平台（软件、系统），Docker在降低额外开销的情况下提供了同样的功能。它能让你将运行环境和配置放在代码中然后部署，同一个Docker的配置可以在不同的环境中使用，这样就降低了硬件要求和应用环境之间耦合度。</p> <ul><li><strong>代码流水线（Code Pipeline）管理</strong></li></ul> <p>前一个场景对于管理代码的流水线起到了很大的帮助。代码从开发者的机器到最终在生产环境上的部署，需要经过很多的中间环境。而每一个中间环境都有自己微小的差别，Docker给应用提供了一个从开发到上线均一致的环境，让代码的流水线变得简单不少。</p> <ul><li><strong>提高开发效率</strong></li></ul> <p>这就带来了一些额外的好处：Docker能提升开发者的开发效率。详细一点的例子，可以参考Aater在DevOpsDays Austin 2014大会或者是DockerCon上的演讲。</p> <p>不同的开发环境中，我们都想把两件事做好。一是我们想让开发环境尽量贴近生产环境，二是我们想快速搭建开发环境。</p> <p>理想状态中，要达到第一个目标，我们需要将每一个服务都跑在独立的虚拟机中以便监控生产环境中服务的运行状态。然而，我们却不想每次都需要网络连接，每次重新编译的时候远程连接上去特别麻烦。这就是Docker做的特别好的地方，开发环境的机器通常内存比较小，之前使用虚拟的时候，我们经常需要为开发环境的机器加内存，而现在Docker可以轻易的让几十个服务在Docker中跑起来。</p> <ul><li><strong>隔离应用</strong></li></ul> <p>有很多种原因会让你选择在一个机器上运行不同的应用，比如之前提到的提高开发效率的场景等。</p> <p>我们经常需要考虑两点，一是因为要降低成本而进行服务器整合，二是将一个整体式的应用拆分成松耦合的单个服务（译者注：微服务架构）。如果你想了解为什么松耦合的应用这么重要，请参考Steve Yege的这篇论文，文中将Google和亚马逊做了比较。</p> <ul><li><p><strong>整合服务器</strong>
+ 
+正如通过虚拟机来整合多个应用，Docker隔离应用的能力使得Docker可以整合多个服务器以降低成本。由于没有多个操作系统的内存占用，以及能在多个实例之间共享没有使用的内存，Docker可以比虚拟机提供更好的服务器整合解决方案。</p></li> <li><p><strong>调适能力</strong></p></li></ul> <p>Docker提供了很多的工具，这些工具不一定只是针对容器，但是却适用于容器。它们提供了很多的功能，包括可以为容器设置检查点、设置版本和查看两个容器之间的差别，这些特性可以帮助调试Bug。你可以在《Docker拯救世界》的文章中找到这一点的例证。</p> <ul><li><strong>多租户</strong></li></ul> <p>另外一个Docker有意思的使用场景是在多租户的应用中，它可以避免关键应用的重写。我们一个特别的关于这个场景的例子是为IoT（物联网）的应用开发一个快速、易用的多租户环境。这种多租户的基本代码非常复杂，很难处理，重新规划这样一个应用不但消耗时间，也浪费金钱。</p> <p>使用Docker，可以为每一个租户的应用层的多个实例创建隔离的环境，这不仅简单而且成本低廉，当然这一切得益于Docker环境的启动速度和其高效的diff命令。</p> <ul><li><strong>快速部署</strong></li></ul> <p>在虚拟机之前，引入新的硬件资源需要消耗几天的时间。Docker的虚拟化技术将这个时间降到了几分钟，Docker只是创建一个容器进程而无需启动操作系统，这个过程只需要秒级的时间。这正是Google和Facebook都看重的特性。</p> <p>你可以在数据中心创建销毁资源而无需担心重新启动带来的开销。通常数据中心的资源利用率只有30%，通过使用Docker并进行有效的资源分配可以提高资源的利用率。</p> <h2 id="docker和虚拟机的区别"><a href="#docker和虚拟机的区别" class="header-anchor">¶</a> Docker和虚拟机的区别？</h2> <blockquote><p>虚拟机Virtual Machine与容器化技术（代表Docker）都是虚拟化技术，两者的区别在于虚拟化的程度不同。</p></blockquote> <h3 id="基本对比"><a href="#基本对比" class="header-anchor">¶</a> 基本对比</h3> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/devops/docker/docker-y-0.jpg" loading="lazy" class="lazy"></p> <ul><li><strong>虚拟机</strong> <ul><li>基础设施（Infrastructure）。它可以是你的个人电脑，数据中心的服务器，或者是云主机。</li> <li>主操作系统（Host Operating System）。你的个人电脑之上，运行的可能是MacOS，Windows或者某个Linux发行版。</li> <li>虚拟机管理系统（Hypervisor）。利用Hypervisor，可以在主操作系统之上运行多个不同的从操作系统。类型1的Hypervisor有支持MacOS的HyperKit，支持Windows的Hyper-V以及支持Linux的KVM。类型2的Hypervisor有VirtualBox和VMWare。</li> <li>操作系统（Guest Operating System）。假设你需要运行3个相互隔离的应用，则需要使用Hypervisor启动3个从操作系统，也就是3个虚拟机。这些虚拟机都非常大，也许有700MB，这就意味着它们将占用2.1GB的磁盘空间。更糟糕的是，它们还会消耗很多CPU和内存。</li> <li>各种依赖。每一个从操作系统都需要安装许多依赖。如果你的的应用需要连接PostgreSQL的话，则需要安装libpq-dev；如果你使用Ruby的话，应该需要安装gems；如果使用其他编程语言，比如Python或者Node.js，都会需要安装对应的依赖库。</li></ul></li> <li><strong>Docker容器</strong> <ul><li>主操作系统（Host Operating System）。所有主流的Linux发行版都可以运行Docker。对于MacOS和Windows，也有一些办法&quot;运行&quot;Docker。</li> <li>Docker守护进程（Docker Daemon）。Docker守护进程取代了Hypervisor，它是运行在操作系统之上的后台进程，负责管理Docker容器。</li> <li>各种依赖。对于Docker，应用的所有依赖都打包在Docker镜像中，Docker容器是基于Docker镜像创建的。</li> <li>应用。应用的源代码与它的依赖都打包在Docker镜像中，不同的应用需要不同的Docker镜像。不同的应用运行在不同的Docker容器中，它们是相互隔离的。</li></ul></li></ul> <p>虚拟机是在物理资源层面实现的隔离，相对于虚拟机，Docker是你APP层面实现的隔离，并且省去了虚拟机操作系统（Guest OS）），从而节省了一部分的系统资源；Docker守护进程可以直接与主操作系统进行通信，为各个Docker容器分配资源；它还可以将容器与主操作系统隔离，并将各个容器互相隔离。虚拟机启动需要数分钟，而Docker容器可以在数毫秒内启动。由于没有臃肿的从操作系统，Docker可以节省大量的磁盘空间以及其他系统资源。</p> <p>虚拟机与容器docker的区别，在于<strong>vm多了一层guest OS，虚拟机的Hypervisor会对硬件资源也进行虚拟化，而容器Docker会直接使用宿主机的硬件资源</strong>。</p> <p>下面我们采用形象的比喻区分两者的<strong>隔离级别</strong>：</p> <ul><li><p><strong>服务器</strong>：比作一个大型的仓管基地，包含场地与零散的货物——相当于各种服务器资源。</p></li> <li><p><strong>虚拟机技术</strong>：比作仓库，拥有独立的空间堆放各种货物或集装箱，仓库之间完全独立——仓库相当于各种系统，独立的应用系统和操作系统。</p></li> <li><p><strong>Docker</strong>：比作集装箱，操作各种货物的打包——将各种应用程序和他们所依赖的运行环境打包成标准的容器，容器之间隔离。</p></li></ul> <h3 id="虚拟技术对比"><a href="#虚拟技术对比" class="header-anchor">¶</a> 虚拟技术对比</h3> <ul><li><strong>隔离性</strong></li></ul> <p>在于隔离性上面，由于vm对操作系统也进行了虚拟化，隔离的更加彻底。而Docker共享宿主机的操作系统，隔离性较差。</p> <ul><li><strong>运行效率</strong></li></ul> <p>由于vm的隔离操作，导致生成虚拟机的速率大大低于容器Docker生成的速度，因为Docker直接利用宿主机的系统内核。比如openstack能够以10台/min的速度创建虚拟机，而docker可以做到在几秒钟之内创建大量容器，它们的启动速度是在数量级上的差距。</p> <p>因为虚拟机增加了一层虚拟硬件层，运行在虚拟机上的应用程序在进行数值计算时是运行在Hypervisor虚拟的CPU上的；另外一方面是由于计算程序本身的特性导致的差异。虚拟机虚拟的cpu架构不同于实际cpu架构，数值计算程序一般针对特定的cpu架构有一定的优化措施，虚拟化使这些措施作废，甚至起到反效果。</p> <ul><li><strong>资源利用率</strong></li></ul> <p>在资源利用率上虚拟机由于隔离更彻底，因此利用率也会相对较低。</p> <p>因为虚拟机增加了一层虚拟硬件层，运行在虚拟机上的应用程序在进行数值计算时是运行在Hypervisor虚拟的CPU上的；另外一方面是由于计算程序本身的特性导致的差异。虚拟机虚拟的cpu架构不同于实际cpu架构，数值计算程序一般针对特定的cpu架构有一定的优化措施，虚拟化使这些措施作废，甚至起到反效果。比如对于本次实验的平台，实际的CPU架构是2块物理CPU。</p> <h2 id="参考文章"><a href="#参考文章" class="header-anchor">¶</a> 参考文章</h2> <ul><li>https://blog.csdn.net/steelren/article/details/78491923</li> <li>https://www.cnblogs.com/jie-fang/p/10279629.html</li></ul></div> <div class="page-contract"><h2>联系我</h2> <div class="c-content"><span style="font-size:1rem;font-weight:bold;">添加@pdai微信</span><br> <img src="../../../pdai.jpg" height="280px" style="margin:10px;"><br>
+        PS：添加时请备注<b>Java全栈</b>，谢谢！
+      </div></div> <footer class="page-edit"><div class="edit-link"><a href="https://github.com/realpdai/tech-arch-doc/edit/master/md/devops/docker/docker-01-docker-vm.md" target="_blank" rel="noopener noreferrer">在 GitHub 上编辑此页</a> <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></div> <div class="last-updated"><span class="prefix">上次更新: </span> <span class="time">9/27/2021,</span></div></footer> <div class="page-nav"><p class="inner"><span class="prev">
+        ←
+        <a href="docker-00-overview.html" class="prev">
+          Docker - Overview
+        </a></span> <span class="next"><a href="docker-02-basic.html">
+          Docker基础 - 入门基础和Helloworld
+        </a>
+        →
+      </span></p></div> <div class="google_ad_bottom"><ins data-ad-client="ca-pub-5088193899865249" data-ad-slot="6822031208" data-ad-format="auto" data-full-width-responsive="true" class="adsbygoogle" style="display:block"></ins> <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script></div> </main></div> <aside class="page-sidebar"> <div class="page-side-toolbar"><div class="option-box-toc-fixed"><div class="toc-container-sidebar"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:650px"><div style="font-weight:bold;text-align:center;">虚拟化技术 - Docker Vs. 虚拟机</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="docker-01-docker-vm.html#什么是虚拟化技术" class="toc-sidebar-link">什么是虚拟化技术？</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="docker-01-docker-vm.html#什么是虚拟化" class="toc-sidebar-link">什么是虚拟化</a></li><li class="toc-sidebar-sub-header"><a href="docker-01-docker-vm.html#虚拟化技术分类" class="toc-sidebar-link">虚拟化技术分类</a></li><li class="toc-sidebar-sub-header"><a href="docker-01-docker-vm.html#几种虚拟化技术" class="toc-sidebar-link">几种虚拟化技术</a></li></ul></li><li><a href="docker-01-docker-vm.html#docker虚拟化" class="toc-sidebar-link">Docker虚拟化</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="docker-01-docker-vm.html#什么是docker" class="toc-sidebar-link">什么是Docker？</a></li><li class="toc-sidebar-sub-header"><a href="docker-01-docker-vm.html#docker能干什么" class="toc-sidebar-link">Docker能干什么？</a></li></ul></li><li><a href="docker-01-docker-vm.html#docker和虚拟机的区别" class="toc-sidebar-link">Docker和虚拟机的区别？</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="docker-01-docker-vm.html#基本对比" class="toc-sidebar-link">基本对比</a></li><li class="toc-sidebar-sub-header"><a href="docker-01-docker-vm.html#虚拟技术对比" class="toc-sidebar-link">虚拟技术对比</a></li></ul></li><li><a href="docker-01-docker-vm.html#参考文章" class="toc-sidebar-link">参考文章</a><ul class="toc-sidebar-sub-headers"></ul></li></ul></div></div></div></div></div> <div class="option-box-toc-over"><img src="../../../toc.png" class="nozoom"> <span class="show-txt">目录</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:550px"><div style="font-weight:bold;text-align:center;">虚拟化技术 - Docker Vs. 虚拟机</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="docker-01-docker-vm.html#什么是虚拟化技术" class="toc-sidebar-link">什么是虚拟化技术？</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="docker-01-docker-vm.html#什么是虚拟化" class="toc-sidebar-link">什么是虚拟化</a></li><li class="toc-sidebar-sub-header"><a href="docker-01-docker-vm.html#虚拟化技术分类" class="toc-sidebar-link">虚拟化技术分类</a></li><li class="toc-sidebar-sub-header"><a href="docker-01-docker-vm.html#几种虚拟化技术" class="toc-sidebar-link">几种虚拟化技术</a></li></ul></li><li><a href="docker-01-docker-vm.html#docker虚拟化" class="toc-sidebar-link">Docker虚拟化</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="docker-01-docker-vm.html#什么是docker" class="toc-sidebar-link">什么是Docker？</a></li><li class="toc-sidebar-sub-header"><a href="docker-01-docker-vm.html#docker能干什么" class="toc-sidebar-link">Docker能干什么？</a></li></ul></li><li><a href="docker-01-docker-vm.html#docker和虚拟机的区别" class="toc-sidebar-link">Docker和虚拟机的区别？</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="docker-01-docker-vm.html#基本对比" class="toc-sidebar-link">基本对比</a></li><li class="toc-sidebar-sub-header"><a href="docker-01-docker-vm.html#虚拟技术对比" class="toc-sidebar-link">虚拟技术对比</a></li></ul></li><li><a href="docker-01-docker-vm.html#参考文章" class="toc-sidebar-link">参考文章</a><ul class="toc-sidebar-sub-headers"></ul></li></ul></div></div></div></div></div> <div class="option-box"><img src="../../../wechat.png" class="nozoom"> <span class="show-txt">手机看</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.9rem">微信扫一扫</span> <img height="180px" src="https://api.qrserver.com/v1/create-qr-code/?data=https://www.pdai.tech/md/devops/docker/docker-01-docker-vm.html" style="margin:10px;">
+              可以<b>手机看</b>或分享至<b>朋友圈</b></div></div></div></div> <div class="option-box"><a title="点击切换全屏" style="text-align:center;padding-left:2px;"><img src="../../../full.png" width="30px" class="nozoom"> <span style="color:gray;font-size:11px;font-weight:400;">全屏看</span></a></div> <div class="option-box"><img src="../../../toggle.png" width="30px" class="nozoom"> <span class="show-txt">左栏</span></div> <div class="option-box"><img src="../../../wexin2.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:yellow">交流圈</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">添加pdai微信进《Java全栈知识体系》学习交流圈「无任何套路」</span> <img src="../../../pdai.jpg" height="180px" style="margin:10px;">
+              PS：添加时请备注<b>Java全栈</b>，谢谢！
+            </div></div></div></div> <div class="option-box"><img src="../../../download.jpg" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:#a6f792">下资料</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">扫描公众号，回复“资料”下载<font style="color:red;">10GB+</font>书籍资料「无任何套路」</span> <img src="../../../pdai_gzh.jpg" height="180px" style="margin:10px;"> <b>公众号:</b> Java全栈知识体系
+            </div></div></div></div> <div class="option-box"><img src="../../../heart.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;background-color:#gray">支持我</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">鼓励/支持/赞赏我</span> <img src="../../../pdai-guli.png" height="180px" width="200px" style="margin:5px;">
+              1. 不靠它生存但仍希望得到你的鼓励；<br> 2. 时刻警醒自己保持技术人的初心，恒心，简单，利他；
+            </div></div></div></div> <div title="Docker - Overview" class="option-box" style="padding-left:2px;text-align:center;"><a href="docker-00-overview.html"><img src="../../../pre2.png" width="30px" class="nozoom"> <span class="show-txt">上一篇</span></a></div> <div title="Docker基础 - 入门基础和Helloworld" class="option-box" style="padding-left:2px;text-align:center;"><a href="docker-02-basic.html"><img src="../../../next2.png" width="30px" class="nozoom"> <span class="show-txt">下一篇</span></a></div></div>  <div class="page-side-sitemap"><div class="option-box"><img src="../../../sitemap.png" class="nozoom img"> <span class="show-txt">站点图</span> <div class="sitemap-container"><h4>站点导航图
+            <a href="../../about/me/about-me.html" class="sitemap-top-link"> 关于我</a> <a href="../../about/blog/blog-build-vuepress.html" class="sitemap-top-link"> 关于站点</a> <a href="../../about/me/blog-changelist.html" class="sitemap-top-link"> 最近更新记录</a> <a href="../../about/me/blog-question.html" class="sitemap-top-link"><font style="color:red;background-color:yellow;">问题反馈</font></a></h4> <table class="sitemap-table"><tr><td nowrap="nowrap"><div class="sitemap-col-group">常用搜索</div></td> <td><div class="sitemap-col-item"><a href="http://www.baidu.com/" target="_blank" title="百度">  
+            百度
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.google.com/" target="_blank" title="Google">  
+            Google
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.bing.com/" target="_blank" title="Bing">  
+            Bing
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://github.com/" target="_blank" title="Github">  
+            Github
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.programcreek.com/java-api-examples/index.php" target="_blank" title="搜代码">  
+            搜代码
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">技术社区</div></td> <td><div class="sitemap-col-item"><a href="http://www.csdn.net/" target="_blank" title="CDSN">  
+            CDSN
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.cnblogs.com/" target="_blank" title="博客园">  
+            博客园
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.oschina.net/" target="_blank" title="OSChina">  
+            OSChina
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://segmentfault.com/" target="_blank" title="知否">  
+            知否
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://juejin.im/" target="_blank" title="掘金">  
+            掘金
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.linuxidc.com/" target="_blank" title="Linux公社">  
+            Linux公社
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.ibm.com/developerworks/cn/" target="_blank" title="IBM 开发者">  
+            IBM 开发者
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://stackoverflow.com/" target="_blank" title="StackOverflow">  
+            StackOverflow
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">Java相关</div></td> <!----> <td><a href="../../java/basic/java-basic-oop.html" class="sitemap-col-item">
+            面向对象基础
+          </a><a href="../../java/basic/java-basic-lan-basic.html" class="sitemap-col-item">
+            语法基础
+          </a><a href="../../java/collection/java-collection-all.html" class="sitemap-col-item">
+            集合框架
+          </a><a href="../../java/thread/java-thread-x-overview.html" class="sitemap-col-item">
+            并发基础
+          </a><a href="../../java/thread/java-thread-x-key-synchronized.html" class="sitemap-col-item">
+            并发关键字
+          </a><a href="../../java/thread/java-thread-x-juc-overview.html" class="sitemap-col-item">
+            JUC并发框架
+          </a><a href="../../java/io/java-io-overview.html" class="sitemap-col-item">
+            IO框架
+          </a><a href="../../java/java8/java8.html" class="sitemap-col-item">
+            Java8 特性
+          </a><a href="../../java/jvm/java-jvm-x-overview.html" class="sitemap-col-item">
+            JVM基础
+          </a><a href="../../java/jvm/java-jvm-param.html" class="sitemap-col-item">
+            调试排错
+          </a><a href="../../java/others/java-others-awesome-java.html" class="sitemap-col-item">
+            更多资源
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">算法相关</div></td> <!----> <td><a href="../../algorithm/alg-basic-array.html" class="sitemap-col-item">
+            数组与线性表
+          </a><a href="../../algorithm/alg-basic-tree.html" class="sitemap-col-item">
+            树详解
+          </a><a href="../../algorithm/alg-basic-graph.html" class="sitemap-col-item">
+            图详解
+          </a><a href="../../algorithm/alg-sort-overview.html" class="sitemap-col-item">
+            内部排序
+          </a><a href="../../algorithm/alg-core-divide-and-conquer.html" class="sitemap-col-item">
+            算法思想
+          </a><a href="../../algorithm/alg-domain-security-degist.html" class="sitemap-col-item">
+            安全算法
+          </a><a href="../../algorithm/alg-domain-bigdata-overview.html" class="sitemap-col-item">
+            大数据处理
+          </a><a href="../../algorithm/alg-domain-distribute-overview.html" class="sitemap-col-item">
+            分布式算法
+          </a><a href="../../algorithm/alg-domain-load-balance.html" class="sitemap-col-item">
+            负载均衡算法
+          </a><a href="../../algorithm/alg-domain-suggest.html" class="sitemap-col-item">
+            推荐算法
+          </a><a href="../../algorithm/alg-other-mind.html" class="sitemap-col-item">
+            头脑风暴
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">数据库相关</div></td> <!----> <td><a href="../../db/sql/sql-db-howitworks.html" class="sitemap-col-item">
+            数据库原理
+          </a><a href="../../db/sql-lan/sql-lan.html" class="sitemap-col-item">
+            SQL语言
+          </a><a href="../../db/sql-mysql/sql-mysql-theory.html" class="sitemap-col-item">
+            MySQL相关
+          </a><a href="../../db/nosql-mongo/mongo-performance-improve.html" class="sitemap-col-item">
+            MongoDB
+          </a><a href="../../db/nosql-es/elasticsearch.html" class="sitemap-col-item">
+            ElasticSearch
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">开发基础相关</div></td> <!----> <td><a href="../../develop/package/dev-package-x-apache-common.html" class="sitemap-col-item">
+            常用类库
+          </a><a href="../../develop/ut/dev-ut-x-junit.html" class="sitemap-col-item">
+            单元测试
+          </a><a href="../../develop/regex/dev-regex-all.html" class="sitemap-col-item">
+            正则表达式
+          </a><a href="../../develop/protocol/dev-protocol-overview.html" class="sitemap-col-item">
+            网络协议
+          </a><a href="../../develop/security/dev-security-overview.html" class="sitemap-col-item">
+            安全相关
+          </a><a href="../../develop/refactor/dev-refactor-if-else.html" class="sitemap-col-item">
+            常见重构技巧
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">架构相关</div></td> <!----> <td><a href="../../arch/arch-x-basic.html" class="sitemap-col-item">
+            架构基础
+          </a><a href="../../arch/arch-x-view.html" class="sitemap-col-item">
+            架构视角
+          </a><a href="../../arch/arch-x-evolution.html" class="sitemap-col-item">
+            架构演进
+          </a><a href="../../arch/arch-x-pattern.html" class="sitemap-col-item">
+            架构模式和要素
+          </a><a href="../../arch/arch-y-cache.html" class="sitemap-col-item">
+            高并发之缓存
+          </a><a href="../../arch/arch-y-ratelimit.html" class="sitemap-col-item">
+            高并发之限流
+          </a><a href="../../arch/arch-y-reduce.html" class="sitemap-col-item">
+            高并发之降级
+          </a><a href="../../arch/arch-y-loadbalance.html" class="sitemap-col-item">
+            负载均衡
+          </a><a href="../../arch/arch-y-backup.html" class="sitemap-col-item">
+            容灾备份
+          </a><a href="../../arch/arch-x-security.html" class="sitemap-col-item">
+            架构安全
+          </a><a href="../../arch/arch-example-seckill.html" class="sitemap-col-item">
+            秒杀系统设计
+          </a><a href="../../arch/arch-example-goods-detail.html" class="sitemap-col-item">
+            架构案例
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">工具和部署</div></td> <!----> <td><a href="../tool/tool-list-overview.html" class="sitemap-col-item">
+            工具集合
+          </a><a href="../tool/tool-ide.html" class="sitemap-col-item">
+            IDE相关
+          </a><a href="../tool/tool-git.html" class="sitemap-col-item">
+            Git
+          </a><a href="../tool/tool-maven.html" class="sitemap-col-item">
+            Maven
+          </a><a href="../linux/linux.html" class="sitemap-col-item">
+            Linux
+          </a><a href="docker-00-overview.html" class="sitemap-col-item">
+            Docker
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">方法论</div></td> <!----> <td><a href="../../dev-spec/spec/dev-th-solid.html" class="sitemap-col-item">
+            SOLID
+          </a><a href="../../dev-spec/spec/dev-th-cap.html" class="sitemap-col-item">
+            CAP
+          </a><a href="../../dev-spec/spec/dev-th-base.html" class="sitemap-col-item">
+            BASE
+          </a><a href="../../dev-spec/spec/dev-opensource.html" class="sitemap-col-item">
+            开源协议
+          </a><a href="../../dev-spec/code-style/code-style-alibaba.html" class="sitemap-col-item">
+            代码规范
+          </a><a href="../../dev-spec/pattern/1_overview.html" class="sitemap-col-item">
+            设计模式
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">产品和团队</div></td> <!----> <td><a href="../../team/team-z-wechat.html" class="sitemap-col-item">
+            产品相关
+          </a><a href="../../team/team-z-task-emergency.html" class="sitemap-col-item">
+            团队相关
+          </a><a href="../../team/team-z-arch-future.html" class="sitemap-col-item">
+            其它分享
+          </a></td></tr></table></div></div></div> <!----> </aside></div><div class="global-ui"></div></div>
+    <script src="../../../assets/js/app.691e72ae.js" defer></script><script src="../../../assets/js/4.2e3efdf6.js" defer></script><script src="../../../assets/js/3.d77b006c.js" defer></script><script src="../../../assets/js/342.2e7e0e84.js" defer></script>
+  </body>
+
+<!-- Mirrored from www.pdai.tech/md/devops/docker/docker-01-docker-vm.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:31:59 GMT -->
+</html>

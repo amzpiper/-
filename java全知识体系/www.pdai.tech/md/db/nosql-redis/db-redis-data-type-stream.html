@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  
+<!-- Mirrored from www.pdai.tech/md/db/nosql-redis/db-redis-data-type-stream.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:30:57 GMT -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Redis入门 - 数据类型：Stream详解 | Java 全栈知识体系</title>
+    <meta name="generator" content="VuePress 1.8.2">
+    <link rel="icon" href="../../../favicon.ico">
+    <script src="../../../../hm.baidu.com/hma448.js?525d4abc4a8675472736969f817ceb47"></script>
+    <script defer="defer" async="async" src="../../../../pagead2.googlesyndication.com/pagead/js/f.txt"></script>
+    <meta name="description" content="Redis5.0 中还增加了一个数据类型Stream，它借鉴了Kafka的设计，是一个新的强大的支持多播的可持久化的消息队列">
+    <meta property="article:modified_time" content="2021-09-27T13:15:21.000Z">
+    <meta property="og:title" content="Redis入门 - 数据类型：Stream详解">
+    <meta property="og:description" content="Redis5.0 中还增加了一个数据类型Stream，它借鉴了Kafka的设计，是一个新的强大的支持多播的可持久化的消息队列">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="/md/db/nosql-redis/db-redis-data-type-stream.html">
+    <meta name="twitter:title" content="Redis入门 - 数据类型：Stream详解">
+    <meta name="twitter:description" content="Redis5.0 中还增加了一个数据类型Stream，它借鉴了Kafka的设计，是一个新的强大的支持多播的可持久化的消息队列">
+    <meta name="twitter:url" content="/md/db/nosql-redis/db-redis-data-type-stream.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:label2" content="Filed under">
+    <meta name="twitter:data2" content="Redis数据结构, Stream详解, 消息队列, 增删改查, 独立消费, 消费组消费, 信息监控">
+    <meta property="article:tag" content="Redis数据结构">
+    <meta name="robots" content="all">
+    <meta name="author" content="pdai">
+    <meta name="keywords" content="Java 全栈知识体系, java体系, java知识体系, java框架,java全栈,java学习路线,java全栈知识, java面试, 知识体系, java技术体系, java编程, java编程指南,java开发体系, java开发,java教程,java,java数据结构, 算法, 开发基础">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <link rel="preload" href="../../../assets/css/0.styles.d4bb5489.css" as="style"><link rel="preload" href="../../../assets/js/app.691e72ae.js" as="script"><link rel="preload" href="../../../assets/js/4.2e3efdf6.js" as="script"><link rel="preload" href="../../../assets/js/3.d77b006c.js" as="script"><link rel="preload" href="../../../assets/js/201.33b3f7d0.js" as="script">
+    <link rel="stylesheet" href="../../../assets/css/0.styles.d4bb5489.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="../../../index.html" class="home-link router-link-active"><!----> <span class="site-name">Java 全栈知识体系</span></a> <div class="links"><form id="search-form" role="search" class="algolia-search-wrapper search-box"><input id="algolia-search-input" class="search-query"></form> <nav class="nav-links can-hide"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav>  <ul class="sidebar-links"><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>数据库基础和原理</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../sql/sql-db.html" class="sidebar-link">♥数据库基础和SQL知识体系详解♥</a></li><li><a href="../sql/sql-db-howitworks.html" class="sidebar-link">SQL DB - 关系型数据库是如何工作的</a></li><li><a href="../sql/sql-db-theory-concept.html" class="sidebar-link">SQL DB - 关系型数据库设计理论</a></li><li><a href="../sql/sql-db-theory-design.html" class="sidebar-link">SQL DB - 关系型数据库设计流程</a></li><li><a href="../sql/sql-db-theory.html" class="sidebar-link">SQL DB - 数据库系统核心知识点</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>SQL 语言</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../sql-lan/sql-lan.html" class="sidebar-link">SQL语言 - SQL语法基础</a></li><li><a href="../sql-lan/sql-lan-pratice.html" class="sidebar-link">SQL语言 - SQL语句练习</a></li><li><a href="../sql-lan/sql-lan-leetcode.html" class="sidebar-link">SQL语言 - SQL题目进阶</a></li><li><a href="../sql-lan/sql-lan-optimize.html" class="sidebar-link">SQL语言 - SQL语句优化</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>SQL - MySQL</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../sql-mysql/sql-mysql-overview.html" class="sidebar-link">♥MySQL知识体系详解♥</a></li><li><a href="../sql-mysql/sql-mysql-theory.html" class="sidebar-link">MySQL - 数据类型</a></li><li><a href="../sql-mysql/sql-mysql-engine.html" class="sidebar-link">MySQL - 存储引擎</a></li><li><a href="../sql-mysql/sql-mysql-b-tree.html" class="sidebar-link">MySQL - 索引(B+树)</a></li><li><a href="../sql-mysql/sql-mysql-performance.html" class="sidebar-link">MySQL - 性能优化</a></li><li><a href="../sql-mysql/sql-mysql-devide.html" class="sidebar-link">MySQL - 分表分库</a></li><li><a href="../sql-mysql/sql-mysql-slave.html" class="sidebar-link">MySQL - 主从复制与读写分离</a></li><li><a href="../sql-mysql/sql-mysql-mvcc.html" class="sidebar-link">MySQL - MySQL InnoDB的MVCC实现机制</a></li><li><a href="../sql-mysql/sql-mysql-execute.html" class="sidebar-link">MySQL - 一条 SQL 的执行过程详解</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading open"><span>NoSQL - Redis</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="db-redis-overview.html" class="sidebar-link">♥Redis教程 - Redis知识体系详解♥</a></li><li><a href="db-redis-introduce.html" class="sidebar-link">Redis入门 - Redis概念和基础</a></li><li><a href="db-redis-data-types.html" class="sidebar-link">Redis入门 - 数据类型：5种基础数据类型详解</a></li><li><a href="db-redis-data-type-special.html" class="sidebar-link">Redis入门 - 数据类型：3种特殊类型详解</a></li><li><a href="db-redis-data-type-stream.html" aria-current="page" class="active sidebar-link">Redis入门 - 数据类型：Stream详解</a></li><li><a href="db-redis-x-redis-object.html" class="sidebar-link">Redis进阶 - 数据结构：对象机制详解</a></li><li><a href="db-redis-x-redis-ds.html" class="sidebar-link">Redis进阶 - 数据结构：底层数据结构详解</a></li><li><a href="db-redis-data-type-enc.html" class="sidebar-link">Redis进阶 - 数据结构：redis对象与编码(底层结构)对应关系详解</a></li><li><a href="db-redis-x-rdb-aof.html" class="sidebar-link">Redis进阶 - 持久化：RDB和AOF机制详解</a></li><li><a href="db-redis-x-pub-sub.html" class="sidebar-link">Redis进阶 - 消息传递：发布订阅模式详解</a></li><li><a href="db-redis-x-event.html" class="sidebar-link">Redis进阶 - 事件：Redis事件机制详解</a></li><li><a href="db-redis-x-trans.html" class="sidebar-link">Redis进阶 - 事务：Redis事务详解</a></li><li><a href="db-redis-x-copy.html" class="sidebar-link">Redis进阶 - 高可用：主从复制详解</a></li><li><a href="db-redis-x-sentinel.html" class="sidebar-link">Redis进阶 - 高可用：哨兵机制（Redis Sentinel）详解</a></li><li><a href="db-redis-x-cluster.html" class="sidebar-link">Redis进阶 - 高可拓展：分片技术（Redis Cluster）详解</a></li><li><a href="db-redis-x-cache.html" class="sidebar-link">Redis进阶 - 缓存问题：一致性, 穿击, 穿透, 雪崩, 污染等</a></li><li><a href="db-redis-x-version-lastest.html" class="sidebar-link">Redis进阶 - 版本特性: Redis4.0、5.0、6.0特性整理</a></li><li><a href="db-redis-y-monitor.html" class="sidebar-link">Redis进阶 - 运维监控：Redis的监控详解</a></li><li><a href="db-redis-x-performance.html" class="sidebar-link">Redis进阶 - 性能调优：Redis性能调优详解</a></li><li><a href="db-redis-y-weibo.html" class="sidebar-link">Redis大厂经验 - 微博：万亿级日访问量下，Redis在微博的9年优化历程</a></li><li><a href="db-redis-z-mianshi.html" class="sidebar-link">Redis面试 - redis问题总结</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>NoSQL - MongoDB</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../nosql-mongo/mongo.html" class="sidebar-link">♥MongoDB教程 - Mongo知识体系详解♥</a></li><li><a href="../nosql-mongo/mongo-x-basic.html" class="sidebar-link">Mongo入门 - MongoDB基础概念</a></li><li><a href="../nosql-mongo/mongo-x-ecosystem.html" class="sidebar-link">Mongo入门 - MongoDB整体生态</a></li><li><a href="../nosql-mongo/mongo-x-usage-1.html" class="sidebar-link">Mongo入门 - 基本使用：安装和CRUD</a></li><li><a href="../nosql-mongo/mongo-x-usage-2.html" class="sidebar-link">Mongo入门 - 基本使用：索引和聚合</a></li><li><a href="../nosql-mongo/mongo-x-usage-3.html" class="sidebar-link">Mongo入门 - 基本使用：效率工具</a></li><li><a href="../nosql-mongo/mongo-x-usage-4.html" class="sidebar-link">Mongo入门 - 基本使用：Java API</a></li><li><a href="../nosql-mongo/mongo-x-usage-5.html" class="sidebar-link">Mongo入门 - 基本使用：Spring集成</a></li><li><a href="../nosql-mongo/mongo-y-arch.html" class="sidebar-link">Mongo进阶 - MongoDB体系结构</a></li><li><a href="../nosql-mongo/mongo-y-introduce.html" class="sidebar-link">Mongo进阶 - 原理和WiredTiger引擎</a></li><li><a href="../nosql-mongo/mongo-y-ds.html" class="sidebar-link">Mongo进阶 - WT引擎：数据结构</a></li><li><a href="../nosql-mongo/mongo-y-page.html" class="sidebar-link">Mongo进阶 - WT引擎：Page生命周期</a></li><li><a href="../nosql-mongo/mongo-y-checkpoint.html" class="sidebar-link">Mongo进阶 - WT引擎：checkpoint原理</a></li><li><a href="../nosql-mongo/mongo-y-trans.html" class="sidebar-link">Mongo进阶 - WT引擎：事务实现</a></li><li><a href="../nosql-mongo/mongo-y-cache.html" class="sidebar-link">Mongo进阶 - WT引擎：缓存机制</a></li><li><a href="../nosql-mongo/mongo-z-index.html" class="sidebar-link">Mongo进阶 - DB核心：索引实现</a></li><li><a href="../nosql-mongo/mongo-z-rep.html" class="sidebar-link">Mongo进阶 - DB核心：复制集</a></li><li><a href="../nosql-mongo/mongo-z-sharding.html" class="sidebar-link">Mongo进阶 - DB核心：分片Sharding</a></li><li><a href="../nosql-mongo/mongo-z-backup.html" class="sidebar-link">Mongo进阶 - DB核心：备份恢复</a></li><li><a href="../nosql-mongo/mongo-performance-model.html" class="sidebar-link">Mongo进阶 - 系统设计：数据模型</a></li><li><a href="../nosql-mongo/mongo-y-doc.html" class="sidebar-link">Mongo进阶 - 系统设计：模式构建</a></li><li><a href="../nosql-mongo/mongo-performance-improve.html" class="sidebar-link">Mongo进阶 - 性能：查询聚合优化</a></li><li><a href="../nosql-mongo/postgresql-replace.html" class="sidebar-link">MongoDB 替换方案之PostgreSQL</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>NoSQL - ElasticSearch</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../nosql-es/elasticsearch.html" class="sidebar-link">♥ElasticSearch知识体系详解♥</a></li><li><a href="../nosql-es/elasticsearch-x-introduce-1.html" class="sidebar-link">ES详解 - 认知：ElasticSearch基础概念</a></li><li><a href="../nosql-es/elasticsearch-x-introduce-2.html" class="sidebar-link">ES详解 - 认知：Elastic Stack生态和场景方案</a></li><li><a href="../nosql-es/elasticsearch-x-install.html" class="sidebar-link">ES详解 - 安装：ElasticSearch和Kibana安装</a></li><li><a href="../nosql-es/elasticsearch-x-usage.html" class="sidebar-link">ES详解 - 入门：查询和聚合的基础使用</a></li><li><a href="../nosql-es/elasticsearch-x-index-mapping.html" class="sidebar-link">ES详解 - 索引：索引管理详解</a></li><li><a href="../nosql-es/elasticsearch-x-index-template.html" class="sidebar-link">ES详解 - 索引：索引模板(Index Template)详解</a></li><li><a href="../nosql-es/elasticsearch-x-dsl-com.html" class="sidebar-link">ES详解 - 查询：DSL查询之复合查询详解</a></li><li><a href="../nosql-es/elasticsearch-x-dsl-full-text.html" class="sidebar-link">ES详解 - 查询：DSL查询之全文搜索详解</a></li><li><a href="../nosql-es/elasticsearch-x-dsl-term.html" class="sidebar-link">ES详解 - 查询：DSL查询之Term详解</a></li><li><a href="../nosql-es/elasticsearch-x-agg-bucket.html" class="sidebar-link">ES详解 - 聚合：聚合查询之Bucket聚合详解</a></li><li><a href="../nosql-es/elasticsearch-x-agg-metric.html" class="sidebar-link">ES详解 - 聚合：聚合查询之Metric聚合详解</a></li><li><a href="../nosql-es/elasticsearch-x-agg-pipeline.html" class="sidebar-link">ES详解 - 聚合：聚合查询之Pipline聚合详解</a></li><li><a href="../nosql-es/elasticsearch-y-th-1.html" class="sidebar-link">ES详解 - 原理：从图解构筑对ES原理的初步认知</a></li><li><a href="../nosql-es/elasticsearch-y-th-2.html" class="sidebar-link">ES详解 - 原理：ES原理知识点补充和整体结构</a></li><li><a href="../nosql-es/elasticsearch-y-th-3.html" class="sidebar-link">ES详解 - 原理：ES原理之索引文档流程详解</a></li><li><a href="../nosql-es/elasticsearch-y-th-4.html" class="sidebar-link">ES详解 - 原理：ES原理之读取文档流程详解</a></li><li><a href="../nosql-es/elasticsearch-y-peformance.html" class="sidebar-link">ES详解 - 优化：ElasticSearch性能优化详解</a></li><li><a href="../nosql-es/elasticsearch-z-tencent.html" class="sidebar-link">ES详解 - 大厂实践：腾讯万亿级 Elasticsearch 技术实践</a></li><li><a href="../nosql-es/elasticsearch-awesome-es.html" class="sidebar-link">ES详解 - 资料：Awesome Elasticsearch</a></li><li><a href="../nosql-es/elasticsearch-wrapper-query.html" class="sidebar-link">ElasticSearch - WrapperQuery</a></li><li><a href="../nosql-es/elasticsearch-backup.html" class="sidebar-link">ElasticSearch - 备份和迁移</a></li></ul></section></li></ul> </aside> <div><main class="page"> <div class="theme-default-content content__default"><h1 id="redis入门---数据类型：stream详解"><a href="#redis入门---数据类型：stream详解" class="header-anchor">¶</a> Redis入门 - 数据类型：Stream详解</h1> <blockquote><p>Redis5.0 中还增加了一个数据类型Stream，它借鉴了Kafka的设计，是一个新的强大的支持多播的可持久化的消息队列。@pdai</p></blockquote> <ul><li><a href="#redis%E5%85%A5%E9%97%A8---%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8Bstream%E8%AF%A6%E8%A7%A3">Redis入门 - 数据类型：Stream详解</a> <ul><li><a href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%9A%E8%AE%BE%E8%AE%A1stream">为什么会设计Stream</a></li> <li><a href="#stream%E8%AF%A6%E8%A7%A3">Stream详解</a> <ul><li><a href="#stream%E7%9A%84%E7%BB%93%E6%9E%84">Stream的结构</a></li> <li><a href="#%E5%A2%9E%E5%88%A0%E6%94%B9%E6%9F%A5">增删改查</a></li> <li><a href="#%E7%8B%AC%E7%AB%8B%E6%B6%88%E8%B4%B9">独立消费</a></li> <li><a href="#%E6%B6%88%E8%B4%B9%E7%BB%84%E6%B6%88%E8%B4%B9">消费组消费</a></li> <li><a href="#%E4%BF%A1%E6%81%AF%E7%9B%91%E6%8E%A7">信息监控</a></li></ul></li> <li><a href="#%E6%9B%B4%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3">更深入理解</a> <ul><li><a href="#stream%E7%94%A8%E5%9C%A8%E4%BB%80%E4%B9%88%E6%A0%B7%E5%9C%BA%E6%99%AF">Stream用在什么样场景</a></li> <li><a href="#%E6%B6%88%E6%81%AFid%E7%9A%84%E8%AE%BE%E8%AE%A1%E6%98%AF%E5%90%A6%E8%80%83%E8%99%91%E4%BA%86%E6%97%B6%E9%97%B4%E5%9B%9E%E6%8B%A8%E7%9A%84%E9%97%AE%E9%A2%98">消息ID的设计是否考虑了时间回拨的问题？</a></li> <li><a href="#%E6%B6%88%E8%B4%B9%E8%80%85%E5%B4%A9%E6%BA%83%E5%B8%A6%E6%9D%A5%E7%9A%84%E4%BC%9A%E4%B8%8D%E4%BC%9A%E6%B6%88%E6%81%AF%E4%B8%A2%E5%A4%B1%E9%97%AE%E9%A2%98">消费者崩溃带来的会不会消息丢失问题?</a></li> <li><a href="#%E6%B6%88%E8%B4%B9%E8%80%85%E5%BD%BB%E5%BA%95%E5%AE%95%E6%9C%BA%E5%90%8E%E5%A6%82%E4%BD%95%E8%BD%AC%E7%A7%BB%E7%BB%99%E5%85%B6%E5%AE%83%E6%B6%88%E8%B4%B9%E8%80%85%E5%A4%84%E7%90%86">消费者彻底宕机后如何转移给其它消费者处理？</a></li> <li><a href="#%E5%9D%8F%E6%B6%88%E6%81%AF%E9%97%AE%E9%A2%98dead-letter%E6%AD%BB%E4%BF%A1%E9%97%AE%E9%A2%98">坏消息问题，Dead Letter，死信问题</a></li></ul></li> <li><a href="#%E5%8F%82%E8%80%83%E6%96%87%E7%AB%A0">参考文章</a></li></ul></li></ul> <h2 id="为什么会设计stream"><a href="#为什么会设计stream" class="header-anchor">¶</a> 为什么会设计Stream</h2> <blockquote><p>Redis5.0 中还增加了一个数据结构Stream，从字面上看是流类型，但其实从功能上看，应该是Redis对消息队列（MQ，Message Queue）的完善实现。</p></blockquote> <p>用过Redis做消息队列的都了解，基于Reids的消息队列实现有很多种，例如：</p> <ul><li><strong>PUB/SUB，订阅/发布模式</strong> <ul><li>但是发布订阅模式是无法持久化的，如果出现网络断开、Redis 宕机等，消息就会被丢弃；</li></ul></li> <li>基于<strong>List LPUSH+BRPOP</strong> 或者 <strong>基于Sorted-Set</strong>的实现
+<ul><li>支持了持久化，但是不支持多播，分组消费等</li></ul></li></ul> <p>为什么上面的结构无法满足广泛的MQ场景？ 这里便引出一个核心的问题：如果我们期望设计一种数据结构来实现消息队列，最重要的就是要理解<strong>设计一个消息队列需要考虑什么</strong>？初步的我们很容易想到</p> <ul><li>消息的生产</li> <li>消息的消费
+<ul><li>单播和多播（多对多）</li> <li>阻塞和非阻塞读取</li></ul></li> <li>消息有序性</li> <li>消息的持久化</li></ul> <p>其它还要考虑啥嗯？借助美团技术团队的一篇文章，<a href="https://tech.meituan.com/2016/07/01/mq-design.html" target="_blank" rel="noopener noreferrer">消息队列设计精要<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a> 中的图</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/db/redis/db-redis-stream-1.png" loading="lazy" class="lazy"></p> <p><strong>我们不妨看看Redis考虑了哪些设计</strong>？</p> <ul><li>消息ID的序列化生成</li> <li>消息遍历</li> <li>消息的阻塞和非阻塞读取</li> <li>消息的分组消费</li> <li>未完成消息的处理</li> <li>消息队列监控</li> <li>...</li></ul> <blockquote><p>这也是我们需要理解Stream的点，但是结合上面的图，我们也应该理解Redis Stream也是一种超轻量MQ并没有完全实现消息队列所有设计要点，这决定着它适用的场景。</p></blockquote> <h2 id="stream详解"><a href="#stream详解" class="header-anchor">¶</a> Stream详解</h2> <blockquote><p>经过梳理总结，我认为从以下几个大的方面去理解Stream是比较合适的，总结如下：@pdai</p></blockquote> <ul><li>Stream的结构设计</li> <li>生产和消费
+<ul><li>基本的增删查改</li> <li>单一消费者的消费</li> <li>消费组的消费</li></ul></li> <li>监控状态</li></ul> <h3 id="stream的结构"><a href="#stream的结构" class="header-anchor">¶</a> Stream的结构</h3> <p>每个 Stream 都有唯一的名称，它就是 Redis 的 key，在我们首次使用 xadd 指令追加消息时自动创建。</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/db/redis/db-redis-stream-2.png" loading="lazy" class="lazy"></p> <p>上图解析：</p> <ul><li><code>Consumer Group</code> ：消费组，使用 XGROUP CREATE 命令创建，一个消费组有多个消费者(Consumer), 这些消费者之间是竞争关系。</li> <li><code>last_delivered_id</code> ：游标，每个消费组会有个游标 last_delivered_id，任意一个消费者读取了消息都会使游标 last_delivered_id 往前移动。</li> <li><code>pending_ids</code> ：消费者(Consumer)的状态变量，作用是维护消费者的未确认的 id。 pending_ids 记录了当前已经被客户端读取的消息，但是还没有 <code>ack</code> (Acknowledge character：确认字符）。如果客户端没有ack，这个变量里面的消息ID会越来越多，一旦某个消息被ack，它就开始减少。这个pending_ids变量在Redis官方被称之为PEL，也就是Pending Entries List，这是一个很核心的数据结构，它用来确保客户端至少消费了消息一次，而不会在网络传输的中途丢失了没处理。</li></ul> <p>此外我们还需要理解两点：</p> <ul><li><code>消息ID</code>: 消息ID的形式是timestampInMillis-sequence，例如1527846880572-5，它表示当前的消息在毫米时间戳1527846880572时产生，并且是该毫秒内产生的第5条消息。消息ID可以由服务器自动生成，也可以由客户端自己指定，但是形式必须是整数-整数，而且必须是后面加入的消息的ID要大于前面的消息ID。</li> <li><code>消息内容</code>: 消息内容就是键值对，形如hash结构的键值对，这没什么特别之处。</li></ul> <h3 id="增删改查"><a href="#增删改查" class="header-anchor">¶</a> 增删改查</h3> <p>消息队列相关命令：</p> <ul><li>XADD - 添加消息到末尾</li> <li>XTRIM - 对流进行修剪，限制长度</li> <li>XDEL - 删除消息</li> <li>XLEN - 获取流包含的元素数量，即消息长度</li> <li>XRANGE - 获取消息列表，会自动过滤已经删除的消息</li> <li>XREVRANGE - 反向获取消息列表，ID 从大到小</li> <li>XREAD - 以阻塞或非阻塞方式获取消息列表</li></ul> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token comment"># *号表示服务器自动生成ID，后面顺序跟着一堆key/value</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xadd codehole * name laoqian age <span class="token number">30</span>  <span class="token comment">#  名字叫laoqian，年龄30岁</span>
+<span class="token number">1527849609889</span>-0  <span class="token comment"># 生成的消息ID</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xadd codehole * name xiaoyu age <span class="token number">29</span>
+<span class="token number">1527849629172</span>-0
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xadd codehole * name xiaoqian age <span class="token number">1</span>
+<span class="token number">1527849637634</span>-0
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xlen codehole
+<span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">3</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xrange codehole - +  <span class="token comment"># -表示最小值, +表示最大值</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xrange codehole - +
+<span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1527849609889</span>-0
+   <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;name&quot;</span>
+      <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;laoqian&quot;</span>
+      <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;age&quot;</span>
+      <span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;30&quot;</span>
+<span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1527849629172</span>-0
+   <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;name&quot;</span>
+      <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;xiaoyu&quot;</span>
+      <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;age&quot;</span>
+      <span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;29&quot;</span>
+<span class="token number">3</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1527849637634</span>-0
+   <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;name&quot;</span>
+      <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;xiaoqian&quot;</span>
+      <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;age&quot;</span>
+      <span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;1&quot;</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xrange codehole <span class="token number">1527849629172</span>-0 +  <span class="token comment"># 指定最小消息ID的列表</span>
+<span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1527849629172</span>-0
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;name&quot;</span>
+      <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;xiaoyu&quot;</span>
+      <span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;age&quot;</span>
+      <span class="token number">4</span><span class="token punctuation">)</span> <span class="token string">&quot;29&quot;</span>
+<span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1527849637634</span>-0
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;name&quot;</span>
+      <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;xiaoqian&quot;</span>
+      <span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;age&quot;</span>
+      <span class="token number">4</span><span class="token punctuation">)</span> <span class="token string">&quot;1&quot;</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xrange codehole - <span class="token number">1527849629172</span>-0  <span class="token comment"># 指定最大消息ID的列表</span>
+<span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1527849609889</span>-0
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;name&quot;</span>
+      <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;laoqian&quot;</span>
+      <span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;age&quot;</span>
+      <span class="token number">4</span><span class="token punctuation">)</span> <span class="token string">&quot;30&quot;</span>
+<span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1527849629172</span>-0
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;name&quot;</span>
+      <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;xiaoyu&quot;</span>
+      <span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;age&quot;</span>
+      <span class="token number">4</span><span class="token punctuation">)</span> <span class="token string">&quot;29&quot;</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xdel codehole <span class="token number">1527849609889</span>-0
+<span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">1</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xlen codehole  <span class="token comment"># 长度不受影响</span>
+<span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">3</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xrange codehole - +  <span class="token comment"># 被删除的消息没了</span>
+<span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1527849629172</span>-0
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;name&quot;</span>
+      <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;xiaoyu&quot;</span>
+      <span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;age&quot;</span>
+      <span class="token number">4</span><span class="token punctuation">)</span> <span class="token string">&quot;29&quot;</span>
+<span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1527849637634</span>-0
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;name&quot;</span>
+      <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;xiaoqian&quot;</span>
+      <span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;age&quot;</span>
+      <span class="token number">4</span><span class="token punctuation">)</span> <span class="token string">&quot;1&quot;</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> del codehole  <span class="token comment"># 删除整个Stream</span>
+<span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">1</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br><span class="line-number">35</span><br><span class="line-number">36</span><br><span class="line-number">37</span><br><span class="line-number">38</span><br><span class="line-number">39</span><br><span class="line-number">40</span><br><span class="line-number">41</span><br><span class="line-number">42</span><br><span class="line-number">43</span><br><span class="line-number">44</span><br><span class="line-number">45</span><br><span class="line-number">46</span><br><span class="line-number">47</span><br><span class="line-number">48</span><br><span class="line-number">49</span><br><span class="line-number">50</span><br><span class="line-number">51</span><br><span class="line-number">52</span><br><span class="line-number">53</span><br><span class="line-number">54</span><br><span class="line-number">55</span><br><span class="line-number">56</span><br><span class="line-number">57</span><br><span class="line-number">58</span><br><span class="line-number">59</span><br><span class="line-number">60</span><br><span class="line-number">61</span><br><span class="line-number">62</span><br><span class="line-number">63</span><br><span class="line-number">64</span><br><span class="line-number">65</span><br></div></div><h3 id="独立消费"><a href="#独立消费" class="header-anchor">¶</a> 独立消费</h3> <p>我们可以在不定义消费组的情况下进行Stream消息的独立消费，当Stream没有新消息时，甚至可以阻塞等待。Redis设计了一个单独的消费指令xread，可以将Stream当成普通的消息队列(list)来使用。使用xread时，我们可以完全忽略消费组(Consumer Group)的存在，就好比Stream就是一个普通的列表(list)。</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token comment"># 从Stream头部读取两条消息</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xread count <span class="token number">2</span> streams codehole <span class="token number">0</span>-0
+<span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;codehole&quot;</span>
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1527851486781</span>-0
+         <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;name&quot;</span>
+            <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;laoqian&quot;</span>
+            <span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;age&quot;</span>
+            <span class="token number">4</span><span class="token punctuation">)</span> <span class="token string">&quot;30&quot;</span>
+      <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1527851493405</span>-0
+         <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;name&quot;</span>
+            <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;yurui&quot;</span>
+            <span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;age&quot;</span>
+            <span class="token number">4</span><span class="token punctuation">)</span> <span class="token string">&quot;29&quot;</span>
+<span class="token comment"># 从Stream尾部读取一条消息，毫无疑问，这里不会返回任何消息</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xread count <span class="token number">1</span> streams codehole $
+<span class="token punctuation">(</span>nil<span class="token punctuation">)</span>
+<span class="token comment"># 从尾部阻塞等待新消息到来，下面的指令会堵住，直到新消息到来</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xread block <span class="token number">0</span> count <span class="token number">1</span> streams codehole $
+<span class="token comment"># 我们从新打开一个窗口，在这个窗口往Stream里塞消息</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xadd codehole * name youming age <span class="token number">60</span>
+<span class="token number">1527852774092</span>-0
+<span class="token comment"># 再切换到前面的窗口，我们可以看到阻塞解除了，返回了新的消息内容</span>
+<span class="token comment"># 而且还显示了一个等待时间，这里我们等待了93s</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xread block <span class="token number">0</span> count <span class="token number">1</span> streams codehole $
+<span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;codehole&quot;</span>
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1527852774092</span>-0
+         <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;name&quot;</span>
+            <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;youming&quot;</span>
+            <span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;age&quot;</span>
+            <span class="token number">4</span><span class="token punctuation">)</span> <span class="token string">&quot;60&quot;</span>
+<span class="token punctuation">(</span><span class="token number">93</span>.11s<span class="token punctuation">)</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br></div></div><p>客户端如果想要使用xread进行顺序消费，一定要记住当前消费到哪里了，也就是返回的消息ID。下次继续调用xread时，将上次返回的最后一个消息ID作为参数传递进去，就可以继续消费后续的消息。</p> <p>block 0表示永远阻塞，直到消息到来，block 1000表示阻塞1s，如果1s内没有任何消息到来，就返回nil</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xread block <span class="token number">1000</span> count <span class="token number">1</span> streams codehole $
+<span class="token punctuation">(</span>nil<span class="token punctuation">)</span>
+<span class="token punctuation">(</span><span class="token number">1</span>.07s<span class="token punctuation">)</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br></div></div><h3 id="消费组消费"><a href="#消费组消费" class="header-anchor">¶</a> 消费组消费</h3> <ul><li><strong>消费组消费图</strong></li></ul> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/db/redis/db-redis-stream-3.png" loading="lazy" class="lazy"></p> <ul><li><p>相关命令：</p> <ul><li>XGROUP CREATE - 创建消费者组</li> <li>XREADGROUP GROUP - 读取消费者组中的消息</li> <li>XACK - 将消息标记为&quot;已处理&quot;</li> <li>XGROUP SETID - 为消费者组设置新的最后递送消息ID</li> <li>XGROUP DELCONSUMER - 删除消费者</li> <li>XGROUP DESTROY - 删除消费者组</li> <li>XPENDING - 显示待处理消息的相关信息</li> <li>XCLAIM - 转移消息的归属权</li> <li>XINFO - 查看流和消费者组的相关信息；</li> <li>XINFO GROUPS - 打印消费者组的信息；</li> <li>XINFO STREAM - 打印流信息</li></ul></li> <li><p><strong>创建消费组</strong></p></li></ul> <p>Stream通过xgroup create指令创建消费组(Consumer Group)，需要传递起始消息ID参数用来初始化last_delivered_id变量。</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xgroup create codehole cg1 <span class="token number">0</span>-0  <span class="token comment">#  表示从头开始消费</span>
+OK
+<span class="token comment"># $表示从尾部开始消费，只接受新消息，当前Stream消息会全部忽略</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xgroup create codehole cg2 $
+OK
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xinfo stream codehole  <span class="token comment"># 获取Stream信息</span>
+ <span class="token number">1</span><span class="token punctuation">)</span> length
+ <span class="token number">2</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">3</span>  <span class="token comment"># 共3个消息</span>
+ <span class="token number">3</span><span class="token punctuation">)</span> radix-tree-keys
+ <span class="token number">4</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">1</span>
+ <span class="token number">5</span><span class="token punctuation">)</span> radix-tree-nodes
+ <span class="token number">6</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">2</span>
+ <span class="token number">7</span><span class="token punctuation">)</span> <span class="token function">groups</span>
+ <span class="token number">8</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">2</span>  <span class="token comment"># 两个消费组</span>
+ <span class="token number">9</span><span class="token punctuation">)</span> first-entry  <span class="token comment"># 第一个消息</span>
+<span class="token number">10</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1527851486781</span>-0
+    <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;name&quot;</span>
+       <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;laoqian&quot;</span>
+       <span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;age&quot;</span>
+       <span class="token number">4</span><span class="token punctuation">)</span> <span class="token string">&quot;30&quot;</span>
+<span class="token number">11</span><span class="token punctuation">)</span> last-entry  <span class="token comment"># 最后一个消息</span>
+<span class="token number">12</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1527851498956</span>-0
+    <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;name&quot;</span>
+       <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;xiaoqian&quot;</span>
+       <span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;age&quot;</span>
+       <span class="token number">4</span><span class="token punctuation">)</span> <span class="token string">&quot;1&quot;</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xinfo <span class="token function">groups</span> codehole  <span class="token comment"># 获取Stream的消费组信息</span>
+<span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> name
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;cg1&quot;</span>
+   <span class="token number">3</span><span class="token punctuation">)</span> consumers
+   <span class="token number">4</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">0</span>  <span class="token comment"># 该消费组还没有消费者</span>
+   <span class="token number">5</span><span class="token punctuation">)</span> pending
+   <span class="token number">6</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">0</span>  <span class="token comment"># 该消费组没有正在处理的消息</span>
+<span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> name
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;cg2&quot;</span>
+   <span class="token number">3</span><span class="token punctuation">)</span> consumers  <span class="token comment"># 该消费组还没有消费者</span>
+   <span class="token number">4</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">0</span>
+   <span class="token number">5</span><span class="token punctuation">)</span> pending
+   <span class="token number">6</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">0</span>  <span class="token comment"># 该消费组没有正在处理的消息</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br><span class="line-number">35</span><br><span class="line-number">36</span><br><span class="line-number">37</span><br><span class="line-number">38</span><br><span class="line-number">39</span><br></div></div><ul><li><strong>消费组消费</strong></li></ul> <p>Stream提供了xreadgroup指令可以进行消费组的组内消费，需要提供消费组名称、消费者名称和起始消息ID。它同xread一样，也可以阻塞等待新消息。读到新消息后，对应的消息ID就会进入消费者的PEL(正在处理的消息)结构里，客户端处理完毕后使用xack指令通知服务器，本条消息已经处理完毕，该消息ID就会从PEL中移除。</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token comment"># &gt;号表示从当前消费组的last_delivered_id后面开始读</span>
+<span class="token comment"># 每当消费者读取一条消息，last_delivered_id变量就会前进</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xreadgroup GROUP cg1 c1 count <span class="token number">1</span> streams codehole <span class="token operator">&gt;</span>
+<span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;codehole&quot;</span>
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1527851486781</span>-0
+         <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;name&quot;</span>
+            <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;laoqian&quot;</span>
+            <span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;age&quot;</span>
+            <span class="token number">4</span><span class="token punctuation">)</span> <span class="token string">&quot;30&quot;</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xreadgroup GROUP cg1 c1 count <span class="token number">1</span> streams codehole <span class="token operator">&gt;</span>
+<span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;codehole&quot;</span>
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1527851493405</span>-0
+         <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;name&quot;</span>
+            <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;yurui&quot;</span>
+            <span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;age&quot;</span>
+            <span class="token number">4</span><span class="token punctuation">)</span> <span class="token string">&quot;29&quot;</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xreadgroup GROUP cg1 c1 count <span class="token number">2</span> streams codehole <span class="token operator">&gt;</span>
+<span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;codehole&quot;</span>
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1527851498956</span>-0
+         <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;name&quot;</span>
+            <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;xiaoqian&quot;</span>
+            <span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;age&quot;</span>
+            <span class="token number">4</span><span class="token punctuation">)</span> <span class="token string">&quot;1&quot;</span>
+      <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1527852774092</span>-0
+         <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;name&quot;</span>
+            <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;youming&quot;</span>
+            <span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;age&quot;</span>
+            <span class="token number">4</span><span class="token punctuation">)</span> <span class="token string">&quot;60&quot;</span>
+<span class="token comment"># 再继续读取，就没有新消息了</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xreadgroup GROUP cg1 c1 count <span class="token number">1</span> streams codehole <span class="token operator">&gt;</span>
+<span class="token punctuation">(</span>nil<span class="token punctuation">)</span>
+<span class="token comment"># 那就阻塞等待吧</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xreadgroup GROUP cg1 c1 block <span class="token number">0</span> count <span class="token number">1</span> streams codehole <span class="token operator">&gt;</span>
+<span class="token comment"># 开启另一个窗口，往里塞消息</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xadd codehole * name lanying age <span class="token number">61</span>
+<span class="token number">1527854062442</span>-0
+<span class="token comment"># 回到前一个窗口，发现阻塞解除，收到新消息了</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xreadgroup GROUP cg1 c1 block <span class="token number">0</span> count <span class="token number">1</span> streams codehole <span class="token operator">&gt;</span>
+<span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;codehole&quot;</span>
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1527854062442</span>-0
+         <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;name&quot;</span>
+            <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;lanying&quot;</span>
+            <span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;age&quot;</span>
+            <span class="token number">4</span><span class="token punctuation">)</span> <span class="token string">&quot;61&quot;</span>
+<span class="token punctuation">(</span><span class="token number">36</span>.54s<span class="token punctuation">)</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xinfo <span class="token function">groups</span> codehole  <span class="token comment"># 观察消费组信息</span>
+<span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> name
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;cg1&quot;</span>
+   <span class="token number">3</span><span class="token punctuation">)</span> consumers
+   <span class="token number">4</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">1</span>  <span class="token comment"># 一个消费者</span>
+   <span class="token number">5</span><span class="token punctuation">)</span> pending
+   <span class="token number">6</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">5</span>  <span class="token comment"># 共5条正在处理的信息还有没有ack</span>
+<span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> name
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;cg2&quot;</span>
+   <span class="token number">3</span><span class="token punctuation">)</span> consumers
+   <span class="token number">4</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">0</span>  <span class="token comment"># 消费组cg2没有任何变化，因为前面我们一直在操纵cg1</span>
+   <span class="token number">5</span><span class="token punctuation">)</span> pending
+   <span class="token number">6</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">0</span>
+<span class="token comment"># 如果同一个消费组有多个消费者，我们可以通过xinfo consumers指令观察每个消费者的状态</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xinfo consumers codehole cg1  <span class="token comment"># 目前还有1个消费者</span>
+<span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> name
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;c1&quot;</span>
+   <span class="token number">3</span><span class="token punctuation">)</span> pending
+   <span class="token number">4</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">5</span>  <span class="token comment"># 共5条待处理消息</span>
+   <span class="token number">5</span><span class="token punctuation">)</span> idle
+   <span class="token number">6</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">418715</span>  <span class="token comment"># 空闲了多长时间ms没有读取消息了</span>
+<span class="token comment"># 接下来我们ack一条消息</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xack codehole cg1 <span class="token number">1527851486781</span>-0
+<span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">1</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xinfo consumers codehole cg1
+<span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> name
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;c1&quot;</span>
+   <span class="token number">3</span><span class="token punctuation">)</span> pending
+   <span class="token number">4</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">4</span>  <span class="token comment"># 变成了5条</span>
+   <span class="token number">5</span><span class="token punctuation">)</span> idle
+   <span class="token number">6</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">668504</span>
+<span class="token comment"># 下面ack所有消息</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xack codehole cg1 <span class="token number">1527851493405</span>-0 <span class="token number">1527851498956</span>-0 <span class="token number">1527852774092</span>-0 <span class="token number">1527854062442</span>-0
+<span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">4</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> xinfo consumers codehole cg1
+<span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> name
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;c1&quot;</span>
+   <span class="token number">3</span><span class="token punctuation">)</span> pending
+   <span class="token number">4</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">0</span>  <span class="token comment"># pel空了</span>
+   <span class="token number">5</span><span class="token punctuation">)</span> idle
+   <span class="token number">6</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">745505</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br><span class="line-number">35</span><br><span class="line-number">36</span><br><span class="line-number">37</span><br><span class="line-number">38</span><br><span class="line-number">39</span><br><span class="line-number">40</span><br><span class="line-number">41</span><br><span class="line-number">42</span><br><span class="line-number">43</span><br><span class="line-number">44</span><br><span class="line-number">45</span><br><span class="line-number">46</span><br><span class="line-number">47</span><br><span class="line-number">48</span><br><span class="line-number">49</span><br><span class="line-number">50</span><br><span class="line-number">51</span><br><span class="line-number">52</span><br><span class="line-number">53</span><br><span class="line-number">54</span><br><span class="line-number">55</span><br><span class="line-number">56</span><br><span class="line-number">57</span><br><span class="line-number">58</span><br><span class="line-number">59</span><br><span class="line-number">60</span><br><span class="line-number">61</span><br><span class="line-number">62</span><br><span class="line-number">63</span><br><span class="line-number">64</span><br><span class="line-number">65</span><br><span class="line-number">66</span><br><span class="line-number">67</span><br><span class="line-number">68</span><br><span class="line-number">69</span><br><span class="line-number">70</span><br><span class="line-number">71</span><br><span class="line-number">72</span><br><span class="line-number">73</span><br><span class="line-number">74</span><br><span class="line-number">75</span><br><span class="line-number">76</span><br><span class="line-number">77</span><br><span class="line-number">78</span><br><span class="line-number">79</span><br><span class="line-number">80</span><br><span class="line-number">81</span><br><span class="line-number">82</span><br><span class="line-number">83</span><br><span class="line-number">84</span><br><span class="line-number">85</span><br><span class="line-number">86</span><br></div></div><h3 id="信息监控"><a href="#信息监控" class="header-anchor">¶</a> 信息监控</h3> <p>Stream提供了XINFO来实现对服务器信息的监控，可以查询：</p> <ul><li>查看队列信息</li></ul> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> Xinfo stream mq
+ <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;length&quot;</span>
+ <span class="token number">2</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">7</span>
+ <span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;radix-tree-keys&quot;</span>
+ <span class="token number">4</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">1</span>
+ <span class="token number">5</span><span class="token punctuation">)</span> <span class="token string">&quot;radix-tree-nodes&quot;</span>
+ <span class="token number">6</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">2</span>
+ <span class="token number">7</span><span class="token punctuation">)</span> <span class="token string">&quot;groups&quot;</span>
+ <span class="token number">8</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">1</span>
+ <span class="token number">9</span><span class="token punctuation">)</span> <span class="token string">&quot;last-generated-id&quot;</span>
+<span class="token number">10</span><span class="token punctuation">)</span> <span class="token string">&quot;1553585533795-9&quot;</span>
+<span class="token number">11</span><span class="token punctuation">)</span> <span class="token string">&quot;first-entry&quot;</span>
+<span class="token number">12</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;1553585533795-3&quot;</span>
+    <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;msg&quot;</span>
+       <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;4&quot;</span>
+<span class="token number">13</span><span class="token punctuation">)</span> <span class="token string">&quot;last-entry&quot;</span>
+<span class="token number">14</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;1553585533795-9&quot;</span>
+    <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;msg&quot;</span>
+       <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;10&quot;</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br></div></div><ul><li>消费组信息</li></ul> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> Xinfo <span class="token function">groups</span> mq
+<span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;name&quot;</span>
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;mqGroup&quot;</span>
+   <span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;consumers&quot;</span>
+   <span class="token number">4</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">3</span>
+   <span class="token number">5</span><span class="token punctuation">)</span> <span class="token string">&quot;pending&quot;</span>
+   <span class="token number">6</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">3</span>
+   <span class="token number">7</span><span class="token punctuation">)</span> <span class="token string">&quot;last-delivered-id&quot;</span>
+   <span class="token number">8</span><span class="token punctuation">)</span> <span class="token string">&quot;1553585533795-4&quot;</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br></div></div><ul><li>消费者组成员信息</li></ul> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> XINFO CONSUMERS mq mqGroup
+<span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;name&quot;</span>
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;consumerA&quot;</span>
+   <span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;pending&quot;</span>
+   <span class="token number">4</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">1</span>
+   <span class="token number">5</span><span class="token punctuation">)</span> <span class="token string">&quot;idle&quot;</span>
+   <span class="token number">6</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">18949894</span>
+<span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;name&quot;</span>
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;consumerB&quot;</span>
+   <span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;pending&quot;</span>
+   <span class="token number">4</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">1</span>
+   <span class="token number">5</span><span class="token punctuation">)</span> <span class="token string">&quot;idle&quot;</span>
+   <span class="token number">6</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">3092719</span>
+<span class="token number">3</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;name&quot;</span>
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;consumerC&quot;</span>
+   <span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;pending&quot;</span>
+   <span class="token number">4</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">1</span>
+   <span class="token number">5</span><span class="token punctuation">)</span> <span class="token string">&quot;idle&quot;</span>
+   <span class="token number">6</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">23683256</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br></div></div><p>至此，消息队列的操作说明大体结束！</p> <h2 id="更深入理解"><a href="#更深入理解" class="header-anchor">¶</a> 更深入理解</h2> <blockquote><p>我们结合MQ中常见问题，看Redis是如何解决的，来进一步理解Redis。</p></blockquote> <h3 id="stream用在什么样场景"><a href="#stream用在什么样场景" class="header-anchor">¶</a> Stream用在什么样场景</h3> <p>可用作时通信等，大数据分析，异地数据备份等</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/db/redis/db-redis-stream-4.png" loading="lazy" class="lazy"></p> <p>客户端可以平滑扩展，提高处理能力</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/db/redis/db-redis-stream-5.png" loading="lazy" class="lazy"></p> <h3 id="消息id的设计是否考虑了时间回拨的问题"><a href="#消息id的设计是否考虑了时间回拨的问题" class="header-anchor">¶</a> 消息ID的设计是否考虑了时间回拨的问题？</h3> <blockquote><p>在 <a href="../../algorithm/alg-domain-id-snowflake.html">分布式算法 - ID算法</a>设计中, 一个常见的问题就是时间回拨问题，那么Redis的消息ID设计中是否考虑到这个问题呢？</p></blockquote> <p>XADD生成的1553439850328-0，就是Redis生成的消息ID，由两部分组成:<strong>时间戳-序号</strong>。时间戳是毫秒级单位，是生成消息的Redis服务器时间，它是个64位整型（int64）。序号是在这个毫秒时间点内的消息序号，它也是个64位整型。</p> <p>可以通过multi批处理，来验证序号的递增：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> MULTI
+OK
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> XADD memberMessage * msg one
+QUEUED
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> XADD memberMessage * msg two
+QUEUED
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> XADD memberMessage * msg three
+QUEUED
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> XADD memberMessage * msg four
+QUEUED
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> XADD memberMessage * msg five
+QUEUED
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> EXEC
+<span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;1553441006884-0&quot;</span>
+<span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;1553441006884-1&quot;</span>
+<span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;1553441006884-2&quot;</span>
+<span class="token number">4</span><span class="token punctuation">)</span> <span class="token string">&quot;1553441006884-3&quot;</span>
+<span class="token number">5</span><span class="token punctuation">)</span> <span class="token string">&quot;1553441006884-4&quot;</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br></div></div><p>由于一个redis命令的执行很快，所以可以看到在同一时间戳内，是通过序号递增来表示消息的。</p> <p>为了保证消息是有序的，因此Redis生成的ID是单调递增有序的。由于ID中包含时间戳部分，为了避免服务器时间错误而带来的问题（例如服务器时间延后了），Redis的每个Stream类型数据都维护一个latest_generated_id属性，用于记录最后一个消息的ID。<strong>若发现当前时间戳退后（小于latest_generated_id所记录的），则采用时间戳不变而序号递增的方案来作为新消息ID</strong>（这也是序号为什么使用int64的原因，保证有足够多的的序号），从而保证ID的单调递增性质。</p> <p>强烈建议使用Redis的方案生成消息ID，因为这种时间戳+序号的单调递增的ID方案，几乎可以满足你全部的需求。但同时，记住ID是支持自定义的，别忘了！</p> <h3 id="消费者崩溃带来的会不会消息丢失问题"><a href="#消费者崩溃带来的会不会消息丢失问题" class="header-anchor">¶</a> 消费者崩溃带来的会不会消息丢失问题?</h3> <p>为了解决组内消息读取但处理期间消费者崩溃带来的消息丢失问题，STREAM 设计了 Pending 列表，用于记录读取但并未处理完毕的消息。命令XPENDIING 用来获消费组或消费内消费者的未处理完毕的消息。演示如下：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> XPENDING mq mqGroup <span class="token comment"># mpGroup的Pending情况</span>
+<span class="token number">1</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">5</span> <span class="token comment"># 5个已读取但未处理的消息</span>
+<span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;1553585533795-0&quot;</span> <span class="token comment"># 起始ID</span>
+<span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;1553585533795-4&quot;</span> <span class="token comment"># 结束ID</span>
+<span class="token number">4</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;consumerA&quot;</span> <span class="token comment"># 消费者A有3个</span>
+      <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;3&quot;</span>
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;consumerB&quot;</span> <span class="token comment"># 消费者B有1个</span>
+      <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;1&quot;</span>
+   <span class="token number">3</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;consumerC&quot;</span> <span class="token comment"># 消费者C有1个</span>
+      <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;1&quot;</span>
+
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> XPENDING mq mqGroup - + <span class="token number">10</span> <span class="token comment"># 使用 start end count 选项可以获取详细信息</span>
+<span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;1553585533795-0&quot;</span> <span class="token comment"># 消息ID</span>
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;consumerA&quot;</span> <span class="token comment"># 消费者</span>
+   <span class="token number">3</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">1654355</span> <span class="token comment"># 从读取到现在经历了1654355ms，IDLE</span>
+   <span class="token number">4</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">5</span> <span class="token comment"># 消息被读取了5次，delivery counter</span>
+<span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;1553585533795-1&quot;</span>
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;consumerA&quot;</span>
+   <span class="token number">3</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">1654355</span>
+   <span class="token number">4</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">4</span>
+<span class="token comment"># 共5个，余下3个省略 ...</span>
+
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> XPENDING mq mqGroup - + <span class="token number">10</span> consumerA <span class="token comment"># 在加上消费者参数，获取具体某个消费者的Pending列表</span>
+<span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;1553585533795-0&quot;</span>
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;consumerA&quot;</span>
+   <span class="token number">3</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">1641083</span>
+   <span class="token number">4</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">5</span>
+<span class="token comment"># 共3个，余下2个省略 ...</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br></div></div><p>每个Pending的消息有4个属性：</p> <ul><li>消息ID</li> <li>所属消费者</li> <li>IDLE，已读取时长</li> <li>delivery counter，消息被读取次数</li></ul> <p>上面的结果我们可以看到，我们之前读取的消息，都被记录在Pending列表中，说明全部读到的消息都没有处理，仅仅是读取了。那如何表示消费者处理完毕了消息呢？使用命令 XACK 完成告知消息处理完成，演示如下：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> XACK mq mqGroup <span class="token number">1553585533795</span>-0 <span class="token comment"># 通知消息处理结束，用消息ID标识</span>
+<span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">1</span>
+
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> XPENDING mq mqGroup <span class="token comment"># 再次查看Pending列表</span>
+<span class="token number">1</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">4</span> <span class="token comment"># 已读取但未处理的消息已经变为4个</span>
+<span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;1553585533795-1&quot;</span>
+<span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;1553585533795-4&quot;</span>
+<span class="token number">4</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;consumerA&quot;</span> <span class="token comment"># 消费者A，还有2个消息处理</span>
+      <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;2&quot;</span>
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;consumerB&quot;</span>
+      <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;1&quot;</span>
+   <span class="token number">3</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;consumerC&quot;</span>
+      <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;1&quot;</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br></div></div><p>有了这样一个Pending机制，就意味着在某个消费者读取消息但未处理后，消息是不会丢失的。等待消费者再次上线后，可以读取该Pending列表，就可以继续处理该消息了，保证消息的有序和不丢失。</p> <h3 id="消费者彻底宕机后如何转移给其它消费者处理"><a href="#消费者彻底宕机后如何转移给其它消费者处理" class="header-anchor">¶</a> 消费者彻底宕机后如何转移给其它消费者处理？</h3> <blockquote><p>还有一个问题，就是若某个消费者宕机之后，没有办法再上线了，那么就需要将该消费者Pending的消息，转义给其他的消费者处理，就是消息转移。</p></blockquote> <p>消息转移的操作时将某个消息转移到自己的Pending列表中。使用语法XCLAIM来实现，需要设置组、转移的目标消费者和消息ID，同时需要提供IDLE（已被读取时长），只有超过这个时长，才能被转移。演示如下：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token comment"># 当前属于消费者A的消息1553585533795-1，已经15907,787ms未处理了</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> XPENDING mq mqGroup - + <span class="token number">10</span>
+<span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;1553585533795-1&quot;</span>
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;consumerA&quot;</span>
+   <span class="token number">3</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">15907787</span>
+   <span class="token number">4</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">4</span>
+
+<span class="token comment"># 转移超过3600s的消息1553585533795-1到消费者B的Pending列表</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> XCLAIM mq mqGroup consumerB <span class="token number">3600000</span> <span class="token number">1553585533795</span>-1
+<span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;1553585533795-1&quot;</span>
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;msg&quot;</span>
+      <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;2&quot;</span>
+
+<span class="token comment"># 消息1553585533795-1已经转移到消费者B的Pending中。</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> XPENDING mq mqGroup - + <span class="token number">10</span>
+<span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;1553585533795-1&quot;</span>
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;consumerB&quot;</span>
+   <span class="token number">3</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">84404</span> <span class="token comment"># 注意IDLE，被重置了</span>
+   <span class="token number">4</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">5</span> <span class="token comment"># 注意，读取次数也累加了1次</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br></div></div><p>以上代码，完成了一次消息转移。转移除了要指定ID外，还需要指定IDLE，保证是长时间未处理的才被转移。被转移的消息的IDLE会被重置，用以保证不会被重复转移，以为可能会出现将过期的消息同时转移给多个消费者的并发操作，设置了IDLE，则可以避免后面的转移不会成功，因为IDLE不满足条件。例如下面的连续两条转移，第二条不会成功。</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> XCLAIM mq mqGroup consumerB <span class="token number">3600000</span> <span class="token number">1553585533795</span>-1
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> XCLAIM mq mqGroup consumerC <span class="token number">3600000</span> <span class="token number">1553585533795</span>-1
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br></div></div><p>这就是消息转移。至此我们使用了一个Pending消息的ID，所属消费者和IDLE的属性，还有一个属性就是消息被读取次数，delivery counter，该属性的作用由于统计消息被读取的次数，包括被转移也算。这个属性主要用在判定是否为错误数据上。</p> <h3 id="坏消息问题dead-letter死信问题"><a href="#坏消息问题dead-letter死信问题" class="header-anchor">¶</a> 坏消息问题，Dead Letter，死信问题</h3> <p>正如上面所说，如果某个消息，不能被消费者处理，也就是不能被XACK，这是要长时间处于Pending列表中，即使被反复的转移给各个消费者也是如此。此时该消息的delivery counter就会累加（上一节的例子可以看到），当累加到某个我们预设的临界值时，我们就认为是坏消息（也叫死信，DeadLetter，无法投递的消息），由于有了判定条件，我们将坏消息处理掉即可，删除即可。删除一个消息，使用XDEL语法，演示如下：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token comment"># 删除队列中的消息</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> XDEL mq <span class="token number">1553585533795</span>-1
+<span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">1</span>
+<span class="token comment"># 查看队列中再无此消息</span>
+<span class="token number">127.0</span>.0.1:637<span class="token operator"><span class="token file-descriptor important">9</span>&gt;</span> XRANGE mq - +
+<span class="token number">1</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;1553585533795-0&quot;</span>
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;msg&quot;</span>
+      <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;1&quot;</span>
+<span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;1553585533795-2&quot;</span>
+   <span class="token number">2</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;msg&quot;</span>
+      <span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;3&quot;</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br></div></div><p>注意本例中，并没有删除Pending中的消息因此你查看Pending，消息还会在。可以执行XACK标识其处理完毕！</p> <h2 id="参考文章"><a href="#参考文章" class="header-anchor">¶</a> 参考文章</h2> <p>本文主要梳理总结自：</p> <ul><li>https://www.runoob.com/redis/redis-stream.html</li> <li>https://www.zhihu.com/question/279540635</li> <li>https://zhuanlan.zhihu.com/p/60501638</li></ul></div> <div class="page-contract"><h2>联系我</h2> <div class="c-content"><span style="font-size:1rem;font-weight:bold;">添加@pdai微信</span><br> <img src="../../../pdai.jpg" height="280px" style="margin:10px;"><br>
+        PS：添加时请备注<b>Java全栈</b>，谢谢！
+      </div></div> <footer class="page-edit"><div class="edit-link"><a href="https://github.com/realpdai/tech-arch-doc/edit/master/md/db/nosql-redis/db-redis-data-type-stream.md" target="_blank" rel="noopener noreferrer">在 GitHub 上编辑此页</a> <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></div> <div class="last-updated"><span class="prefix">上次更新: </span> <span class="time">9/27/2021,</span></div></footer> <div class="page-nav"><p class="inner"><span class="prev">
+        ←
+        <a href="db-redis-data-type-special.html" class="prev">
+          Redis入门 - 数据类型：3种特殊类型详解
+        </a></span> <span class="next"><a href="db-redis-x-redis-object.html">
+          Redis进阶 - 数据结构：对象机制详解
+        </a>
+        →
+      </span></p></div> <div class="google_ad_bottom"><ins data-ad-client="ca-pub-5088193899865249" data-ad-slot="6822031208" data-ad-format="auto" data-full-width-responsive="true" class="adsbygoogle" style="display:block"></ins> <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script></div> </main></div> <aside class="page-sidebar"> <div class="page-side-toolbar"><div class="option-box-toc-fixed"><div class="toc-container-sidebar"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:650px"><div style="font-weight:bold;text-align:center;">Redis入门 - 数据类型：Stream详解</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="db-redis-data-type-stream.html#为什么会设计stream" class="toc-sidebar-link">为什么会设计Stream</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="db-redis-data-type-stream.html#stream详解" class="toc-sidebar-link">Stream详解</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="db-redis-data-type-stream.html#stream的结构" class="toc-sidebar-link">Stream的结构</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-data-type-stream.html#增删改查" class="toc-sidebar-link">增删改查</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-data-type-stream.html#独立消费" class="toc-sidebar-link">独立消费</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-data-type-stream.html#消费组消费" class="toc-sidebar-link">消费组消费</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-data-type-stream.html#信息监控" class="toc-sidebar-link">信息监控</a></li></ul></li><li><a href="db-redis-data-type-stream.html#更深入理解" class="toc-sidebar-link">更深入理解</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="db-redis-data-type-stream.html#stream用在什么样场景" class="toc-sidebar-link">Stream用在什么样场景</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-data-type-stream.html#消息id的设计是否考虑了时间回拨的问题" class="toc-sidebar-link">消息ID的设计是否考虑了时间回拨的问题？</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-data-type-stream.html#消费者崩溃带来的会不会消息丢失问题" class="toc-sidebar-link">消费者崩溃带来的会不会消息丢失问题?</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-data-type-stream.html#消费者彻底宕机后如何转移给其它消费者处理" class="toc-sidebar-link">消费者彻底宕机后如何转移给其它消费者处理？</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-data-type-stream.html#坏消息问题dead-letter死信问题" class="toc-sidebar-link">坏消息问题，Dead Letter，死信问题</a></li></ul></li><li><a href="db-redis-data-type-stream.html#参考文章" class="toc-sidebar-link">参考文章</a><ul class="toc-sidebar-sub-headers"></ul></li></ul></div></div></div></div></div> <div class="option-box-toc-over"><img src="../../../toc.png" class="nozoom"> <span class="show-txt">目录</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:550px"><div style="font-weight:bold;text-align:center;">Redis入门 - 数据类型：Stream详解</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="db-redis-data-type-stream.html#为什么会设计stream" class="toc-sidebar-link">为什么会设计Stream</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="db-redis-data-type-stream.html#stream详解" class="toc-sidebar-link">Stream详解</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="db-redis-data-type-stream.html#stream的结构" class="toc-sidebar-link">Stream的结构</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-data-type-stream.html#增删改查" class="toc-sidebar-link">增删改查</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-data-type-stream.html#独立消费" class="toc-sidebar-link">独立消费</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-data-type-stream.html#消费组消费" class="toc-sidebar-link">消费组消费</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-data-type-stream.html#信息监控" class="toc-sidebar-link">信息监控</a></li></ul></li><li><a href="db-redis-data-type-stream.html#更深入理解" class="toc-sidebar-link">更深入理解</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="db-redis-data-type-stream.html#stream用在什么样场景" class="toc-sidebar-link">Stream用在什么样场景</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-data-type-stream.html#消息id的设计是否考虑了时间回拨的问题" class="toc-sidebar-link">消息ID的设计是否考虑了时间回拨的问题？</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-data-type-stream.html#消费者崩溃带来的会不会消息丢失问题" class="toc-sidebar-link">消费者崩溃带来的会不会消息丢失问题?</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-data-type-stream.html#消费者彻底宕机后如何转移给其它消费者处理" class="toc-sidebar-link">消费者彻底宕机后如何转移给其它消费者处理？</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-data-type-stream.html#坏消息问题dead-letter死信问题" class="toc-sidebar-link">坏消息问题，Dead Letter，死信问题</a></li></ul></li><li><a href="db-redis-data-type-stream.html#参考文章" class="toc-sidebar-link">参考文章</a><ul class="toc-sidebar-sub-headers"></ul></li></ul></div></div></div></div></div> <div class="option-box"><img src="../../../wechat.png" class="nozoom"> <span class="show-txt">手机看</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.9rem">微信扫一扫</span> <img height="180px" src="https://api.qrserver.com/v1/create-qr-code/?data=https://www.pdai.tech/md/db/nosql-redis/db-redis-data-type-stream.html" style="margin:10px;">
+              可以<b>手机看</b>或分享至<b>朋友圈</b></div></div></div></div> <div class="option-box"><a title="点击切换全屏" style="text-align:center;padding-left:2px;"><img src="../../../full.png" width="30px" class="nozoom"> <span style="color:gray;font-size:11px;font-weight:400;">全屏看</span></a></div> <div class="option-box"><img src="../../../toggle.png" width="30px" class="nozoom"> <span class="show-txt">左栏</span></div> <div class="option-box"><img src="../../../wexin2.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:yellow">交流圈</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">添加pdai微信进《Java全栈知识体系》学习交流圈「无任何套路」</span> <img src="../../../pdai.jpg" height="180px" style="margin:10px;">
+              PS：添加时请备注<b>Java全栈</b>，谢谢！
+            </div></div></div></div> <div class="option-box"><img src="../../../download.jpg" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:#a6f792">下资料</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">扫描公众号，回复“资料”下载<font style="color:red;">10GB+</font>书籍资料「无任何套路」</span> <img src="../../../pdai_gzh.jpg" height="180px" style="margin:10px;"> <b>公众号:</b> Java全栈知识体系
+            </div></div></div></div> <div class="option-box"><img src="../../../heart.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;background-color:#gray">支持我</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">鼓励/支持/赞赏我</span> <img src="../../../pdai-guli.png" height="180px" width="200px" style="margin:5px;">
+              1. 不靠它生存但仍希望得到你的鼓励；<br> 2. 时刻警醒自己保持技术人的初心，恒心，简单，利他；
+            </div></div></div></div> <div title="Redis入门 - 数据类型：3种特殊类型详解" class="option-box" style="padding-left:2px;text-align:center;"><a href="db-redis-data-type-special.html"><img src="../../../pre2.png" width="30px" class="nozoom"> <span class="show-txt">上一篇</span></a></div> <div title="Redis进阶 - 数据结构：对象机制详解" class="option-box" style="padding-left:2px;text-align:center;"><a href="db-redis-x-redis-object.html"><img src="../../../next2.png" width="30px" class="nozoom"> <span class="show-txt">下一篇</span></a></div></div>  <div class="page-side-sitemap"><div class="option-box"><img src="../../../sitemap.png" class="nozoom img"> <span class="show-txt">站点图</span> <div class="sitemap-container"><h4>站点导航图
+            <a href="../../about/me/about-me.html" class="sitemap-top-link"> 关于我</a> <a href="../../about/blog/blog-build-vuepress.html" class="sitemap-top-link"> 关于站点</a> <a href="../../about/me/blog-changelist.html" class="sitemap-top-link"> 最近更新记录</a> <a href="../../about/me/blog-question.html" class="sitemap-top-link"><font style="color:red;background-color:yellow;">问题反馈</font></a></h4> <table class="sitemap-table"><tr><td nowrap="nowrap"><div class="sitemap-col-group">常用搜索</div></td> <td><div class="sitemap-col-item"><a href="http://www.baidu.com/" target="_blank" title="百度">  
+            百度
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.google.com/" target="_blank" title="Google">  
+            Google
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.bing.com/" target="_blank" title="Bing">  
+            Bing
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://github.com/" target="_blank" title="Github">  
+            Github
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.programcreek.com/java-api-examples/index.php" target="_blank" title="搜代码">  
+            搜代码
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">技术社区</div></td> <td><div class="sitemap-col-item"><a href="http://www.csdn.net/" target="_blank" title="CDSN">  
+            CDSN
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.cnblogs.com/" target="_blank" title="博客园">  
+            博客园
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.oschina.net/" target="_blank" title="OSChina">  
+            OSChina
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://segmentfault.com/" target="_blank" title="知否">  
+            知否
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://juejin.im/" target="_blank" title="掘金">  
+            掘金
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.linuxidc.com/" target="_blank" title="Linux公社">  
+            Linux公社
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.ibm.com/developerworks/cn/" target="_blank" title="IBM 开发者">  
+            IBM 开发者
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://stackoverflow.com/" target="_blank" title="StackOverflow">  
+            StackOverflow
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">Java相关</div></td> <!----> <td><a href="../../java/basic/java-basic-oop.html" class="sitemap-col-item">
+            面向对象基础
+          </a><a href="../../java/basic/java-basic-lan-basic.html" class="sitemap-col-item">
+            语法基础
+          </a><a href="../../java/collection/java-collection-all.html" class="sitemap-col-item">
+            集合框架
+          </a><a href="../../java/thread/java-thread-x-overview.html" class="sitemap-col-item">
+            并发基础
+          </a><a href="../../java/thread/java-thread-x-key-synchronized.html" class="sitemap-col-item">
+            并发关键字
+          </a><a href="../../java/thread/java-thread-x-juc-overview.html" class="sitemap-col-item">
+            JUC并发框架
+          </a><a href="../../java/io/java-io-overview.html" class="sitemap-col-item">
+            IO框架
+          </a><a href="../../java/java8/java8.html" class="sitemap-col-item">
+            Java8 特性
+          </a><a href="../../java/jvm/java-jvm-x-overview.html" class="sitemap-col-item">
+            JVM基础
+          </a><a href="../../java/jvm/java-jvm-param.html" class="sitemap-col-item">
+            调试排错
+          </a><a href="../../java/others/java-others-awesome-java.html" class="sitemap-col-item">
+            更多资源
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">算法相关</div></td> <!----> <td><a href="../../algorithm/alg-basic-array.html" class="sitemap-col-item">
+            数组与线性表
+          </a><a href="../../algorithm/alg-basic-tree.html" class="sitemap-col-item">
+            树详解
+          </a><a href="../../algorithm/alg-basic-graph.html" class="sitemap-col-item">
+            图详解
+          </a><a href="../../algorithm/alg-sort-overview.html" class="sitemap-col-item">
+            内部排序
+          </a><a href="../../algorithm/alg-core-divide-and-conquer.html" class="sitemap-col-item">
+            算法思想
+          </a><a href="../../algorithm/alg-domain-security-degist.html" class="sitemap-col-item">
+            安全算法
+          </a><a href="../../algorithm/alg-domain-bigdata-overview.html" class="sitemap-col-item">
+            大数据处理
+          </a><a href="../../algorithm/alg-domain-distribute-overview.html" class="sitemap-col-item">
+            分布式算法
+          </a><a href="../../algorithm/alg-domain-load-balance.html" class="sitemap-col-item">
+            负载均衡算法
+          </a><a href="../../algorithm/alg-domain-suggest.html" class="sitemap-col-item">
+            推荐算法
+          </a><a href="../../algorithm/alg-other-mind.html" class="sitemap-col-item">
+            头脑风暴
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">数据库相关</div></td> <!----> <td><a href="../sql/sql-db-howitworks.html" class="sitemap-col-item">
+            数据库原理
+          </a><a href="../sql-lan/sql-lan.html" class="sitemap-col-item">
+            SQL语言
+          </a><a href="../sql-mysql/sql-mysql-theory.html" class="sitemap-col-item">
+            MySQL相关
+          </a><a href="../nosql-mongo/mongo-performance-improve.html" class="sitemap-col-item">
+            MongoDB
+          </a><a href="../nosql-es/elasticsearch.html" class="sitemap-col-item">
+            ElasticSearch
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">开发基础相关</div></td> <!----> <td><a href="../../develop/package/dev-package-x-apache-common.html" class="sitemap-col-item">
+            常用类库
+          </a><a href="../../develop/ut/dev-ut-x-junit.html" class="sitemap-col-item">
+            单元测试
+          </a><a href="../../develop/regex/dev-regex-all.html" class="sitemap-col-item">
+            正则表达式
+          </a><a href="../../develop/protocol/dev-protocol-overview.html" class="sitemap-col-item">
+            网络协议
+          </a><a href="../../develop/security/dev-security-overview.html" class="sitemap-col-item">
+            安全相关
+          </a><a href="../../develop/refactor/dev-refactor-if-else.html" class="sitemap-col-item">
+            常见重构技巧
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">架构相关</div></td> <!----> <td><a href="../../arch/arch-x-basic.html" class="sitemap-col-item">
+            架构基础
+          </a><a href="../../arch/arch-x-view.html" class="sitemap-col-item">
+            架构视角
+          </a><a href="../../arch/arch-x-evolution.html" class="sitemap-col-item">
+            架构演进
+          </a><a href="../../arch/arch-x-pattern.html" class="sitemap-col-item">
+            架构模式和要素
+          </a><a href="../../arch/arch-y-cache.html" class="sitemap-col-item">
+            高并发之缓存
+          </a><a href="../../arch/arch-y-ratelimit.html" class="sitemap-col-item">
+            高并发之限流
+          </a><a href="../../arch/arch-y-reduce.html" class="sitemap-col-item">
+            高并发之降级
+          </a><a href="../../arch/arch-y-loadbalance.html" class="sitemap-col-item">
+            负载均衡
+          </a><a href="../../arch/arch-y-backup.html" class="sitemap-col-item">
+            容灾备份
+          </a><a href="../../arch/arch-x-security.html" class="sitemap-col-item">
+            架构安全
+          </a><a href="../../arch/arch-example-seckill.html" class="sitemap-col-item">
+            秒杀系统设计
+          </a><a href="../../arch/arch-example-goods-detail.html" class="sitemap-col-item">
+            架构案例
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">工具和部署</div></td> <!----> <td><a href="../../devops/tool/tool-list-overview.html" class="sitemap-col-item">
+            工具集合
+          </a><a href="../../devops/tool/tool-ide.html" class="sitemap-col-item">
+            IDE相关
+          </a><a href="../../devops/tool/tool-git.html" class="sitemap-col-item">
+            Git
+          </a><a href="../../devops/tool/tool-maven.html" class="sitemap-col-item">
+            Maven
+          </a><a href="../../devops/linux/linux.html" class="sitemap-col-item">
+            Linux
+          </a><a href="../../devops/docker/docker-00-overview.html" class="sitemap-col-item">
+            Docker
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">方法论</div></td> <!----> <td><a href="../../dev-spec/spec/dev-th-solid.html" class="sitemap-col-item">
+            SOLID
+          </a><a href="../../dev-spec/spec/dev-th-cap.html" class="sitemap-col-item">
+            CAP
+          </a><a href="../../dev-spec/spec/dev-th-base.html" class="sitemap-col-item">
+            BASE
+          </a><a href="../../dev-spec/spec/dev-opensource.html" class="sitemap-col-item">
+            开源协议
+          </a><a href="../../dev-spec/code-style/code-style-alibaba.html" class="sitemap-col-item">
+            代码规范
+          </a><a href="../../dev-spec/pattern/1_overview.html" class="sitemap-col-item">
+            设计模式
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">产品和团队</div></td> <!----> <td><a href="../../team/team-z-wechat.html" class="sitemap-col-item">
+            产品相关
+          </a><a href="../../team/team-z-task-emergency.html" class="sitemap-col-item">
+            团队相关
+          </a><a href="../../team/team-z-arch-future.html" class="sitemap-col-item">
+            其它分享
+          </a></td></tr></table></div></div></div> <!----> </aside></div><div class="global-ui"></div></div>
+    <script src="../../../assets/js/app.691e72ae.js" defer></script><script src="../../../assets/js/4.2e3efdf6.js" defer></script><script src="../../../assets/js/3.d77b006c.js" defer></script><script src="../../../assets/js/201.33b3f7d0.js" defer></script>
+  </body>
+
+<!-- Mirrored from www.pdai.tech/md/db/nosql-redis/db-redis-data-type-stream.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:30:58 GMT -->
+</html>

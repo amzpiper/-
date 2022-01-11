@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  
+<!-- Mirrored from www.pdai.tech/md/framework/orm-mybatis/mybatis-y-trans.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:31:53 GMT -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>MyBatis详解 - 事务管理机制 | Java 全栈知识体系</title>
+    <meta name="generator" content="VuePress 1.8.2">
+    <link rel="icon" href="../../../favicon.ico">
+    <script src="../../../../hm.baidu.com/hma448.js?525d4abc4a8675472736969f817ceb47"></script>
+    <script defer="defer" async="async" src="../../../../pagead2.googlesyndication.com/pagead/js/f.txt"></script>
+    <meta name="description" content="包含: Java 基础, Java 部分源码, JVM, Spring, Spring Boot, Spring Cloud, 数据库原理, MySQL, ElasticSearch, MongoDB, Docker, k8s, CI&CD, Linux, DevOps, 分布式, 中间件, 开发工具, Git, IDE, 源码阅读，读书笔记, 开源项目...">
+    <meta property="article:modified_time" content="2021-09-27T13:15:21.000Z">
+    <meta property="og:title" content="MyBatis详解 - 事务管理机制">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="/md/framework/orm-mybatis/mybatis-y-trans.html">
+    <meta name="twitter:title" content="MyBatis详解 - 事务管理机制">
+    <meta name="twitter:url" content="/md/framework/orm-mybatis/mybatis-y-trans.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="robots" content="all">
+    <meta name="author" content="pdai">
+    <meta name="keywords" content="Java 全栈知识体系, java体系, java知识体系, java框架,java全栈,java学习路线,java全栈知识, java面试, 知识体系, java技术体系, java编程, java编程指南,java开发体系, java开发,java教程,java,java数据结构, 算法, 开发基础">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <link rel="preload" href="../../../assets/css/0.styles.d4bb5489.css" as="style"><link rel="preload" href="../../../assets/js/app.691e72ae.js" as="script"><link rel="preload" href="../../../assets/js/4.2e3efdf6.js" as="script"><link rel="preload" href="../../../assets/js/3.d77b006c.js" as="script"><link rel="preload" href="../../../assets/js/389.7b8cf3d0.js" as="script">
+    <link rel="stylesheet" href="../../../assets/css/0.styles.d4bb5489.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="../../../index.html" class="home-link router-link-active"><!----> <span class="site-name">Java 全栈知识体系</span></a> <div class="links"><form id="search-form" role="search" class="algolia-search-wrapper search-box"><input id="algolia-search-input" class="search-query"></form> <nav class="nav-links can-hide"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav>  <ul class="sidebar-links"><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Web容器 - Tomcat知识体系详解</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../tomcat/tomcat-x-design-web-container.html" class="sidebar-link">Tomcat - 如何设计一个简单的web容器</a></li><li><a href="../tomcat/tomcat-x-arch.html" class="sidebar-link">Tomcat - 理解Tomcat架构设计</a></li><li><a href="../tomcat/tomcat-x-sourcecode.html" class="sidebar-link">Tomcat - 源码分析准备和分析入口</a></li><li><a href="../tomcat/tomcat-x-start.html" class="sidebar-link">Tomcat - 启动过程：初始化和启动流程</a></li><li><a href="../tomcat/tomcat-x-classloader.html" class="sidebar-link">Tomcat - 启动过程:类加载机制详解</a></li><li><a href="../tomcat/tomcat-x-catalina.html" class="sidebar-link">Tomcat - 启动过程:Catalina的加载</a></li><li><a href="../tomcat/tomcat-x-lifecycle.html" class="sidebar-link">Tomcat - 组件生命周期管理:LifeCycle</a></li><li><a href="../tomcat/tomcat-x-jmx.html" class="sidebar-link">Tomcat - 组件拓展管理:JMX和MBean</a></li><li><a href="../tomcat/tomcat-x-listener.html" class="sidebar-link">Tomcat - 事件的监听机制：观察者模式</a></li><li><a href="../tomcat/tomcat-x-server.html" class="sidebar-link">Tomcat - Server的设计和实现: StandardServer</a></li><li><a href="../tomcat/tomcat-x-service.html" class="sidebar-link">Tomcat - Service的设计和实现: StandardService</a></li><li><a href="../tomcat/tomcat-x-executor.html" class="sidebar-link">Tomcat - 线程池的设计与实现：StandardThreadExecutor</a></li><li><a href="../tomcat/tomcat-x-container.html" class="sidebar-link">Tomcat - Request请求处理: Container设计</a></li><li><a href="../tomcat/tomcat-x-container-engine.html" class="sidebar-link">Tomcat - Container容器之Engine：StandardEngine</a></li><li><a href="../tomcat/tomcat-x-container-pipline.html" class="sidebar-link">Tomcat - Container的管道机制：责任链模式</a></li><li><a href="../tomcat/tomcat-x-connector.html" class="sidebar-link">Tomcat - Request请求处理过程：Connector</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading open"><span>ORM框架 - MyBatis知识体系详解</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="mybatis-y-arch.html" class="sidebar-link">MyBatis详解 - 总体框架设计</a></li><li><a href="mybatis-y-init.html" class="sidebar-link">MyBatis详解 - 初始化基本过程</a></li><li><a href="mybatis-y-config-load.html" class="sidebar-link">MyBatis详解 - 配置解析过程</a></li><li><a href="mybatis-y-config-list.html" class="sidebar-link">MyBatis详解 - 官网配置清单</a></li><li><a href="mybatis-y-config-mapper.html" class="sidebar-link">MyBatis详解 - Mapper映射文件配置</a></li><li><a href="mybatis-y-sql-exec.html" class="sidebar-link">MyBatis详解 - sqlSession执行流程</a></li><li><a href="mybatis-y-dynamic-sql.html" class="sidebar-link">MyBatis详解 - 动态SQL使用与原理</a></li><li><a href="mybatis-y-plugin.html" class="sidebar-link">MyBatis详解 - 插件机制</a></li><li><a href="mybatis-y-plugin-page.html" class="sidebar-link">MyBatis详解 - 插件之分页机制</a></li><li><a href="mybatis-y-datasource.html" class="sidebar-link">MyBatis详解 - 数据源与连接池</a></li><li><a href="mybatis-y-trans.html" aria-current="page" class="active sidebar-link">MyBatis详解 - 事务管理机制</a></li><li><a href="mybatis-y-cache-level1.html" class="sidebar-link">MyBatis详解 - 一级缓存实现机制</a></li><li><a href="mybatis-y-cache-level2.html" class="sidebar-link">MyBatis详解 - 二级缓存实现机制</a></li></ul></section></li></ul> </aside> <div><main class="page"> <div class="theme-default-content content__default"><h1 id="mybatis详解---事务管理机制"><a href="#mybatis详解---事务管理机制" class="header-anchor">¶</a> MyBatis详解 - 事务管理机制</h1> <blockquote><p>本文主要介绍MyBatis事务管理相关的使用和机制。@pdai</p></blockquote> <ul><li><a href="#mybatis%E8%AF%A6%E8%A7%A3---%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86%E6%9C%BA%E5%88%B6">MyBatis详解 - 事务管理机制</a> <ul><li><a href="#%E6%A6%82%E8%BF%B0">概述</a></li> <li><a href="#%E5%AE%98%E7%BD%91%E5%85%B3%E4%BA%8E%E4%BA%8B%E5%8A%A1%E9%85%8D%E7%BD%AE%E7%9A%84%E5%86%85%E5%AE%B9">官网关于事务配置的内容</a></li> <li><a href="#%E4%BA%8B%E5%8A%A1%E7%9A%84%E9%85%8D%E7%BD%AE%E5%88%9B%E5%BB%BA%E5%92%8C%E4%BD%BF%E7%94%A8">事务的配置、创建和使用</a> <ul><li><a href="#%E4%BA%8B%E5%8A%A1%E7%9A%84%E9%85%8D%E7%BD%AE">事务的配置</a></li> <li><a href="#%E4%BA%8B%E5%8A%A1%E5%B7%A5%E5%8E%82%E7%9A%84%E5%88%9B%E5%BB%BA">事务工厂的创建</a></li> <li><a href="#%E4%BA%8B%E5%8A%A1%E5%B7%A5%E5%8E%82transactionfactory">事务工厂TransactionFactory</a></li> <li><a href="#%E4%BA%8B%E5%8A%A1transaction%E7%9A%84%E5%88%9B%E5%BB%BA">事务Transaction的创建</a></li> <li><a href="#jdbctransaction">JdbcTransaction</a></li> <li><a href="#managedtransaction">ManagedTransaction</a></li></ul></li></ul></li></ul> <h2 id="概述"><a href="#概述" class="header-anchor">¶</a> 概述</h2> <p>对数据库的事务而言，应该具有以下几点：创建（create）、提交（commit）、回滚（rollback）、关闭（close）。对应地，MyBatis将事务抽象成了Transaction接口：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/mybatis/mybatis-y-trans-1.png" loading="lazy" class="lazy"></p> <p>MyBatis的事务管理分为两种形式：</p> <ul><li><strong>使用JDBC的事务管理机制</strong>：即利用java.sql.Connection对象完成对事务的提交（commit()）、回滚（rollback()）、关闭（close()）等。</li> <li><strong>使用MANAGED的事务管理机制</strong>：这种机制MyBatis自身不会去实现事务管理，而是让程序的容器如（JBOSS，Weblogic）来实现对事务的管理。</li></ul> <p>这两者的类图如下所示：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/mybatis/mybatis-y-trans-2.png" loading="lazy" class="lazy"></p> <h2 id="官网关于事务配置的内容"><a href="#官网关于事务配置的内容" class="header-anchor">¶</a> 官网关于事务配置的内容</h2> <p>在 MyBatis 中有两种类型的事务管理器（也就是 <code>type=&quot;[JDBC|MANAGED]&quot;</code>）：</p> <ul><li><strong>JDBC</strong> – 这个配置直接使用了 JDBC 的提交和回滚设施，它依赖从数据源获得的连接来管理事务作用域。</li> <li><strong>MANAGED</strong> – 这个配置几乎没做什么。它从不提交或回滚一个连接，而是让容器来管理事务的整个生命周期（比如 JEE 应用服务器的上下文）。 默认情况下它会关闭连接。然而一些容器并不希望连接被关闭，因此需要将 closeConnection 属性设置为 false 来阻止默认的关闭行为。例如:</li></ul> <div class="language-xml line-numbers-mode"><pre class="language-xml"><code><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>transactionManager</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>MANAGED<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>closeConnection<span class="token punctuation">&quot;</span></span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>false<span class="token punctuation">&quot;</span></span><span class="token punctuation">/&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>transactionManager</span><span class="token punctuation">&gt;</span></span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br></div></div><blockquote><p>如果你正在使用 Spring + MyBatis，则没有必要配置事务管理器，因为 Spring 模块会使用自带的管理器来覆盖前面的配置。</p></blockquote> <p>这两种事务管理器类型都不需要设置任何属性。它们其实是类型别名，换句话说，你可以用 TransactionFactory 接口实现类的全限定名或类型别名代替它们。</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token keyword">public</span> <span class="token keyword">interface</span> <span class="token class-name">TransactionFactory</span> <span class="token punctuation">{</span>
+  <span class="token keyword">default</span> <span class="token keyword">void</span> <span class="token function">setProperties</span><span class="token punctuation">(</span><span class="token class-name">Properties</span> props<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// 从 3.5.2 开始，该方法为默认方法</span>
+    <span class="token comment">// 空实现</span>
+  <span class="token punctuation">}</span>
+  <span class="token class-name">Transaction</span> <span class="token function">newTransaction</span><span class="token punctuation">(</span><span class="token class-name">Connection</span> conn<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token class-name">Transaction</span> <span class="token function">newTransaction</span><span class="token punctuation">(</span><span class="token class-name">DataSource</span> dataSource<span class="token punctuation">,</span> <span class="token class-name">TransactionIsolationLevel</span> level<span class="token punctuation">,</span> <span class="token keyword">boolean</span> autoCommit<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br></div></div><p>在事务管理器实例化后，所有在 XML 中配置的属性将会被传递给 setProperties() 方法。你的实现还需要创建一个 Transaction 接口的实现类，这个接口也很简单：</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token keyword">public</span> <span class="token keyword">interface</span> <span class="token class-name">Transaction</span> <span class="token punctuation">{</span>
+  <span class="token class-name">Connection</span> <span class="token function">getConnection</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">SQLException</span><span class="token punctuation">;</span>
+  <span class="token keyword">void</span> <span class="token function">commit</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">SQLException</span><span class="token punctuation">;</span>
+  <span class="token keyword">void</span> <span class="token function">rollback</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">SQLException</span><span class="token punctuation">;</span>
+  <span class="token keyword">void</span> <span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">SQLException</span><span class="token punctuation">;</span>
+  <span class="token class-name">Integer</span> <span class="token function">getTimeout</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">SQLException</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br></div></div><p>使用这两个接口，你可以完全自定义 MyBatis 对事务的处理。</p> <h2 id="事务的配置、创建和使用"><a href="#事务的配置、创建和使用" class="header-anchor">¶</a> 事务的配置、创建和使用</h2> <h3 id="事务的配置"><a href="#事务的配置" class="header-anchor">¶</a> 事务的配置</h3> <p>我们在使用MyBatis时，一般会在MyBatisXML配置文件中定义类似如下的信息：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/mybatis/mybatis-y-trans-3.png" loading="lazy" class="lazy"></p> <p><code>&lt;environment&gt;</code>节点定义了连接某个数据库的信息，其子节点<code>&lt;transactionManager&gt;</code> 的type 会决定我们用什么类型的事务管理机制。</p> <h3 id="事务工厂的创建"><a href="#事务工厂的创建" class="header-anchor">¶</a> 事务工厂的创建</h3> <p>MyBatis事务的创建是交给TransactionFactory 事务工厂来创建的，如果我们将<code>&lt;transactionManager&gt;</code>的type 配置为&quot;JDBC&quot;,那么，在MyBatis初始化解析 <code>&lt;environment&gt;</code>节点时，会根据type=&quot;JDBC&quot;创建一个JdbcTransactionFactory工厂，其源码如下：</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token comment">/** 
+ * 解析&lt;transactionManager&gt;节点，创建对应的TransactionFactory 
+ * @param context 
+ * @return 
+ * @throws Exception 
+ */</span>  
+<span class="token keyword">private</span> <span class="token class-name">TransactionFactory</span> <span class="token function">transactionManagerElement</span><span class="token punctuation">(</span><span class="token class-name">XNode</span> context<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">{</span>  
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>context <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+        <span class="token class-name">String</span> type <span class="token operator">=</span> context<span class="token punctuation">.</span><span class="token function">getStringAttribute</span><span class="token punctuation">(</span><span class="token string">&quot;type&quot;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        <span class="token class-name">Properties</span> props <span class="token operator">=</span> context<span class="token punctuation">.</span><span class="token function">getChildrenAsProperties</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        <span class="token comment">/* 
+         * 在Configuration初始化的时候，会通过以下语句，给JDBC和MANAGED对应的工厂类 
+         * typeAliasRegistry.registerAlias(&quot;JDBC&quot;, JdbcTransactionFactory.class); 
+         * typeAliasRegistry.registerAlias(&quot;MANAGED&quot;, ManagedTransactionFactory.class); 
+         * 下述的resolveClass(type).newInstance()会创建对应的工厂实例 
+         */</span>  
+        <span class="token class-name">TransactionFactory</span> factory <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">TransactionFactory</span><span class="token punctuation">)</span> <span class="token function">resolveClass</span><span class="token punctuation">(</span>type<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">newInstance</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        factory<span class="token punctuation">.</span><span class="token function">setProperties</span><span class="token punctuation">(</span>props<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        <span class="token keyword">return</span> factory<span class="token punctuation">;</span>  
+    <span class="token punctuation">}</span>  
+    <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">BuilderException</span><span class="token punctuation">(</span><span class="token string">&quot;Environment declaration requires a TransactionFactory.&quot;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+<span class="token punctuation">}</span>  
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br></div></div><p>如上述代码所示，如果type = &quot;JDBC&quot;,则MyBatis会创建一个JdbcTransactionFactory.class 实例；如果type=&quot;MANAGED&quot;，则MyBatis会创建一个MangedTransactionFactory.class实例。</p> <p>MyBatis对<code>&lt;transactionManager&gt;</code>节点的解析会生成TransactionFactory实例；而对<code>&lt;dataSource&gt;</code>解析会生成datasouce实例，作为<code>&lt;environment&gt;</code>节点，会根据TransactionFactory和DataSource实例创建一个Environment对象，代码如下所示：</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token keyword">private</span> <span class="token keyword">void</span> <span class="token function">environmentsElement</span><span class="token punctuation">(</span><span class="token class-name">XNode</span> context<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">{</span>  
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>context <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>environment <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+            environment <span class="token operator">=</span> context<span class="token punctuation">.</span><span class="token function">getStringAttribute</span><span class="token punctuation">(</span><span class="token string">&quot;default&quot;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        <span class="token punctuation">}</span>  
+        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token class-name">XNode</span> child <span class="token operator">:</span> context<span class="token punctuation">.</span><span class="token function">getChildren</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+            <span class="token class-name">String</span> id <span class="token operator">=</span> child<span class="token punctuation">.</span><span class="token function">getStringAttribute</span><span class="token punctuation">(</span><span class="token string">&quot;id&quot;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+            <span class="token comment">//是和默认的环境相同时，解析之  </span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">isSpecifiedEnvironment</span><span class="token punctuation">(</span>id<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+                <span class="token comment">//1.解析&lt;transactionManager&gt;节点，决定创建什么类型的TransactionFactory  </span>
+                <span class="token class-name">TransactionFactory</span> txFactory <span class="token operator">=</span> <span class="token function">transactionManagerElement</span><span class="token punctuation">(</span>child<span class="token punctuation">.</span><span class="token function">evalNode</span><span class="token punctuation">(</span><span class="token string">&quot;transactionManager&quot;</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+                <span class="token comment">//2. 创建dataSource  </span>
+                <span class="token class-name">DataSourceFactory</span> dsFactory <span class="token operator">=</span> <span class="token function">dataSourceElement</span><span class="token punctuation">(</span>child<span class="token punctuation">.</span><span class="token function">evalNode</span><span class="token punctuation">(</span><span class="token string">&quot;dataSource&quot;</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+                <span class="token class-name">DataSource</span> dataSource <span class="token operator">=</span> dsFactory<span class="token punctuation">.</span><span class="token function">getDataSource</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+                <span class="token comment">//3. 使用了Environment内置的构造器Builder，传递id 事务工厂TransactionFactory和数据源DataSource  </span>
+                <span class="token class-name">Environment<span class="token punctuation">.</span>Builder</span> environmentBuilder <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Environment<span class="token punctuation">.</span>Builder</span><span class="token punctuation">(</span>id<span class="token punctuation">)</span>  
+                <span class="token punctuation">.</span><span class="token function">transactionFactory</span><span class="token punctuation">(</span>txFactory<span class="token punctuation">)</span>  
+                <span class="token punctuation">.</span><span class="token function">dataSource</span><span class="token punctuation">(</span>dataSource<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+                configuration<span class="token punctuation">.</span><span class="token function">setEnvironment</span><span class="token punctuation">(</span>environmentBuilder<span class="token punctuation">.</span><span class="token function">build</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+            <span class="token punctuation">}</span>  
+        <span class="token punctuation">}</span>  
+    <span class="token punctuation">}</span>  
+<span class="token punctuation">}</span>  
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br></div></div><p>Environment表示着一个数据库的连接，生成后的Environment对象会被设置到Configuration实例中，以供后续的使用。</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/mybatis/mybatis-y-trans-4.png" loading="lazy" class="lazy"></p> <p>上述一直在讲事务工厂TransactionFactory来创建的Transaction，现在让我们看一下MyBatis中的TransactionFactory的定义吧。</p> <h3 id="事务工厂transactionfactory"><a href="#事务工厂transactionfactory" class="header-anchor">¶</a> 事务工厂TransactionFactory</h3> <p>事务工厂Transaction定义了创建Transaction的两个方法：一个是通过指定的Connection对象创建Transaction，另外是通过数据源DataSource来创建Transaction。与JDBC 和MANAGED两种Transaction相对应，TransactionFactory有两个对应的实现的子类：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/mybatis/mybatis-y-trans-5.png" loading="lazy" class="lazy"></p> <h3 id="事务transaction的创建"><a href="#事务transaction的创建" class="header-anchor">¶</a> 事务Transaction的创建</h3> <p>通过事务工厂TransactionFactory很容易获取到Transaction对象实例。我们以JdbcTransaction为例，看一下JdbcTransactionFactory是怎样生成JdbcTransaction的，代码如下：</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">JdbcTransactionFactory</span> <span class="token keyword">implements</span> <span class="token class-name">TransactionFactory</span> <span class="token punctuation">{</span>  
+ 
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">setProperties</span><span class="token punctuation">(</span><span class="token class-name">Properties</span> props<span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+    <span class="token punctuation">}</span>  
+ 
+    <span class="token comment">/** 
+     * 根据给定的数据库连接Connection创建Transaction 
+     * @param conn Existing database connection 
+     * @return 
+     */</span>  
+    <span class="token keyword">public</span> <span class="token class-name">Transaction</span> <span class="token function">newTransaction</span><span class="token punctuation">(</span><span class="token class-name">Connection</span> conn<span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+        <span class="token keyword">return</span> <span class="token keyword">new</span> <span class="token class-name">JdbcTransaction</span><span class="token punctuation">(</span>conn<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+    <span class="token punctuation">}</span>  
+ 
+    <span class="token comment">/** 
+     * 根据DataSource、隔离级别和是否自动提交创建Transacion 
+     * 
+     * @param ds 
+     * @param level Desired isolation level 
+     * @param autoCommit Desired autocommit 
+     * @return 
+     */</span>  
+    <span class="token keyword">public</span> <span class="token class-name">Transaction</span> <span class="token function">newTransaction</span><span class="token punctuation">(</span><span class="token class-name">DataSource</span> ds<span class="token punctuation">,</span> <span class="token class-name">TransactionIsolationLevel</span> level<span class="token punctuation">,</span> <span class="token keyword">boolean</span> autoCommit<span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+        <span class="token keyword">return</span> <span class="token keyword">new</span> <span class="token class-name">JdbcTransaction</span><span class="token punctuation">(</span>ds<span class="token punctuation">,</span> level<span class="token punctuation">,</span> autoCommit<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+    <span class="token punctuation">}</span>  
+<span class="token punctuation">}</span>  
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br></div></div><p>如上说是，JdbcTransactionFactory会创建JDBC类型的Transaction，即JdbcTransaction。类似地，ManagedTransactionFactory也会创建ManagedTransaction。下面我们会分别深入JdbcTranaction 和ManagedTransaction，看它们到底是怎样实现事务管理的。</p> <h3 id="jdbctransaction"><a href="#jdbctransaction" class="header-anchor">¶</a> JdbcTransaction</h3> <p>JdbcTransaction直接使用JDBC的提交和回滚事务管理机制。它依赖与从dataSource中取得的连接connection 来管理transaction 的作用域，connection对象的获取被延迟到调用getConnection()方法。如果autocommit设置为on，开启状态的话，它会忽略commit和rollback。</p> <p>直观地讲，就是JdbcTransaction是使用的java.sql.Connection 上的commit和rollback功能，JdbcTransaction只是相当于对java.sql.Connection事务处理进行了一次包装（wrapper），Transaction的事务管理都是通过java.sql.Connection实现的。JdbcTransaction的代码实现如下：</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">JdbcTransaction</span> <span class="token keyword">implements</span> <span class="token class-name">Transaction</span> <span class="token punctuation">{</span>  
+ 
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">Log</span> log <span class="token operator">=</span> <span class="token class-name">LogFactory</span><span class="token punctuation">.</span><span class="token function">getLog</span><span class="token punctuation">(</span><span class="token class-name">JdbcTransaction</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ 
+    <span class="token comment">//数据库连接  </span>
+    <span class="token keyword">protected</span> <span class="token class-name">Connection</span> connection<span class="token punctuation">;</span>  
+    <span class="token comment">//数据源  </span>
+    <span class="token keyword">protected</span> <span class="token class-name">DataSource</span> dataSource<span class="token punctuation">;</span>  
+    <span class="token comment">//隔离级别  </span>
+    <span class="token keyword">protected</span> <span class="token class-name">TransactionIsolationLevel</span> level<span class="token punctuation">;</span>  
+    <span class="token comment">//是否为自动提交  </span>
+    <span class="token keyword">protected</span> <span class="token keyword">boolean</span> autoCommmit<span class="token punctuation">;</span>  
+ 
+    <span class="token keyword">public</span> <span class="token class-name">JdbcTransaction</span><span class="token punctuation">(</span><span class="token class-name">DataSource</span> ds<span class="token punctuation">,</span> <span class="token class-name">TransactionIsolationLevel</span> desiredLevel<span class="token punctuation">,</span> <span class="token keyword">boolean</span> desiredAutoCommit<span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+        dataSource <span class="token operator">=</span> ds<span class="token punctuation">;</span>  
+        level <span class="token operator">=</span> desiredLevel<span class="token punctuation">;</span>  
+        autoCommmit <span class="token operator">=</span> desiredAutoCommit<span class="token punctuation">;</span>  
+    <span class="token punctuation">}</span>  
+ 
+    <span class="token keyword">public</span> <span class="token class-name">JdbcTransaction</span><span class="token punctuation">(</span><span class="token class-name">Connection</span> connection<span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+        <span class="token keyword">this</span><span class="token punctuation">.</span>connection <span class="token operator">=</span> connection<span class="token punctuation">;</span>  
+    <span class="token punctuation">}</span>  
+ 
+    <span class="token keyword">public</span> <span class="token class-name">Connection</span> <span class="token function">getConnection</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">SQLException</span> <span class="token punctuation">{</span>  
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>connection <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+            <span class="token function">openConnection</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        <span class="token punctuation">}</span>  
+        <span class="token keyword">return</span> connection<span class="token punctuation">;</span>  
+    <span class="token punctuation">}</span>  
+ 
+    <span class="token comment">/** 
+     * commit()功能 使用connection的commit() 
+     * @throws SQLException 
+     */</span>  
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">commit</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">SQLException</span> <span class="token punctuation">{</span>  
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>connection <span class="token operator">!=</span> <span class="token keyword">null</span> <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span>connection<span class="token punctuation">.</span><span class="token function">getAutoCommit</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>log<span class="token punctuation">.</span><span class="token function">isDebugEnabled</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+                log<span class="token punctuation">.</span><span class="token function">debug</span><span class="token punctuation">(</span><span class="token string">&quot;Committing JDBC Connection [&quot;</span> <span class="token operator">+</span> connection <span class="token operator">+</span> <span class="token string">&quot;]&quot;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+            <span class="token punctuation">}</span>  
+            connection<span class="token punctuation">.</span><span class="token function">commit</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        <span class="token punctuation">}</span>  
+    <span class="token punctuation">}</span>  
+ 
+    <span class="token comment">/** 
+     * rollback()功能 使用connection的rollback() 
+     * @throws SQLException 
+     */</span>  
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">rollback</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">SQLException</span> <span class="token punctuation">{</span>  
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>connection <span class="token operator">!=</span> <span class="token keyword">null</span> <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span>connection<span class="token punctuation">.</span><span class="token function">getAutoCommit</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>log<span class="token punctuation">.</span><span class="token function">isDebugEnabled</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+                log<span class="token punctuation">.</span><span class="token function">debug</span><span class="token punctuation">(</span><span class="token string">&quot;Rolling back JDBC Connection [&quot;</span> <span class="token operator">+</span> connection <span class="token operator">+</span> <span class="token string">&quot;]&quot;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+            <span class="token punctuation">}</span>  
+            connection<span class="token punctuation">.</span><span class="token function">rollback</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        <span class="token punctuation">}</span>  
+    <span class="token punctuation">}</span>  
+ 
+    <span class="token comment">/** 
+     * close()功能 使用connection的close() 
+     * @throws SQLException 
+     */</span>  
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">SQLException</span> <span class="token punctuation">{</span>  
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>connection <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+            <span class="token function">resetAutoCommit</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>log<span class="token punctuation">.</span><span class="token function">isDebugEnabled</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+                log<span class="token punctuation">.</span><span class="token function">debug</span><span class="token punctuation">(</span><span class="token string">&quot;Closing JDBC Connection [&quot;</span> <span class="token operator">+</span> connection <span class="token operator">+</span> <span class="token string">&quot;]&quot;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+            <span class="token punctuation">}</span>  
+            connection<span class="token punctuation">.</span><span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        <span class="token punctuation">}</span>  
+    <span class="token punctuation">}</span>  
+ 
+    <span class="token keyword">protected</span> <span class="token keyword">void</span> <span class="token function">setDesiredAutoCommit</span><span class="token punctuation">(</span><span class="token keyword">boolean</span> desiredAutoCommit<span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+        <span class="token keyword">try</span> <span class="token punctuation">{</span>  
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>connection<span class="token punctuation">.</span><span class="token function">getAutoCommit</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">!=</span> desiredAutoCommit<span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>log<span class="token punctuation">.</span><span class="token function">isDebugEnabled</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+                    log<span class="token punctuation">.</span><span class="token function">debug</span><span class="token punctuation">(</span><span class="token string">&quot;Setting autocommit to &quot;</span> <span class="token operator">+</span> desiredAutoCommit <span class="token operator">+</span> <span class="token string">&quot; on JDBC Connection [&quot;</span> <span class="token operator">+</span> connection <span class="token operator">+</span> <span class="token string">&quot;]&quot;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+                <span class="token punctuation">}</span>  
+                connection<span class="token punctuation">.</span><span class="token function">setAutoCommit</span><span class="token punctuation">(</span>desiredAutoCommit<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+            <span class="token punctuation">}</span>  
+        <span class="token punctuation">}</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">SQLException</span> e<span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+            <span class="token comment">// Only a very poorly implemented driver would fail here,  </span>
+            <span class="token comment">// and there's not much we can do about that.  </span>
+            <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">TransactionException</span><span class="token punctuation">(</span><span class="token string">&quot;Error configuring AutoCommit.  &quot;</span>  
+             <span class="token operator">+</span> <span class="token string">&quot;Your driver may not support getAutoCommit() or setAutoCommit(). &quot;</span>  
+             <span class="token operator">+</span> <span class="token string">&quot;Requested setting: &quot;</span> <span class="token operator">+</span> desiredAutoCommit <span class="token operator">+</span> <span class="token string">&quot;.  Cause: &quot;</span> <span class="token operator">+</span> e<span class="token punctuation">,</span> e<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        <span class="token punctuation">}</span>  
+    <span class="token punctuation">}</span>  
+ 
+    <span class="token keyword">protected</span> <span class="token keyword">void</span> <span class="token function">resetAutoCommit</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+        <span class="token keyword">try</span> <span class="token punctuation">{</span>  
+            <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>connection<span class="token punctuation">.</span><span class="token function">getAutoCommit</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+                <span class="token comment">// MyBatis does not call commit/rollback on a connection if just selects were performed.  </span>
+                <span class="token comment">// Some databases start transactions with select statements  </span>
+                <span class="token comment">// and they mandate a commit/rollback before closing the connection.  </span>
+                <span class="token comment">// A workaround is setting the autocommit to true before closing the connection.  </span>
+                <span class="token comment">// Sybase throws an exception here.  </span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>log<span class="token punctuation">.</span><span class="token function">isDebugEnabled</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+                    log<span class="token punctuation">.</span><span class="token function">debug</span><span class="token punctuation">(</span><span class="token string">&quot;Resetting autocommit to true on JDBC Connection [&quot;</span> <span class="token operator">+</span> connection <span class="token operator">+</span> <span class="token string">&quot;]&quot;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+                <span class="token punctuation">}</span>  
+                connection<span class="token punctuation">.</span><span class="token function">setAutoCommit</span><span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+            <span class="token punctuation">}</span>  
+        <span class="token punctuation">}</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">SQLException</span> e<span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+            log<span class="token punctuation">.</span><span class="token function">debug</span><span class="token punctuation">(</span><span class="token string">&quot;Error resetting autocommit to true &quot;</span>  
+             <span class="token operator">+</span> <span class="token string">&quot;before closing the connection.  Cause: &quot;</span> <span class="token operator">+</span> e<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        <span class="token punctuation">}</span>  
+    <span class="token punctuation">}</span>  
+ 
+    <span class="token keyword">protected</span> <span class="token keyword">void</span> <span class="token function">openConnection</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">SQLException</span> <span class="token punctuation">{</span>  
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>log<span class="token punctuation">.</span><span class="token function">isDebugEnabled</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+            log<span class="token punctuation">.</span><span class="token function">debug</span><span class="token punctuation">(</span><span class="token string">&quot;Opening JDBC Connection&quot;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        <span class="token punctuation">}</span>  
+        connection <span class="token operator">=</span> dataSource<span class="token punctuation">.</span><span class="token function">getConnection</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>level <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+            connection<span class="token punctuation">.</span><span class="token function">setTransactionIsolation</span><span class="token punctuation">(</span>level<span class="token punctuation">.</span><span class="token function">getLevel</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        <span class="token punctuation">}</span>  
+        <span class="token function">setDesiredAutoCommit</span><span class="token punctuation">(</span>autoCommmit<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+    <span class="token punctuation">}</span>  
+ 
+<span class="token punctuation">}</span>  
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br><span class="line-number">35</span><br><span class="line-number">36</span><br><span class="line-number">37</span><br><span class="line-number">38</span><br><span class="line-number">39</span><br><span class="line-number">40</span><br><span class="line-number">41</span><br><span class="line-number">42</span><br><span class="line-number">43</span><br><span class="line-number">44</span><br><span class="line-number">45</span><br><span class="line-number">46</span><br><span class="line-number">47</span><br><span class="line-number">48</span><br><span class="line-number">49</span><br><span class="line-number">50</span><br><span class="line-number">51</span><br><span class="line-number">52</span><br><span class="line-number">53</span><br><span class="line-number">54</span><br><span class="line-number">55</span><br><span class="line-number">56</span><br><span class="line-number">57</span><br><span class="line-number">58</span><br><span class="line-number">59</span><br><span class="line-number">60</span><br><span class="line-number">61</span><br><span class="line-number">62</span><br><span class="line-number">63</span><br><span class="line-number">64</span><br><span class="line-number">65</span><br><span class="line-number">66</span><br><span class="line-number">67</span><br><span class="line-number">68</span><br><span class="line-number">69</span><br><span class="line-number">70</span><br><span class="line-number">71</span><br><span class="line-number">72</span><br><span class="line-number">73</span><br><span class="line-number">74</span><br><span class="line-number">75</span><br><span class="line-number">76</span><br><span class="line-number">77</span><br><span class="line-number">78</span><br><span class="line-number">79</span><br><span class="line-number">80</span><br><span class="line-number">81</span><br><span class="line-number">82</span><br><span class="line-number">83</span><br><span class="line-number">84</span><br><span class="line-number">85</span><br><span class="line-number">86</span><br><span class="line-number">87</span><br><span class="line-number">88</span><br><span class="line-number">89</span><br><span class="line-number">90</span><br><span class="line-number">91</span><br><span class="line-number">92</span><br><span class="line-number">93</span><br><span class="line-number">94</span><br><span class="line-number">95</span><br><span class="line-number">96</span><br><span class="line-number">97</span><br><span class="line-number">98</span><br><span class="line-number">99</span><br><span class="line-number">100</span><br><span class="line-number">101</span><br><span class="line-number">102</span><br><span class="line-number">103</span><br><span class="line-number">104</span><br><span class="line-number">105</span><br><span class="line-number">106</span><br><span class="line-number">107</span><br><span class="line-number">108</span><br><span class="line-number">109</span><br><span class="line-number">110</span><br><span class="line-number">111</span><br><span class="line-number">112</span><br><span class="line-number">113</span><br><span class="line-number">114</span><br><span class="line-number">115</span><br><span class="line-number">116</span><br><span class="line-number">117</span><br><span class="line-number">118</span><br></div></div><h3 id="managedtransaction"><a href="#managedtransaction" class="header-anchor">¶</a> ManagedTransaction</h3> <p>ManagedTransaction让容器来管理事务Transaction的整个生命周期，意思就是说，使用ManagedTransaction的commit和rollback功能不会对事务有任何的影响，它什么都不会做，它将事务管理的权利移交给了容器来实现。看如下Managed的实现代码大家就会一目了然：</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token comment">/** 
+ *  
+ * 让容器管理事务transaction的整个生命周期 
+ * connection的获取延迟到getConnection()方法的调用 
+ * 忽略所有的commit和rollback操作 
+ * 默认情况下，可以关闭一个连接connection，也可以配置它不可以关闭一个连接 
+ * 让容器来管理transaction的整个生命周期 
+ * @see ManagedTransactionFactory 
+ */</span>   
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">ManagedTransaction</span> <span class="token keyword">implements</span> <span class="token class-name">Transaction</span> <span class="token punctuation">{</span>  
+ 
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">Log</span> log <span class="token operator">=</span> <span class="token class-name">LogFactory</span><span class="token punctuation">.</span><span class="token function">getLog</span><span class="token punctuation">(</span><span class="token class-name">ManagedTransaction</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ 
+    <span class="token keyword">private</span> <span class="token class-name">DataSource</span> dataSource<span class="token punctuation">;</span>  
+    <span class="token keyword">private</span> <span class="token class-name">TransactionIsolationLevel</span> level<span class="token punctuation">;</span>  
+    <span class="token keyword">private</span> <span class="token class-name">Connection</span> connection<span class="token punctuation">;</span>  
+    <span class="token keyword">private</span> <span class="token keyword">boolean</span> closeConnection<span class="token punctuation">;</span>  
+ 
+    <span class="token keyword">public</span> <span class="token class-name">ManagedTransaction</span><span class="token punctuation">(</span><span class="token class-name">Connection</span> connection<span class="token punctuation">,</span> <span class="token keyword">boolean</span> closeConnection<span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+        <span class="token keyword">this</span><span class="token punctuation">.</span>connection <span class="token operator">=</span> connection<span class="token punctuation">;</span>  
+        <span class="token keyword">this</span><span class="token punctuation">.</span>closeConnection <span class="token operator">=</span> closeConnection<span class="token punctuation">;</span>  
+    <span class="token punctuation">}</span>  
+ 
+    <span class="token keyword">public</span> <span class="token class-name">ManagedTransaction</span><span class="token punctuation">(</span><span class="token class-name">DataSource</span> ds<span class="token punctuation">,</span> <span class="token class-name">TransactionIsolationLevel</span> level<span class="token punctuation">,</span> <span class="token keyword">boolean</span> closeConnection<span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+        <span class="token keyword">this</span><span class="token punctuation">.</span>dataSource <span class="token operator">=</span> ds<span class="token punctuation">;</span>  
+        <span class="token keyword">this</span><span class="token punctuation">.</span>level <span class="token operator">=</span> level<span class="token punctuation">;</span>  
+        <span class="token keyword">this</span><span class="token punctuation">.</span>closeConnection <span class="token operator">=</span> closeConnection<span class="token punctuation">;</span>  
+    <span class="token punctuation">}</span>  
+ 
+    <span class="token keyword">public</span> <span class="token class-name">Connection</span> <span class="token function">getConnection</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">SQLException</span> <span class="token punctuation">{</span>  
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">.</span>connection <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+            <span class="token function">openConnection</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        <span class="token punctuation">}</span>  
+        <span class="token keyword">return</span> <span class="token keyword">this</span><span class="token punctuation">.</span>connection<span class="token punctuation">;</span>  
+    <span class="token punctuation">}</span>  
+ 
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">commit</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">SQLException</span> <span class="token punctuation">{</span>  
+        <span class="token comment">// Does nothing  </span>
+    <span class="token punctuation">}</span>  
+ 
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">rollback</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">SQLException</span> <span class="token punctuation">{</span>  
+        <span class="token comment">// Does nothing  </span>
+    <span class="token punctuation">}</span>  
+ 
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">SQLException</span> <span class="token punctuation">{</span>  
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">.</span>closeConnection <span class="token operator">&amp;&amp;</span> <span class="token keyword">this</span><span class="token punctuation">.</span>connection <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>log<span class="token punctuation">.</span><span class="token function">isDebugEnabled</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+                log<span class="token punctuation">.</span><span class="token function">debug</span><span class="token punctuation">(</span><span class="token string">&quot;Closing JDBC Connection [&quot;</span> <span class="token operator">+</span> <span class="token keyword">this</span><span class="token punctuation">.</span>connection <span class="token operator">+</span> <span class="token string">&quot;]&quot;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+            <span class="token punctuation">}</span>  
+            <span class="token keyword">this</span><span class="token punctuation">.</span>connection<span class="token punctuation">.</span><span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        <span class="token punctuation">}</span>  
+    <span class="token punctuation">}</span>  
+ 
+    <span class="token keyword">protected</span> <span class="token keyword">void</span> <span class="token function">openConnection</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">SQLException</span> <span class="token punctuation">{</span>  
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>log<span class="token punctuation">.</span><span class="token function">isDebugEnabled</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+            log<span class="token punctuation">.</span><span class="token function">debug</span><span class="token punctuation">(</span><span class="token string">&quot;Opening JDBC Connection&quot;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        <span class="token punctuation">}</span>  
+        <span class="token keyword">this</span><span class="token punctuation">.</span>connection <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>dataSource<span class="token punctuation">.</span><span class="token function">getConnection</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">.</span>level <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+            <span class="token keyword">this</span><span class="token punctuation">.</span>connection<span class="token punctuation">.</span><span class="token function">setTransactionIsolation</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">.</span>level<span class="token punctuation">.</span><span class="token function">getLevel</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        <span class="token punctuation">}</span>  
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span> 
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br><span class="line-number">35</span><br><span class="line-number">36</span><br><span class="line-number">37</span><br><span class="line-number">38</span><br><span class="line-number">39</span><br><span class="line-number">40</span><br><span class="line-number">41</span><br><span class="line-number">42</span><br><span class="line-number">43</span><br><span class="line-number">44</span><br><span class="line-number">45</span><br><span class="line-number">46</span><br><span class="line-number">47</span><br><span class="line-number">48</span><br><span class="line-number">49</span><br><span class="line-number">50</span><br><span class="line-number">51</span><br><span class="line-number">52</span><br><span class="line-number">53</span><br><span class="line-number">54</span><br><span class="line-number">55</span><br><span class="line-number">56</span><br><span class="line-number">57</span><br><span class="line-number">58</span><br><span class="line-number">59</span><br><span class="line-number">60</span><br><span class="line-number">61</span><br><span class="line-number">62</span><br><span class="line-number">63</span><br></div></div><p>注意：如果我们使用MyBatis构建本地程序，即不是WEB程序，若将type设置成&quot;MANAGED&quot;，那么，我们执行的任何update操作，即使我们最后执行了commit操作，数据也不会保留，不会对数据库造成任何影响。因为我们将MyBatis配置成了“MANAGED”，即MyBatis自己不管理事务，而我们又是运行的本地程序，没有事务管理功能，所以对数据库的update操作都是无效的。</p></div> <div class="page-contract"><h2>联系我</h2> <div class="c-content"><span style="font-size:1rem;font-weight:bold;">添加@pdai微信</span><br> <img src="../../../pdai.jpg" height="280px" style="margin:10px;"><br>
+        PS：添加时请备注<b>Java全栈</b>，谢谢！
+      </div></div> <footer class="page-edit"><div class="edit-link"><a href="https://github.com/realpdai/tech-arch-doc/edit/master/md/framework/orm-mybatis/mybatis-y-trans.md" target="_blank" rel="noopener noreferrer">在 GitHub 上编辑此页</a> <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></div> <div class="last-updated"><span class="prefix">上次更新: </span> <span class="time">9/27/2021,</span></div></footer> <div class="page-nav"><p class="inner"><span class="prev">
+        ←
+        <a href="mybatis-y-datasource.html" class="prev">
+          MyBatis详解 - 数据源与连接池
+        </a></span> <span class="next"><a href="mybatis-y-cache-level1.html">
+          MyBatis详解 - 一级缓存实现机制
+        </a>
+        →
+      </span></p></div> <div class="google_ad_bottom"><ins data-ad-client="ca-pub-5088193899865249" data-ad-slot="6822031208" data-ad-format="auto" data-full-width-responsive="true" class="adsbygoogle" style="display:block"></ins> <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script></div> </main></div> <aside class="page-sidebar"> <div class="page-side-toolbar"><div class="option-box-toc-fixed"><div class="toc-container-sidebar"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:650px"><div style="font-weight:bold;text-align:center;">MyBatis详解 - 事务管理机制</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="mybatis-y-trans.html#概述" class="toc-sidebar-link">概述</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="mybatis-y-trans.html#官网关于事务配置的内容" class="toc-sidebar-link">官网关于事务配置的内容</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="mybatis-y-trans.html#事务的配置、创建和使用" class="toc-sidebar-link">事务的配置、创建和使用</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="mybatis-y-trans.html#事务的配置" class="toc-sidebar-link">事务的配置</a></li><li class="toc-sidebar-sub-header"><a href="mybatis-y-trans.html#事务工厂的创建" class="toc-sidebar-link">事务工厂的创建</a></li><li class="toc-sidebar-sub-header"><a href="mybatis-y-trans.html#事务工厂transactionfactory" class="toc-sidebar-link">事务工厂TransactionFactory</a></li><li class="toc-sidebar-sub-header"><a href="mybatis-y-trans.html#事务transaction的创建" class="toc-sidebar-link">事务Transaction的创建</a></li><li class="toc-sidebar-sub-header"><a href="mybatis-y-trans.html#jdbctransaction" class="toc-sidebar-link">JdbcTransaction</a></li><li class="toc-sidebar-sub-header"><a href="mybatis-y-trans.html#managedtransaction" class="toc-sidebar-link">ManagedTransaction</a></li></ul></li></ul></div></div></div></div></div> <div class="option-box-toc-over"><img src="../../../toc.png" class="nozoom"> <span class="show-txt">目录</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:550px"><div style="font-weight:bold;text-align:center;">MyBatis详解 - 事务管理机制</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="mybatis-y-trans.html#概述" class="toc-sidebar-link">概述</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="mybatis-y-trans.html#官网关于事务配置的内容" class="toc-sidebar-link">官网关于事务配置的内容</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="mybatis-y-trans.html#事务的配置、创建和使用" class="toc-sidebar-link">事务的配置、创建和使用</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="mybatis-y-trans.html#事务的配置" class="toc-sidebar-link">事务的配置</a></li><li class="toc-sidebar-sub-header"><a href="mybatis-y-trans.html#事务工厂的创建" class="toc-sidebar-link">事务工厂的创建</a></li><li class="toc-sidebar-sub-header"><a href="mybatis-y-trans.html#事务工厂transactionfactory" class="toc-sidebar-link">事务工厂TransactionFactory</a></li><li class="toc-sidebar-sub-header"><a href="mybatis-y-trans.html#事务transaction的创建" class="toc-sidebar-link">事务Transaction的创建</a></li><li class="toc-sidebar-sub-header"><a href="mybatis-y-trans.html#jdbctransaction" class="toc-sidebar-link">JdbcTransaction</a></li><li class="toc-sidebar-sub-header"><a href="mybatis-y-trans.html#managedtransaction" class="toc-sidebar-link">ManagedTransaction</a></li></ul></li></ul></div></div></div></div></div> <div class="option-box"><img src="../../../wechat.png" class="nozoom"> <span class="show-txt">手机看</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.9rem">微信扫一扫</span> <img height="180px" src="https://api.qrserver.com/v1/create-qr-code/?data=https://www.pdai.tech/md/framework/orm-mybatis/mybatis-y-trans.html" style="margin:10px;">
+              可以<b>手机看</b>或分享至<b>朋友圈</b></div></div></div></div> <div class="option-box"><a title="点击切换全屏" style="text-align:center;padding-left:2px;"><img src="../../../full.png" width="30px" class="nozoom"> <span style="color:gray;font-size:11px;font-weight:400;">全屏看</span></a></div> <div class="option-box"><img src="../../../toggle.png" width="30px" class="nozoom"> <span class="show-txt">左栏</span></div> <div class="option-box"><img src="../../../wexin2.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:yellow">交流圈</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">添加pdai微信进《Java全栈知识体系》学习交流圈「无任何套路」</span> <img src="../../../pdai.jpg" height="180px" style="margin:10px;">
+              PS：添加时请备注<b>Java全栈</b>，谢谢！
+            </div></div></div></div> <div class="option-box"><img src="../../../download.jpg" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:#a6f792">下资料</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">扫描公众号，回复“资料”下载<font style="color:red;">10GB+</font>书籍资料「无任何套路」</span> <img src="../../../pdai_gzh.jpg" height="180px" style="margin:10px;"> <b>公众号:</b> Java全栈知识体系
+            </div></div></div></div> <div class="option-box"><img src="../../../heart.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;background-color:#gray">支持我</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">鼓励/支持/赞赏我</span> <img src="../../../pdai-guli.png" height="180px" width="200px" style="margin:5px;">
+              1. 不靠它生存但仍希望得到你的鼓励；<br> 2. 时刻警醒自己保持技术人的初心，恒心，简单，利他；
+            </div></div></div></div> <div title="MyBatis详解 - 数据源与连接池" class="option-box" style="padding-left:2px;text-align:center;"><a href="mybatis-y-datasource.html"><img src="../../../pre2.png" width="30px" class="nozoom"> <span class="show-txt">上一篇</span></a></div> <div title="MyBatis详解 - 一级缓存实现机制" class="option-box" style="padding-left:2px;text-align:center;"><a href="mybatis-y-cache-level1.html"><img src="../../../next2.png" width="30px" class="nozoom"> <span class="show-txt">下一篇</span></a></div></div>  <div class="page-side-sitemap"><div class="option-box"><img src="../../../sitemap.png" class="nozoom img"> <span class="show-txt">站点图</span> <div class="sitemap-container"><h4>站点导航图
+            <a href="../../about/me/about-me.html" class="sitemap-top-link"> 关于我</a> <a href="../../about/blog/blog-build-vuepress.html" class="sitemap-top-link"> 关于站点</a> <a href="../../about/me/blog-changelist.html" class="sitemap-top-link"> 最近更新记录</a> <a href="../../about/me/blog-question.html" class="sitemap-top-link"><font style="color:red;background-color:yellow;">问题反馈</font></a></h4> <table class="sitemap-table"><tr><td nowrap="nowrap"><div class="sitemap-col-group">常用搜索</div></td> <td><div class="sitemap-col-item"><a href="http://www.baidu.com/" target="_blank" title="百度">  
+            百度
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.google.com/" target="_blank" title="Google">  
+            Google
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.bing.com/" target="_blank" title="Bing">  
+            Bing
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://github.com/" target="_blank" title="Github">  
+            Github
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.programcreek.com/java-api-examples/index.php" target="_blank" title="搜代码">  
+            搜代码
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">技术社区</div></td> <td><div class="sitemap-col-item"><a href="http://www.csdn.net/" target="_blank" title="CDSN">  
+            CDSN
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.cnblogs.com/" target="_blank" title="博客园">  
+            博客园
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.oschina.net/" target="_blank" title="OSChina">  
+            OSChina
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://segmentfault.com/" target="_blank" title="知否">  
+            知否
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://juejin.im/" target="_blank" title="掘金">  
+            掘金
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.linuxidc.com/" target="_blank" title="Linux公社">  
+            Linux公社
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.ibm.com/developerworks/cn/" target="_blank" title="IBM 开发者">  
+            IBM 开发者
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://stackoverflow.com/" target="_blank" title="StackOverflow">  
+            StackOverflow
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">Java相关</div></td> <!----> <td><a href="../../java/basic/java-basic-oop.html" class="sitemap-col-item">
+            面向对象基础
+          </a><a href="../../java/basic/java-basic-lan-basic.html" class="sitemap-col-item">
+            语法基础
+          </a><a href="../../java/collection/java-collection-all.html" class="sitemap-col-item">
+            集合框架
+          </a><a href="../../java/thread/java-thread-x-overview.html" class="sitemap-col-item">
+            并发基础
+          </a><a href="../../java/thread/java-thread-x-key-synchronized.html" class="sitemap-col-item">
+            并发关键字
+          </a><a href="../../java/thread/java-thread-x-juc-overview.html" class="sitemap-col-item">
+            JUC并发框架
+          </a><a href="../../java/io/java-io-overview.html" class="sitemap-col-item">
+            IO框架
+          </a><a href="../../java/java8/java8.html" class="sitemap-col-item">
+            Java8 特性
+          </a><a href="../../java/jvm/java-jvm-x-overview.html" class="sitemap-col-item">
+            JVM基础
+          </a><a href="../../java/jvm/java-jvm-param.html" class="sitemap-col-item">
+            调试排错
+          </a><a href="../../java/others/java-others-awesome-java.html" class="sitemap-col-item">
+            更多资源
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">算法相关</div></td> <!----> <td><a href="../../algorithm/alg-basic-array.html" class="sitemap-col-item">
+            数组与线性表
+          </a><a href="../../algorithm/alg-basic-tree.html" class="sitemap-col-item">
+            树详解
+          </a><a href="../../algorithm/alg-basic-graph.html" class="sitemap-col-item">
+            图详解
+          </a><a href="../../algorithm/alg-sort-overview.html" class="sitemap-col-item">
+            内部排序
+          </a><a href="../../algorithm/alg-core-divide-and-conquer.html" class="sitemap-col-item">
+            算法思想
+          </a><a href="../../algorithm/alg-domain-security-degist.html" class="sitemap-col-item">
+            安全算法
+          </a><a href="../../algorithm/alg-domain-bigdata-overview.html" class="sitemap-col-item">
+            大数据处理
+          </a><a href="../../algorithm/alg-domain-distribute-overview.html" class="sitemap-col-item">
+            分布式算法
+          </a><a href="../../algorithm/alg-domain-load-balance.html" class="sitemap-col-item">
+            负载均衡算法
+          </a><a href="../../algorithm/alg-domain-suggest.html" class="sitemap-col-item">
+            推荐算法
+          </a><a href="../../algorithm/alg-other-mind.html" class="sitemap-col-item">
+            头脑风暴
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">数据库相关</div></td> <!----> <td><a href="../../db/sql/sql-db-howitworks.html" class="sitemap-col-item">
+            数据库原理
+          </a><a href="../../db/sql-lan/sql-lan.html" class="sitemap-col-item">
+            SQL语言
+          </a><a href="../../db/sql-mysql/sql-mysql-theory.html" class="sitemap-col-item">
+            MySQL相关
+          </a><a href="../../db/nosql-mongo/mongo-performance-improve.html" class="sitemap-col-item">
+            MongoDB
+          </a><a href="../../db/nosql-es/elasticsearch.html" class="sitemap-col-item">
+            ElasticSearch
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">开发基础相关</div></td> <!----> <td><a href="../../develop/package/dev-package-x-apache-common.html" class="sitemap-col-item">
+            常用类库
+          </a><a href="../../develop/ut/dev-ut-x-junit.html" class="sitemap-col-item">
+            单元测试
+          </a><a href="../../develop/regex/dev-regex-all.html" class="sitemap-col-item">
+            正则表达式
+          </a><a href="../../develop/protocol/dev-protocol-overview.html" class="sitemap-col-item">
+            网络协议
+          </a><a href="../../develop/security/dev-security-overview.html" class="sitemap-col-item">
+            安全相关
+          </a><a href="../../develop/refactor/dev-refactor-if-else.html" class="sitemap-col-item">
+            常见重构技巧
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">架构相关</div></td> <!----> <td><a href="../../arch/arch-x-basic.html" class="sitemap-col-item">
+            架构基础
+          </a><a href="../../arch/arch-x-view.html" class="sitemap-col-item">
+            架构视角
+          </a><a href="../../arch/arch-x-evolution.html" class="sitemap-col-item">
+            架构演进
+          </a><a href="../../arch/arch-x-pattern.html" class="sitemap-col-item">
+            架构模式和要素
+          </a><a href="../../arch/arch-y-cache.html" class="sitemap-col-item">
+            高并发之缓存
+          </a><a href="../../arch/arch-y-ratelimit.html" class="sitemap-col-item">
+            高并发之限流
+          </a><a href="../../arch/arch-y-reduce.html" class="sitemap-col-item">
+            高并发之降级
+          </a><a href="../../arch/arch-y-loadbalance.html" class="sitemap-col-item">
+            负载均衡
+          </a><a href="../../arch/arch-y-backup.html" class="sitemap-col-item">
+            容灾备份
+          </a><a href="../../arch/arch-x-security.html" class="sitemap-col-item">
+            架构安全
+          </a><a href="../../arch/arch-example-seckill.html" class="sitemap-col-item">
+            秒杀系统设计
+          </a><a href="../../arch/arch-example-goods-detail.html" class="sitemap-col-item">
+            架构案例
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">工具和部署</div></td> <!----> <td><a href="../../devops/tool/tool-list-overview.html" class="sitemap-col-item">
+            工具集合
+          </a><a href="../../devops/tool/tool-ide.html" class="sitemap-col-item">
+            IDE相关
+          </a><a href="../../devops/tool/tool-git.html" class="sitemap-col-item">
+            Git
+          </a><a href="../../devops/tool/tool-maven.html" class="sitemap-col-item">
+            Maven
+          </a><a href="../../devops/linux/linux.html" class="sitemap-col-item">
+            Linux
+          </a><a href="../../devops/docker/docker-00-overview.html" class="sitemap-col-item">
+            Docker
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">方法论</div></td> <!----> <td><a href="../../dev-spec/spec/dev-th-solid.html" class="sitemap-col-item">
+            SOLID
+          </a><a href="../../dev-spec/spec/dev-th-cap.html" class="sitemap-col-item">
+            CAP
+          </a><a href="../../dev-spec/spec/dev-th-base.html" class="sitemap-col-item">
+            BASE
+          </a><a href="../../dev-spec/spec/dev-opensource.html" class="sitemap-col-item">
+            开源协议
+          </a><a href="../../dev-spec/code-style/code-style-alibaba.html" class="sitemap-col-item">
+            代码规范
+          </a><a href="../../dev-spec/pattern/1_overview.html" class="sitemap-col-item">
+            设计模式
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">产品和团队</div></td> <!----> <td><a href="../../team/team-z-wechat.html" class="sitemap-col-item">
+            产品相关
+          </a><a href="../../team/team-z-task-emergency.html" class="sitemap-col-item">
+            团队相关
+          </a><a href="../../team/team-z-arch-future.html" class="sitemap-col-item">
+            其它分享
+          </a></td></tr></table></div></div></div> <!----> </aside></div><div class="global-ui"></div></div>
+    <script src="../../../assets/js/app.691e72ae.js" defer></script><script src="../../../assets/js/4.2e3efdf6.js" defer></script><script src="../../../assets/js/3.d77b006c.js" defer></script><script src="../../../assets/js/389.7b8cf3d0.js" defer></script>
+  </body>
+
+<!-- Mirrored from www.pdai.tech/md/framework/orm-mybatis/mybatis-y-trans.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:31:53 GMT -->
+</html>

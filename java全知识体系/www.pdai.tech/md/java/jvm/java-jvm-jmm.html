@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  
+<!-- Mirrored from www.pdai.tech/md/java/jvm/java-jvm-jmm.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:30:33 GMT -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>JVM 基础 - Java 内存模型详解 | Java 全栈知识体系</title>
+    <meta name="generator" content="VuePress 1.8.2">
+    <link rel="icon" href="../../../favicon.ico">
+    <script src="../../../../hm.baidu.com/hma448.js?525d4abc4a8675472736969f817ceb47"></script>
+    <script defer="defer" async="async" src="../../../../pagead2.googlesyndication.com/pagead/js/f.txt"></script>
+    <meta name="description" content="包含: Java 基础, Java 部分源码, JVM, Spring, Spring Boot, Spring Cloud, 数据库原理, MySQL, ElasticSearch, MongoDB, Docker, k8s, CI&CD, Linux, DevOps, 分布式, 中间件, 开发工具, Git, IDE, 源码阅读，读书笔记, 开源项目...">
+    <meta property="article:modified_time" content="2021-09-27T13:15:21.000Z">
+    <meta property="og:title" content="JVM 基础 - Java 内存模型详解">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="/md/java/jvm/java-jvm-jmm.html">
+    <meta name="twitter:title" content="JVM 基础 - Java 内存模型详解">
+    <meta name="twitter:url" content="/md/java/jvm/java-jvm-jmm.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="robots" content="all">
+    <meta name="author" content="pdai">
+    <meta name="keywords" content="Java 全栈知识体系, java体系, java知识体系, java框架,java全栈,java学习路线,java全栈知识, java面试, 知识体系, java技术体系, java编程, java编程指南,java开发体系, java开发,java教程,java,java数据结构, 算法, 开发基础">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <link rel="preload" href="../../../assets/css/0.styles.d4bb5489.css" as="style"><link rel="preload" href="../../../assets/js/app.691e72ae.js" as="script"><link rel="preload" href="../../../assets/js/4.2e3efdf6.js" as="script"><link rel="preload" href="../../../assets/js/3.d77b006c.js" as="script"><link rel="preload" href="../../../assets/js/475.013ceb00.js" as="script">
+    <link rel="stylesheet" href="../../../assets/css/0.styles.d4bb5489.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="../../../index.html" class="home-link router-link-active"><!----> <span class="site-name">Java 全栈知识体系</span></a> <div class="links"><form id="search-form" role="search" class="algolia-search-wrapper search-box"><input id="algolia-search-input" class="search-query"></form> <nav class="nav-links can-hide"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav>  <ul class="sidebar-links"><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Java 基础</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../basic/java-basic-oop.html" class="sidebar-link">Java 基础 - 面向对象</a></li><li><a href="../basic/java-basic-lan-basic.html" class="sidebar-link">Java 基础 - 知识点</a></li><li><a href="../basic/java-basic-lan-sum.html" class="sidebar-link">Java 基础 - 图谱 &amp; Q/A</a></li><li><a href="../basic/java-basic-x-generic.html" class="sidebar-link">Java 基础 - 泛型机制详解</a></li><li><a href="../basic/java-basic-x-annotation.html" class="sidebar-link">Java 基础 - 注解机制详解</a></li><li><a href="../basic/java-basic-x-exception.html" class="sidebar-link">Java 基础 - 异常机制详解</a></li><li><a href="../basic/java-basic-x-reflection.html" class="sidebar-link">Java 基础 - 反射机制详解</a></li><li><a href="../advanced/java-advanced-spi.html" class="sidebar-link">Java常用机制 - SPI机制详解</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Java 集合框架</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../collection/java-collection-all.html" class="sidebar-link">Collection 类关系图</a></li><li><a href="../collection/java-collection-ArrayList.html" class="sidebar-link">Collection - ArrayList 源码解析</a></li><li><a href="../collection/java-collection-LinkedList.html" class="sidebar-link">Collection - LinkedList源码解析</a></li><li><a href="../collection/java-collection-Queue%26Stack.html" class="sidebar-link">Collection - Stack &amp; Queue 源码解析</a></li><li><a href="../collection/java-collection-PriorityQueue.html" class="sidebar-link">Collection - PriorityQueue源码解析</a></li><li><a href="../collection/java-map-HashMap%26HashSet.html" class="sidebar-link">Map - HashSet &amp; HashMap 源码解析</a></li><li><a href="../collection/java-map-LinkedHashMap%26LinkedHashSet.html" class="sidebar-link">Map - LinkedHashSet&amp;Map源码解析</a></li><li><a href="../collection/java-map-TreeMap%26TreeSet.html" class="sidebar-link">Map - TreeSet &amp; TreeMap 源码解析</a></li><li><a href="../collection/java-map-WeakHashMap.html" class="sidebar-link">Map - WeakHashMap源码解析</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Java 多线程与并发</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../thread/java-thread-x-overview.html" class="sidebar-link">♥Java并发知识体系详解♥</a></li><li><a href="../thread/java-thread-x-theorty.html" class="sidebar-link">Java 并发 - 理论基础</a></li><li><a href="../thread/java-thread-x-thread-basic.html" class="sidebar-link">Java 并发 - 线程基础</a></li><li><a href="../thread/java-thread-x-key-synchronized.html" class="sidebar-link">关键字: synchronized详解</a></li><li><a href="../thread/java-thread-x-key-volatile.html" class="sidebar-link">关键字: volatile详解</a></li><li><a href="../thread/java-thread-x-key-final.html" class="sidebar-link">关键字: final详解</a></li><li><a href="../thread/java-thread-x-juc-overview.html" class="sidebar-link">JUC - 类汇总和学习指南</a></li><li><a href="../thread/java-thread-x-juc-AtomicInteger.html" class="sidebar-link">JUC原子类: CAS, Unsafe和原子类详解</a></li><li><a href="../thread/java-thread-x-lock-LockSupport.html" class="sidebar-link">JUC锁: LockSupport详解</a></li><li><a href="../thread/java-thread-x-lock-AbstractQueuedSynchronizer.html" class="sidebar-link">JUC锁: 锁核心类AQS详解</a></li><li><a href="../thread/java-thread-x-lock-ReentrantLock.html" class="sidebar-link">JUC锁: ReentrantLock详解</a></li><li><a href="../thread/java-thread-x-lock-ReentrantReadWriteLock.html" class="sidebar-link">JUC锁: ReentrantReadWriteLock详解</a></li><li><a href="../thread/java-thread-x-juc-collection-ConcurrentHashMap.html" class="sidebar-link">JUC集合: ConcurrentHashMap详解</a></li><li><a href="../thread/java-thread-x-juc-collection-CopyOnWriteArrayList.html" class="sidebar-link">JUC集合: CopyOnWriteArrayList详解</a></li><li><a href="../thread/java-thread-x-juc-collection-ConcurrentLinkedQueue.html" class="sidebar-link">JUC集合: ConcurrentLinkedQueue详解</a></li><li><a href="../thread/java-thread-x-juc-collection-BlockingQueue.html" class="sidebar-link">JUC集合: BlockingQueue详解</a></li><li><a href="../thread/java-thread-x-juc-executor-FutureTask.html" class="sidebar-link">JUC线程池: FutureTask详解</a></li><li><a href="../thread/java-thread-x-juc-executor-ThreadPoolExecutor.html" class="sidebar-link">JUC线程池: ThreadPoolExecutor详解</a></li><li><a href="../thread/java-thread-x-juc-executor-ScheduledThreadPoolExecutor.html" class="sidebar-link">JUC线程池: ScheduledThreadPoolExecutor详解</a></li><li><a href="../thread/java-thread-x-juc-executor-ForkJoinPool.html" class="sidebar-link">JUC线程池: Fork/Join框架详解</a></li><li><a href="../thread/java-thread-x-juc-tool-countdownlatch.html" class="sidebar-link">JUC工具类: CountDownLatch详解</a></li><li><a href="../thread/java-thread-x-juc-tool-cyclicbarrier.html" class="sidebar-link">JUC工具类: CyclicBarrier详解</a></li><li><a href="../thread/java-thread-x-juc-tool-semaphore.html" class="sidebar-link">JUC工具类: Semaphore详解</a></li><li><a href="../thread/java-thread-x-juc-tool-phaser.html" class="sidebar-link">JUC工具类: Phaser详解</a></li><li><a href="../thread/java-thread-x-juc-tool-exchanger.html" class="sidebar-link">JUC工具类: Exchanger详解</a></li><li><a href="../thread/java-thread-x-threadlocal.html" class="sidebar-link">Java 并发 - ThreadLocal详解</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Java IO/NIO/AIO</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../io/java-io-overview.html" class="sidebar-link">♥Java IO知识体系详解♥</a></li><li><a href="../io/java-io-basic-category.html" class="sidebar-link">Java IO - 分类(传输，操作)</a></li><li><a href="../io/java-io-basic-design-pattern.html" class="sidebar-link">Java IO - 设计模式(装饰者模式)</a></li><li><a href="../io/java-io-basic-code-inputstream.html" class="sidebar-link">Java IO - 源码: InputStream</a></li><li><a href="../io/java-io-basic-code-outputstream.html" class="sidebar-link">Java IO - 源码: OutputStream</a></li><li><a href="../io/java-io-basic-usage.html" class="sidebar-link">Java IO - 常见类使用</a></li><li><a href="../io/java-io-model.html" class="sidebar-link">IO 模型 - Unix IO 模型</a></li><li><a href="../io/java-io-bio.html" class="sidebar-link">Java IO - BIO 详解</a></li><li><a href="../io/java-io-nio.html" class="sidebar-link">Java NIO - 基础详解</a></li><li><a href="../io/java-io-nio-select-epoll.html" class="sidebar-link">Java NIO - IO多路复用详解</a></li><li><a href="../io/java-io-aio.html" class="sidebar-link">Java AIO - 异步IO详解</a></li><li><a href="../io/java-io-nio-netty.html" class="sidebar-link">Java N(A)IO - 框架: Netty</a></li><li><a href="../io/java-io-nio-zerocopy.html" class="sidebar-link">Java NIO - 零拷贝实现</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Java8 特性详解</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../java8/java8.html" class="sidebar-link">♥Java8特性知识体系详解♥</a></li><li><a href="../java8/java8-stream.html" class="sidebar-link">Java 8 - 函数编程(lambda表达式)</a></li><li><a href="../java8/java8-optional.html" class="sidebar-link">Java 8 - Optional类深度解析</a></li><li><a href="../java8/java8-default.html" class="sidebar-link">Java 8 - 默认方法</a></li><li><a href="../java8/java8-type-anno.html" class="sidebar-link">Java 8 - 类型注解</a></li><li><a href="../java8/java8-anno-repeat.html" class="sidebar-link">Java 8 - 重复注解</a></li><li><a href="../java8/java8-type.html" class="sidebar-link">Java 8 - 类型推断优化</a></li><li><a href="../java8/java8-jre.html" class="sidebar-link">Java 8 - JRE精简</a></li><li><a href="../java8/java8-permgen.html" class="sidebar-link">Java 8 - 移除Permgen</a></li><li><a href="../java8/java8-stampedlock.html" class="sidebar-link">Java 8 - StampedLock</a></li><li><a href="../java8/java8-localdatetime.html" class="sidebar-link">Java 8 - LocalDate/LocalDateTime</a></li><li><a href="../java8/java8-javafx.html" class="sidebar-link">Java 8 - JavaFx 2.0</a></li><li><a href="../java8/java8-others.html" class="sidebar-link">Java 8 - 其它更新: 字符串，base64,...</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Java8 以上特性概述</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../java8up/java-8-up-overview.html" class="sidebar-link">♥Java8+特性知识体系详解♥</a></li><li><a href="../java8up/java9.html" class="sidebar-link">Java 9 新特性概述</a></li><li><a href="../java8up/java10.html" class="sidebar-link">Java 10 新特性概述</a></li><li><a href="../java8up/java11.html" class="sidebar-link">Java 11 新特性概述</a></li><li><a href="../java8up/java13.html" class="sidebar-link">Java 13 新特性概述</a></li><li><a href="../java8up/java14.html" class="sidebar-link">Java 14 新特性概述</a></li><li><a href="../java8up/java15.html" class="sidebar-link">Java 15 新特性概述</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading open"><span>JVM相关</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="java-jvm-x-overview.html" class="sidebar-link">♥JVM相关知识体系详解♥</a></li><li><a href="java-jvm-class.html" class="sidebar-link">JVM 基础 - 类字节码详解</a></li><li><a href="java-jvm-classload.html" class="sidebar-link">JVM 基础 - Java 类加载机制</a></li><li><a href="java-jvm-struct.html" class="sidebar-link">JVM 基础 - JVM 内存结构</a></li><li><a href="java-jvm-x-introduce.html" class="sidebar-link">JVM 基础 - Java 内存模型引入</a></li><li><a href="java-jvm-jmm.html" aria-current="page" class="active sidebar-link">JVM 基础 - Java 内存模型详解</a></li><li><a href="java-jvm-gc.html" class="sidebar-link">JVM 基础 - Java 垃圾回收基础</a></li><li><a href="java-jvm-gc-g1.html" class="sidebar-link">JVM 基础 - Java 垃圾回收器G1详解</a></li><li><a href="java-jvm-param.html" class="sidebar-link">调试排错 - JVM 调优参数</a></li><li><a href="java-jvm-oom.html" class="sidebar-link">调试排错 - Java OOM 分析</a></li><li><a href="java-jvm-thread-dump.html" class="sidebar-link">调试排错 - Java线程Dump分析</a></li><li><a href="java-jvm-debug-tools-linux.html" class="sidebar-link">调试排错 - Java问题排查：Linux命令</a></li><li><a href="java-jvm-debug-tools-list.html" class="sidebar-link">调试排错 - Java问题排查：工具单</a></li><li><a href="java-jvm-cms-gc.html" class="sidebar-link">调试排错 - 9种常见的CMS GC问题分析与解决</a></li><li><a href="java-jvm-agent-usage.html" class="sidebar-link">调试排错 - Java动态调试技术原理</a></li><li><a href="java-jvm-agent-arthas.html" class="sidebar-link">调试排错 - Java应用在线调试Arthas</a></li><li><a href="java-jvm-debug-idea.html" class="sidebar-link">调试排错 - 使用IDEA本地调试和远程调试</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Java其它相关</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../others/java-others-awesome-java.html" class="sidebar-link">Awesome Java</a></li><li><a href="../others/java-others-better-java.html" class="sidebar-link">Better Java</a></li></ul></section></li></ul> </aside> <div><main class="page"> <div class="theme-default-content content__default"><h1 id="jvm-基础---java-内存模型详解"><a href="#jvm-基础---java-内存模型详解" class="header-anchor">¶</a> JVM 基础 - Java 内存模型详解</h1> <blockquote><p>本文主要转载自 Info 上<a href="https://www.infoq.cn/article/java_memory_model/" target="_blank" rel="noopener noreferrer">深入理解Java内存模型<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a>, 作者程晓明。这篇文章对JMM讲的很清楚了，大致分三部分：重排序与顺序一致性；三个同步原语（lock，volatile，final）的内存语义，重排序规则及在处理器中的实现；java 内存模型的设计，及其与处理器内存模型和顺序一致性内存模型的关系。@pdai</p></blockquote> <ul><li><a href="#jvm-%E5%9F%BA%E7%A1%80---java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E8%AF%A6%E8%A7%A3">JVM 基础 - Java 内存模型详解</a> <ul><li><a href="#%E5%9F%BA%E7%A1%80">基础</a> <ul><li><a href="#%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%88%86%E7%B1%BB">并发编程模型的分类</a></li> <li><a href="#java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%8A%BD%E8%B1%A1">Java 内存模型的抽象</a></li> <li><a href="#%E9%87%8D%E6%8E%92%E5%BA%8F">重排序</a></li> <li><a href="#%E5%A4%84%E7%90%86%E5%99%A8%E9%87%8D%E6%8E%92%E5%BA%8F%E4%B8%8E%E5%86%85%E5%AD%98%E5%B1%8F%E9%9A%9C%E6%8C%87%E4%BB%A4">处理器重排序与内存屏障指令</a></li> <li><a href="#happens-before">happens-before</a></li></ul></li> <li><a href="#%E9%87%8D%E6%8E%92%E5%BA%8F-1">重排序</a> <ul><li><a href="#%E6%95%B0%E6%8D%AE%E4%BE%9D%E8%B5%96%E6%80%A7">数据依赖性</a></li> <li><a href="#as-if-serial-%E8%AF%AD%E4%B9%89">as-if-serial 语义</a></li> <li><a href="#%E7%A8%8B%E5%BA%8F%E9%A1%BA%E5%BA%8F%E8%A7%84%E5%88%99">程序顺序规则</a></li> <li><a href="#%E9%87%8D%E6%8E%92%E5%BA%8F%E5%AF%B9%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%9A%84%E5%BD%B1%E5%93%8D">重排序对多线程的影响</a></li></ul></li> <li><a href="#%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7">顺序一致性</a> <ul><li><a href="#%E6%95%B0%E6%8D%AE%E7%AB%9E%E4%BA%89%E4%B8%8E%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7%E4%BF%9D%E8%AF%81">数据竞争与顺序一致性保证</a></li> <li><a href="#%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B">顺序一致性内存模型</a></li> <li><a href="#%E5%90%8C%E6%AD%A5%E7%A8%8B%E5%BA%8F%E7%9A%84%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7%E6%95%88%E6%9E%9C">同步程序的顺序一致性效果</a></li> <li><a href="#%E6%9C%AA%E5%90%8C%E6%AD%A5%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%89%A7%E8%A1%8C%E7%89%B9%E6%80%A7">未同步程序的执行特性</a></li></ul></li> <li><a href="#%E6%80%BB%E7%BB%93">总结</a> <ul><li><a href="#%E5%A4%84%E7%90%86%E5%99%A8%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B">处理器内存模型</a></li> <li><a href="#jmm%E5%A4%84%E7%90%86%E5%99%A8%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E4%B8%8E%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E4%B9%8B%E9%97%B4%E7%9A%84%E5%85%B3%E7%B3%BB">JMM，处理器内存模型与顺序一致性内存模型之间的关系</a></li> <li><a href="#jmm-%E7%9A%84%E8%AE%BE%E8%AE%A1">JMM 的设计</a></li> <li><a href="#jmm-%E7%9A%84%E5%86%85%E5%AD%98%E5%8F%AF%E8%A7%81%E6%80%A7%E4%BF%9D%E8%AF%81">JMM 的内存可见性保证</a></li> <li><a href="#jsr-133-%E5%AF%B9%E6%97%A7%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E7%9A%84%E4%BF%AE%E8%A1%A5">JSR-133 对旧内存模型的修补</a></li></ul></li></ul></li></ul> <h2 id="基础"><a href="#基础" class="header-anchor">¶</a> 基础</h2> <h3 id="并发编程模型的分类"><a href="#并发编程模型的分类" class="header-anchor">¶</a> 并发编程模型的分类</h3> <p>在并发编程中，我们需要处理两个关键问题：线程之间如何通信及线程之间如何同步（这里的线程是指并发执行的活动实体）。通信是指线程之间以何种机制来交换信息。在命令式编程中，线程之间的通信机制有两种：共享内存和消息传递。</p> <p>在共享内存的并发模型里，线程之间共享程序的公共状态，线程之间通过写 - 读内存中的公共状态来隐式进行通信。在消息传递的并发模型里，线程之间没有公共状态，线程之间必须通过明确的发送消息来显式进行通信。</p> <p>同步是指程序用于控制不同线程之间操作发生相对顺序的机制。在共享内存并发模型里，同步是显式进行的。程序员必须显式指定某个方法或某段代码需要在线程之间互斥执行。在消息传递的并发模型里，由于消息的发送必须在消息的接收之前，因此同步是隐式进行的。</p> <p>Java 的并发采用的是共享内存模型，Java 线程之间的通信总是隐式进行，整个通信过程对程序员完全透明。如果编写多线程程序的 Java 程序员不理解隐式进行的线程之间通信的工作机制，很可能会遇到各种奇怪的内存可见性问题。</p> <h3 id="java-内存模型的抽象"><a href="#java-内存模型的抽象" class="header-anchor">¶</a> Java 内存模型的抽象</h3> <p>在 java 中，所有实例域、静态域和数组元素存储在堆内存中，堆内存在线程之间共享（本文使用“共享变量”这个术语代指实例域，静态域和数组元素）。局部变量（Local variables），方法定义参数（java 语言规范称之为 formal method parameters）和异常处理器参数（exception handler parameters）不会在线程之间共享，它们不会有内存可见性问题，也不受内存模型的影响。</p> <p>Java 线程之间的通信由 Java 内存模型（本文简称为 JMM）控制，JMM 决定一个线程对共享变量的写入何时对另一个线程可见。从抽象的角度来看，JMM 定义了线程和主内存之间的抽象关系：线程之间的共享变量存储在主内存（main memory）中，每个线程都有一个私有的本地内存（local memory），本地内存中存储了该线程以读 / 写共享变量的副本。本地内存是 JMM 的一个抽象概念，并不真实存在。它涵盖了缓存，写缓冲区，寄存器以及其他的硬件和编译器优化。Java 内存模型的抽象示意图如下：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/jvm/java-jmm-1.png" loading="lazy" class="lazy"></p> <p>从上图来看，线程 A 与线程 B 之间如要通信的话，必须要经历下面 2 个步骤：</p> <ul><li>首先，线程 A 把本地内存 A 中更新过的共享变量刷新到主内存中去。</li> <li>然后，线程 B 到主内存中去读取线程 A 之前已更新过的共享变量。</li></ul> <p>下面通过示意图来说明这两个步骤：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/jvm/java-jmm-2.png" loading="lazy" class="lazy"></p> <p>如上图所示，本地内存 A 和 B 有主内存中共享变量 x 的副本。假设初始时，这三个内存中的 x 值都为 0。线程 A 在执行时，把更新后的 x 值（假设值为 1）临时存放在自己的本地内存 A 中。当线程 A 和线程 B 需要通信时，线程 A 首先会把自己本地内存中修改后的 x 值刷新到主内存中，此时主内存中的 x 值变为了 1。随后，线程 B 到主内存中去读取线程 A 更新后的 x 值，此时线程 B 的本地内存的 x 值也变为了 1。</p> <p>从整体来看，这两个步骤实质上是线程 A 在向线程 B 发送消息，而且这个通信过程必须要经过主内存。JMM 通过控制主内存与每个线程的本地内存之间的交互，来为 java 程序员提供内存可见性保证。</p> <h3 id="重排序"><a href="#重排序" class="header-anchor">¶</a> 重排序</h3> <p>在执行程序时为了提高性能，编译器和处理器常常会对指令做重排序。重排序分三种类型：</p> <ul><li>编译器优化的重排序。编译器在不改变单线程程序语义的前提下，可以重新安排语句的执行顺序。</li> <li>指令级并行的重排序。现代处理器采用了指令级并行技术（Instruction-Level Parallelism， ILP）来将多条指令重叠执行。如果不存在数据依赖性，处理器可以改变语句对应机器指令的执行顺序。</li> <li>内存系统的重排序。由于处理器使用缓存和读 / 写缓冲区，这使得加载和存储操作看上去可能是在乱序执行。</li></ul> <p>从 java 源代码到最终实际执行的指令序列，会分别经历下面三种重排序：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/jvm/java-jmm-3.png" loading="lazy" class="lazy"></p> <p>上述的 1 属于编译器重排序，2 和 3 属于处理器重排序。这些重排序都可能会导致多线程程序出现内存可见性问题。对于编译器，JMM 的编译器重排序规则会禁止特定类型的编译器重排序（不是所有的编译器重排序都要禁止）。对于处理器重排序，JMM 的处理器重排序规则会要求 java 编译器在生成指令序列时，插入特定类型的内存屏障（memory barriers，intel 称之为 memory fence）指令，通过内存屏障指令来禁止特定类型的处理器重排序（不是所有的处理器重排序都要禁止）。</p> <p>JMM 属于语言级的内存模型，它确保在不同的编译器和不同的处理器平台之上，通过禁止特定类型的编译器重排序和处理器重排序，为程序员提供一致的内存可见性保证。</p> <h3 id="处理器重排序与内存屏障指令"><a href="#处理器重排序与内存屏障指令" class="header-anchor">¶</a> 处理器重排序与内存屏障指令</h3> <p>现代的处理器使用写缓冲区来临时保存向内存写入的数据。写缓冲区可以保证指令流水线持续运行，它可以避免由于处理器停顿下来等待向内存写入数据而产生的延迟。同时，通过以批处理的方式刷新写缓冲区，以及合并写缓冲区中对同一内存地址的多次写，可以减少对内存总线的占用。虽然写缓冲区有这么多好处，但每个处理器上的写缓冲区，仅仅对它所在的处理器可见。这个特性会对内存操作的执行顺序产生重要的影响：处理器对内存的读 / 写操作的执行顺序，不一定与内存实际发生的读 / 写操作顺序一致！为了具体说明，请看下面示例：</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token comment">// Processor A</span>
+a <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span> <span class="token comment">//A1  </span>
+x <span class="token operator">=</span> b<span class="token punctuation">;</span> <span class="token comment">//A2</span>
+
+<span class="token comment">// Processor B</span>
+b <span class="token operator">=</span> <span class="token number">2</span><span class="token punctuation">;</span> <span class="token comment">//B1  </span>
+y <span class="token operator">=</span> a<span class="token punctuation">;</span> <span class="token comment">//B2</span>
+
+<span class="token comment">// 初始状态：a = b = 0；处理器允许执行后得到结果：x = y = 0</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br></div></div><p>假设处理器 A 和处理器 B 按程序的顺序并行执行内存访问，最终却可能得到 x = y = 0 的结果。具体的原因如下图所示：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/jvm/java-jmm-4.png" loading="lazy" class="lazy"></p> <p>这里处理器 A 和处理器 B 可以同时把共享变量写入自己的写缓冲区（A1，B1），然后从内存中读取另一个共享变量（A2，B2），最后才把自己写缓存区中保存的脏数据刷新到内存中（A3，B3）。当以这种时序执行时，程序就可以得到 x = y = 0 的结果。</p> <p>从内存操作实际发生的顺序来看，直到处理器 A 执行 A3 来刷新自己的写缓存区，写操作 A1 才算真正执行了。虽然处理器 A 执行内存操作的顺序为：A1-&gt;A2，但内存操作实际发生的顺序却是：A2-&gt;A1。此时，处理器 A 的内存操作顺序被重排序了（处理器 B 的情况和处理器 A 一样，这里就不赘述了）。</p> <p>这里的关键是，由于写缓冲区仅对自己的处理器可见，它会导致处理器执行内存操作的顺序可能会与内存实际的操作执行顺序不一致。由于现代的处理器都会使用写缓冲区，因此现代的处理器都会允许对写 - 读操做重排序。</p> <p>下面是常见处理器允许的重排序类型的列表：</p> <table><thead><tr><th>Load-Load</th> <th>Load-Store</th> <th>Store-Store</th> <th>Store-Load</th> <th>数据依赖</th></tr></thead> <tbody><tr><td>sparc-TSO</td> <td>N</td> <td>N</td> <td>N</td> <td>Y</td></tr> <tr><td>x86</td> <td>N</td> <td>N</td> <td>N</td> <td>Y</td></tr> <tr><td>ia64</td> <td>Y</td> <td>Y</td> <td>Y</td> <td>Y</td></tr> <tr><td>PowerPC</td> <td>Y</td> <td>Y</td> <td>Y</td> <td>Y</td></tr></tbody></table> <p>上表单元格中的“N”表示处理器不允许两个操作重排序，“Y”表示允许重排序。</p> <p>从上表我们可以看出：常见的处理器都允许 Store-Load 重排序；常见的处理器都不允许对存在数据依赖的操作做重排序。sparc-TSO 和 x86 拥有相对较强的处理器内存模型，它们仅允许对写 - 读操作做重排序（因为它们都使用了写缓冲区）。</p> <ul><li>※注 1：sparc-TSO 是指以 TSO(Total Store Order) 内存模型运行时，sparc 处理器的特性。</li> <li>※注 2：上表中的 x86 包括 x64 及 AMD64。</li> <li>※注 3：由于 ARM 处理器的内存模型与 PowerPC 处理器的内存模型非常类似，本文将忽略它。</li> <li>※注 4：数据依赖性后文会专门说明。</li></ul> <p>为了保证内存可见性，java 编译器在生成指令序列的适当位置会插入内存屏障指令来禁止特定类型的处理器重排序。JMM 把内存屏障指令分为下列四类：</p> <table><thead><tr><th>屏障类型</th> <th>指令示例</th> <th>说明</th></tr></thead> <tbody><tr><td>LoadLoad Barriers</td> <td>Load1; LoadLoad; Load2</td> <td>确保 Load1 数据的装载，之前于 Load2 及所有后续装载指令的装载。</td></tr> <tr><td>StoreStore Barriers</td> <td>Store1; StoreStore; Store2</td> <td>确保 Store1 数据对其他处理器可见（刷新到内存），之前于 Store2 及所有后续存储指令的存储。</td></tr> <tr><td>LoadStore Barriers</td> <td>Load1; LoadStore; Store2</td> <td>确保 Load1 数据装载，之前于 Store2 及所有后续的存储指令刷新到内存。</td></tr> <tr><td>StoreLoad Barriers</td> <td>Store1; StoreLoad; Load2</td> <td>确保 Store1 数据对其他处理器变得可见（指刷新到内存），之前于 Load2 及所有后续装载指令的装载。</td></tr></tbody></table> <p>StoreLoad Barriers 会使该屏障之前的所有内存访问指令（存储和装载指令）完成之后，才执行该屏障之后的内存访问指令。</p> <p>StoreLoad Barriers 是一个“全能型”的屏障，它同时具有其他三个屏障的效果。现代的多处理器大都支持该屏障（其他类型的屏障不一定被所有处理器支持）。执行该屏障开销会很昂贵，因为当前处理器通常要把写缓冲区中的数据全部刷新到内存中（buffer fully flush）。</p> <h3 id="happens-before"><a href="#happens-before" class="header-anchor">¶</a> happens-before</h3> <p>从 JDK5 开始，java 使用新的 JSR -133 内存模型（本文除非特别说明，针对的都是 JSR- 133 内存模型）。JSR-133 提出了 happens-before 的概念，通过这个概念来阐述操作之间的内存可见性。如果一个操作执行的结果需要对另一个操作可见，那么这两个操作之间必须存在 happens-before 关系。这里提到的两个操作既可以是在一个线程之内，也可以是在不同线程之间。 与程序员密切相关的 happens-before 规则如下：</p> <ul><li>程序顺序规则：一个线程中的每个操作，happens- before 于该线程中的任意后续操作。</li> <li>监视器锁规则：对一个监视器锁的解锁，happens- before 于随后对这个监视器锁的加锁。</li> <li>volatile 变量规则：对一个 volatile 域的写，happens- before 于任意后续对这个 volatile 域的读。</li> <li>传递性：如果 A happens- before B，且 B happens- before C，那么 A happens- before C。</li></ul> <p>注意，两个操作之间具有 happens-before 关系，并不意味着前一个操作必须要在后一个操作之前执行！happens-before 仅仅要求前一个操作（执行的结果）对后一个操作可见，且前一个操作按顺序排在第二个操作之前（the first is visible to and ordered before the second）。happens- before 的定义很微妙，后文会具体说明 happens-before 为什么要这么定义。</p> <p>happens-before 与 JMM 的关系如下图所示：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/jvm/java-jmm-5.png" loading="lazy" class="lazy"></p> <p>如上图所示，一个 happens-before 规则通常对应于多个编译器重排序规则和处理器重排序规则。对于 java 程序员来说，happens-before 规则简单易懂，它避免程序员为了理解 JMM 提供的内存可见性保证而去学习复杂的重排序规则以及这些规则的具体实现。</p> <h2 id="重排序-2"><a href="#重排序-2" class="header-anchor">¶</a> 重排序</h2> <h3 id="数据依赖性"><a href="#数据依赖性" class="header-anchor">¶</a> 数据依赖性</h3> <p>如果两个操作访问同一个变量，且这两个操作中有一个为写操作，此时这两个操作之间就存在数据依赖性。数据依赖分下列三种类型：</p> <table><thead><tr><th>名称</th> <th>代码示例</th> <th>说明</th></tr></thead> <tbody><tr><td>写后读</td> <td>a = 1;b = a;</td> <td>写一个变量之后，再读这个位置。</td></tr> <tr><td>写后写</td> <td>a = 1;a = 2;</td> <td>写一个变量之后，再写这个变量。</td></tr> <tr><td>读后写</td> <td>a = b;b = 1;</td> <td>读一个变量之后，再写这个变量。</td></tr></tbody></table> <p>上面三种情况，只要重排序两个操作的执行顺序，程序的执行结果将会被改变。</p> <p>前面提到过，编译器和处理器可能会对操作做重排序。编译器和处理器在重排序时，会遵守数据依赖性，编译器和处理器不会改变存在数据依赖关系的两个操作的执行顺序。</p> <p>注意，这里所说的数据依赖性仅针对单个处理器中执行的指令序列和单个线程中执行的操作，不同处理器之间和不同线程之间的数据依赖性不被编译器和处理器考虑。</p> <h3 id="as-if-serial-语义"><a href="#as-if-serial-语义" class="header-anchor">¶</a> as-if-serial 语义</h3> <p>as-if-serial 语义的意思指：不管怎么重排序（编译器和处理器为了提高并行度），（单线程）程序的执行结果不能被改变。编译器，runtime 和处理器都必须遵守 as-if-serial 语义。</p> <p>为了遵守 as-if-serial 语义，编译器和处理器不会对存在数据依赖关系的操作做重排序，因为这种重排序会改变执行结果。但是，如果操作之间不存在数据依赖关系，这些操作可能被编译器和处理器重排序。为了具体说明，请看下面计算圆面积的代码示例：</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token keyword">double</span> pi  <span class="token operator">=</span> <span class="token number">3.14</span><span class="token punctuation">;</span>    <span class="token comment">//A</span>
+<span class="token keyword">double</span> r   <span class="token operator">=</span> <span class="token number">1.0</span><span class="token punctuation">;</span>     <span class="token comment">//B</span>
+<span class="token keyword">double</span> area <span class="token operator">=</span> pi <span class="token operator">*</span> r <span class="token operator">*</span> r<span class="token punctuation">;</span> <span class="token comment">//C</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br></div></div><p>上面三个操作的数据依赖关系如下图所示：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/jvm/java-jmm-6.png" loading="lazy" class="lazy"></p> <p>如上图所示，A 和 C 之间存在数据依赖关系，同时 B 和 C 之间也存在数据依赖关系。因此在最终执行的指令序列中，C 不能被重排序到 A 和 B 的前面（C 排到 A 和 B 的前面，程序的结果将会被改变）。但 A 和 B 之间没有数据依赖关系，编译器和处理器可以重排序 A 和 B 之间的执行顺序。下图是该程序的两种执行顺序：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/jvm/java-jmm-7.png" loading="lazy" class="lazy"></p> <p>as-if-serial 语义把单线程程序保护了起来，遵守 as-if-serial 语义的编译器，runtime 和处理器共同为编写单线程程序的程序员创建了一个幻觉：单线程程序是按程序的顺序来执行的。as-if-serial 语义使单线程程序员无需担心重排序会干扰他们，也无需担心内存可见性问题。</p> <h3 id="程序顺序规则"><a href="#程序顺序规则" class="header-anchor">¶</a> 程序顺序规则</h3> <p>根据 happens- before 的程序顺序规则，上面计算圆的面积的示例代码存在三个 happens- before 关系：</p> <ul><li>A happens- before B；</li> <li>B happens- before C；</li> <li>A happens- before C；</li></ul> <p>这里的第 3 个 happens- before 关系，是根据 happens- before 的传递性推导出来的。</p> <p>这里 A happens- before B，但实际执行时 B 却可以排在 A 之前执行（看上面的重排序后的执行顺序）。在第一章提到过，如果 A happens- before B，JMM 并不要求 A 一定要在 B 之前执行。JMM 仅仅要求前一个操作（执行的结果）对后一个操作可见，且前一个操作按顺序排在第二个操作之前。这里操作 A 的执行结果不需要对操作 B 可见；而且重排序操作 A 和操作 B 后的执行结果，与操作 A 和操作 B 按 happens- before 顺序执行的结果一致。在这种情况下，JMM 会认为这种重排序并不非法（not illegal），JMM 允许这种重排序。</p> <p>在计算机中，软件技术和硬件技术有一个共同的目标：在不改变程序执行结果的前提下，尽可能的开发并行度。编译器和处理器遵从这一目标，从 happens- before 的定义我们可以看出，JMM 同样遵从这一目标。</p> <h3 id="重排序对多线程的影响"><a href="#重排序对多线程的影响" class="header-anchor">¶</a> 重排序对多线程的影响</h3> <p>现在让我们来看看，重排序是否会改变多线程程序的执行结果。请看下面的示例代码：</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token keyword">class</span> <span class="token class-name">ReorderExample</span> <span class="token punctuation">{</span>
+    <span class="token keyword">int</span> a <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    <span class="token keyword">boolean</span> flag <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">writer</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        a <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span>                   <span class="token comment">//1</span>
+        flag <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>             <span class="token comment">//2</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token class-name">Public</span> <span class="token keyword">void</span> <span class="token function">reader</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>flag<span class="token punctuation">)</span> <span class="token punctuation">{</span>                <span class="token comment">//3</span>
+            <span class="token keyword">int</span> i <span class="token operator">=</span>  a <span class="token operator">*</span> a<span class="token punctuation">;</span>        <span class="token comment">//4</span>
+            ……
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br></div></div><p>flag 变量是个标记，用来标识变量 a 是否已被写入。这里假设有两个线程 A 和 B，A 首先执行 writer() 方法，随后 B 线程接着执行 reader() 方法。线程 B 在执行操作 4 时，能否看到线程 A 在操作 1 对共享变量 a 的写入?</p> <p>答案是：不一定能看到。</p> <p>由于操作 1 和操作 2 没有数据依赖关系，编译器和处理器可以对这两个操作重排序；同样，操作 3 和操作 4 没有数据依赖关系，编译器和处理器也可以对这两个操作重排序。让我们先来看看，当操作 1 和操作 2 重排序时，可能会产生什么效果? 请看下面的程序执行时序图：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/jvm/java-jmm-8.png" loading="lazy" class="lazy"></p> <p>如上图所示，操作 1 和操作 2 做了重排序。程序执行时，线程 A 首先写标记变量 flag，随后线程 B 读这个变量。由于条件判断为真，线程 B 将读取变量 a。此时，变量 a 还根本没有被线程 A 写入，在这里多线程程序的语义被重排序破坏了！</p> <p>※注：本文统一用红色的虚箭线表示错误的读操作，用绿色的虚箭线表示正确的读操作。</p> <p>下面再让我们看看，当操作 3 和操作 4 重排序时会产生什么效果（借助这个重排序，可以顺便说明控制依赖性）。下面是操作 3 和操作 4 重排序后，程序的执行时序图：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/jvm/java-jmm-9.png" loading="lazy" class="lazy"></p> <p>在程序中，操作 3 和操作 4 存在控制依赖关系。当代码中存在控制依赖性时，会影响指令序列执行的并行度。为此，编译器和处理器会采用猜测（Speculation）执行来克服控制相关性对并行度的影响。以处理器的猜测执行为例，执行线程 B 的处理器可以提前读取并计算 a*a，然后把计算结果临时保存到一个名为重排序缓冲（reorder buffer ROB）的硬件缓存中。当接下来操作 3 的条件判断为真时，就把该计算结果写入变量 i 中。</p> <p>从图中我们可以看出，猜测执行实质上对操作 3 和 4 做了重排序。重排序在这里破坏了多线程程序的语义！</p> <p>在单线程程序中，对存在控制依赖的操作重排序，不会改变执行结果（这也是 as-if-serial 语义允许对存在控制依赖的操作做重排序的原因）；但在多线程程序中，对存在控制依赖的操作重排序，可能会改变程序的执行结果。</p> <h2 id="顺序一致性"><a href="#顺序一致性" class="header-anchor">¶</a> 顺序一致性</h2> <h3 id="数据竞争与顺序一致性保证"><a href="#数据竞争与顺序一致性保证" class="header-anchor">¶</a> 数据竞争与顺序一致性保证</h3> <p>当程序未正确同步时，就会存在数据竞争。java 内存模型规范对数据竞争的定义如下：</p> <ul><li>在一个线程中写一个变量，</li> <li>在另一个线程读同一个变量，</li> <li>而且写和读没有通过同步来排序。</li></ul> <p>当代码中包含数据竞争时，程序的执行往往产生违反直觉的结果（前一章的示例正是如此）。如果一个多线程程序能正确同步，这个程序将是一个没有数据竞争的程序。</p> <p>JMM 对正确同步的多线程程序的内存一致性做了如下保证：</p> <ul><li>如果程序是正确同步的，程序的执行将具有顺序一致性（sequentially consistent）-- 即程序的执行结果与该程序在顺序一致性内存模型中的执行结果相同（马上我们将会看到，这对于程序员来说是一个极强的保证）。这里的同步是指广义上的同步，包括对常用同步原语（lock，volatile 和 final）的正确使用。</li></ul> <h3 id="顺序一致性内存模型"><a href="#顺序一致性内存模型" class="header-anchor">¶</a> 顺序一致性内存模型</h3> <p>顺序一致性内存模型是一个被计算机科学家理想化了的理论参考模型，它为程序员提供了极强的内存可见性保证。顺序一致性内存模型有两大特性：</p> <ul><li>一个线程中的所有操作必须按照程序的顺序来执行。
++（不管程序是否同步）所有线程都只能看到一个单一的操作执行顺序。在顺序一致性内存模型中，每个操作都必须原子执行且立刻对所有线程可见。
+顺序一致性内存模型为程序员提供的视图如下：</li></ul> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/jvm/java-jmm-10.png" loading="lazy" class="lazy"></p> <p>在概念上，顺序一致性模型有一个单一的全局内存，这个内存通过一个左右摆动的开关可以连接到任意一个线程。同时，每一个线程必须按程序的顺序来执行内存读 / 写操作。从上图我们可以看出，在任意时间点最多只能有一个线程可以连接到内存。当多个线程并发执行时，图中的开关装置能把所有线程的所有内存读 / 写操作串行化。</p> <p>为了更好的理解，下面我们通过两个示意图来对顺序一致性模型的特性做进一步的说明。</p> <p>假设有两个线程 A 和 B 并发执行。其中 A 线程有三个操作，它们在程序中的顺序是：A1-&gt;A2-&gt;A3。B 线程也有三个操作，它们在程序中的顺序是：B1-&gt;B2-&gt;B3。</p> <p>假设这两个线程使用监视器来正确同步：A 线程的三个操作执行后释放监视器，随后 B 线程获取同一个监视器。那么程序在顺序一致性模型中的执行效果将如下图所示：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/jvm/java-jmm-11.png" loading="lazy" class="lazy"></p> <p>现在我们再假设这两个线程没有做同步，下面是这个未同步程序在顺序一致性模型中的执行示意图：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/jvm/java-jmm-12.png" loading="lazy" class="lazy"></p> <p>未同步程序在顺序一致性模型中虽然整体执行顺序是无序的，但所有线程都只能看到一个一致的整体执行顺序。以上图为例，线程 A 和 B 看到的执行顺序都是：B1-&gt;A1-&gt;A2-&gt;B2-&gt;A3-&gt;B3。之所以能得到这个保证是因为顺序一致性内存模型中的每个操作必须立即对任意线程可见。</p> <p>但是，在 JMM 中就没有这个保证。未同步程序在 JMM 中不但整体的执行顺序是无序的，而且所有线程看到的操作执行顺序也可能不一致。比如，在当前线程把写过的数据缓存在本地内存中，且还没有刷新到主内存之前，这个写操作仅对当前线程可见；从其他线程的角度来观察，会认为这个写操作根本还没有被当前线程执行。只有当前线程把本地内存中写过的数据刷新到主内存之后，这个写操作才能对其他线程可见。在这种情况下，当前线程和其它线程看到的操作执行顺序将不一致。</p> <h3 id="同步程序的顺序一致性效果"><a href="#同步程序的顺序一致性效果" class="header-anchor">¶</a> 同步程序的顺序一致性效果</h3> <p>下面我们对前面的示例程序 ReorderExample 用监视器来同步，看看正确同步的程序如何具有顺序一致性。</p> <p>请看下面的示例代码：</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token keyword">class</span> <span class="token class-name">SynchronizedExample</span> <span class="token punctuation">{</span>
+    <span class="token keyword">int</span> a <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    <span class="token keyword">boolean</span> flag <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">synchronized</span> <span class="token keyword">void</span> <span class="token function">writer</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        a <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span>
+        flag <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">synchronized</span> <span class="token keyword">void</span> <span class="token function">reader</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>flag<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword">int</span> i <span class="token operator">=</span> a<span class="token punctuation">;</span>
+            ……
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br></div></div><p>上面示例代码中，假设 A 线程执行 writer() 方法后，B 线程执行 reader() 方法。这是一个正确同步的多线程程序。根据 JMM 规范，该程序的执行结果将与该程序在顺序一致性模型中的执行结果相同。下面是该程序在两个内存模型中的执行时序对比图：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/jvm/java-jmm-13.png" loading="lazy" class="lazy"></p> <p>在顺序一致性模型中，所有操作完全按程序的顺序串行执行。而在 JMM 中，临界区内的代码可以重排序（但 JMM 不允许临界区内的代码“逸出”到临界区之外，那样会破坏监视器的语义）。JMM 会在退出监视器和进入监视器这两个关键时间点做一些特别处理，使得线程在这两个时间点具有与顺序一致性模型相同的内存视图（具体细节后文会说明）。虽然线程 A 在临界区内做了重排序，但由于监视器的互斥执行的特性，这里的线程 B 根本无法“观察”到线程 A 在临界区内的重排序。这种重排序既提高了执行效率，又没有改变程序的执行结果。</p> <p>从这里我们可以看到 JMM 在具体实现上的基本方针：在不改变（正确同步的）程序执行结果的前提下，尽可能的为编译器和处理器的优化打开方便之门。</p> <h3 id="未同步程序的执行特性"><a href="#未同步程序的执行特性" class="header-anchor">¶</a> 未同步程序的执行特性</h3> <p>对于未同步或未正确同步的多线程程序，JMM 只提供最小安全性：线程执行时读取到的值，要么是之前某个线程写入的值，要么是默认值（0，null，false），JMM 保证线程读操作读取到的值不会无中生有（out of thin air）的冒出来。为了实现最小安全性，JVM 在堆上分配对象时，首先会清零内存空间，然后才会在上面分配对象（JVM 内部会同步这两个操作）。因此，在以清零的内存空间（pre-zeroed memory）分配对象时，域的默认初始化已经完成了。</p> <p>JMM 不保证未同步程序的执行结果与该程序在顺序一致性模型中的执行结果一致。因为未同步程序在顺序一致性模型中执行时，整体上是无序的，其执行结果无法预知。保证未同步程序在两个模型中的执行结果一致毫无意义。</p> <p>和顺序一致性模型一样，未同步程序在 JMM 中的执行时，整体上也是无序的，其执行结果也无法预知。同时，未同步程序在这两个模型中的执行特性有下面几个差异：</p> <ul><li>顺序一致性模型保证单线程内的操作会按程序的顺序执行，而 JMM 不保证单线程内的操作会按程序的顺序执行（比如上面正确同步的多线程程序在临界区内的重排序）。这一点前面已经讲过了，这里就不再赘述。</li> <li>顺序一致性模型保证所有线程只能看到一致的操作执行顺序，而 JMM 不保证所有线程能看到一致的操作执行顺序。这一点前面也已经讲过，这里就不再赘述。</li> <li>JMM 不保证对 64 位的 long 型和 double 型变量的读 / 写操作具有原子性，而顺序一致性模型保证对所有的内存读 / 写操作都具有原子性。</li></ul> <p>第 3 个差异与处理器总线的工作机制密切相关。在计算机中，数据通过总线在处理器和内存之间传递。每次处理器和内存之间的数据传递都是通过一系列步骤来完成的，这一系列步骤称之为总线事务（bus transaction）。总线事务包括读事务（read transaction）和写事务（write transaction）。读事务从内存传送数据到处理器，写事务从处理器传送数据到内存，每个事务会读 / 写内存中一个或多个物理上连续的字。这里的关键是，总线会同步试图并发使用总线的事务。在一个处理器执行总线事务期间，总线会禁止其它所有的处理器和 I/O 设备执行内存的读 / 写。下面让我们通过一个示意图来说明总线的工作机制：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/jvm/java-jmm-14.png" loading="lazy" class="lazy"></p> <p>如上图所示，假设处理器 A，B 和 C 同时向总线发起总线事务，这时总线仲裁（bus arbitration）会对竞争作出裁决，这里我们假设总线在仲裁后判定处理器 A 在竞争中获胜（总线仲裁会确保所有处理器都能公平的访问内存）。此时处理器 A 继续它的总线事务，而其它两个处理器则要等待处理器 A 的总线事务完成后才能开始再次执行内存访问。假设在处理器 A 执行总线事务期间（不管这个总线事务是读事务还是写事务），处理器 D 向总线发起了总线事务，此时处理器 D 的这个请求会被总线禁止。</p> <p>总线的这些工作机制可以把所有处理器对内存的访问以串行化的方式来执行；在任意时间点，最多只能有一个处理器能访问内存。这个特性确保了单个总线事务之中的内存读 / 写操作具有原子性。</p> <p>在一些 32 位的处理器上，如果要求对 64 位数据的读 / 写操作具有原子性，会有比较大的开销。为了照顾这种处理器，java 语言规范鼓励但不强求 JVM 对 64 位的 long 型变量和 double 型变量的读 / 写具有原子性。当 JVM 在这种处理器上运行时，会把一个 64 位 long/ double 型变量的读 / 写操作拆分为两个 32 位的读 / 写操作来执行。这两个 32 位的读 / 写操作可能会被分配到不同的总线事务中执行，此时对这个 64 位变量的读 / 写将不具有原子性。</p> <p>当单个内存操作不具有原子性，将可能会产生意想不到后果。请看下面示意图：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/jvm/java-jmm-15.png" loading="lazy" class="lazy"></p> <p>如上图所示，假设处理器 A 写一个 long 型变量，同时处理器 B 要读这个 long 型变量。处理器 A 中 64 位的写操作被拆分为两个 32 位的写操作，且这两个 32 位的写操作被分配到不同的写事务中执行。同时处理器 B 中 64 位的读操作被拆分为两个 32 位的读操作，且这两个 32 位的读操作被分配到同一个的读事务中执行。当处理器 A 和 B 按上图的时序来执行时，处理器 B 将看到仅仅被处理器 A“写了一半“的无效值。</p> <h2 id="总结"><a href="#总结" class="header-anchor">¶</a> 总结</h2> <h3 id="处理器内存模型"><a href="#处理器内存模型" class="header-anchor">¶</a> 处理器内存模型</h3> <p>顺序一致性内存模型是一个理论参考模型，JMM 和处理器内存模型在设计时通常会把顺序一致性内存模型作为参照。JMM 和处理器内存模型在设计时会对顺序一致性模型做一些放松，因为如果完全按照顺序一致性模型来实现处理器和 JMM，那么很多的处理器和编译器优化都要被禁止，这对执行性能将会有很大的影响。</p> <p>根据对不同类型读 / 写操作组合的执行顺序的放松，可以把常见处理器的内存模型划分为下面几种类型：</p> <ul><li>放松程序中写 - 读操作的顺序，由此产生了 total store ordering 内存模型（简称为 TSO）。</li> <li>在前面 1 的基础上，继续放松程序中写 - 写操作的顺序，由此产生了 partial store order 内存模型（简称为 PSO）。</li> <li>在前面 1 和 2 的基础上，继续放松程序中读 - 写和读 - 读操作的顺序，由此产生了 relaxed memory order 内存模型（简称为 RMO）和 PowerPC 内存模型。</li></ul> <p>注意，这里处理器对读 / 写操作的放松，是以两个操作之间不存在数据依赖性为前提的（因为处理器要遵守 as-if-serial 语义，处理器不会对存在数据依赖性的两个内存操作做重排序）。</p> <p>下面的表格展示了常见处理器内存模型的细节特征：</p> <table><thead><tr><th>内存模型名称</th> <th>对应的处理器</th> <th>Store-Load 重排序</th> <th>Store-Store 重排序</th> <th>Load-Load 和 Load-Store 重排序</th> <th>可以更早读取到其它处理器的写</th> <th>可以更早读取到当前处理器的写</th></tr></thead> <tbody><tr><td>TSO</td> <td>sparc-TSO X64</td> <td>Y</td> <td></td> <td></td> <td></td> <td>Y</td></tr> <tr><td>PSO</td> <td>sparc-PSO</td> <td>Y</td> <td>Y</td> <td></td> <td></td> <td>Y</td></tr> <tr><td>RMO</td> <td>ia64</td> <td>Y</td> <td>Y</td> <td>Y</td> <td></td> <td>Y</td></tr> <tr><td>PowerPC</td> <td>PowerPC</td> <td>Y</td> <td>Y</td> <td>Y</td> <td>Y</td> <td>Y</td></tr></tbody></table> <p>在这个表格中，我们可以看到所有处理器内存模型都允许写 - 读重排序，原因在第一章以说明过：它们都使用了写缓存区，写缓存区可能导致写 - 读操作重排序。同时，我们可以看到这些处理器内存模型都允许更早读到当前处理器的写，原因同样是因为写缓存区：由于写缓存区仅对当前处理器可见，这个特性导致当前处理器可以比其他处理器先看到临时保存在自己的写缓存区中的写。</p> <p>上面表格中的各种处理器内存模型，从上到下，模型由强变弱。越是追求性能的处理器，内存模型设计的会越弱。因为这些处理器希望内存模型对它们的束缚越少越好，这样它们就可以做尽可能多的优化来提高性能。</p> <p>由于常见的处理器内存模型比 JMM 要弱，java 编译器在生成字节码时，会在执行指令序列的适当位置插入内存屏障来限制处理器的重排序。同时，由于各种处理器内存模型的强弱并不相同，为了在不同的处理器平台向程序员展示一个一致的内存模型，JMM 在不同的处理器中需要插入的内存屏障的数量和种类也不相同。下图展示了 JMM 在不同处理器内存模型中需要插入的内存屏障的示意图：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/jvm/java-jmm-x01.png" loading="lazy" class="lazy"></p> <p>如上图所示，JMM 屏蔽了不同处理器内存模型的差异，它在不同的处理器平台之上为 java 程序员呈现了一个一致的内存模型。</p> <h3 id="jmm处理器内存模型与顺序一致性内存模型之间的关系"><a href="#jmm处理器内存模型与顺序一致性内存模型之间的关系" class="header-anchor">¶</a> JMM，处理器内存模型与顺序一致性内存模型之间的关系</h3> <p>JMM 是一个语言级的内存模型，处理器内存模型是硬件级的内存模型，顺序一致性内存模型是一个理论参考模型。下面是语言内存模型，处理器内存模型和顺序一致性内存模型的强弱对比示意图：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/jvm/java-jmm-x02.png" loading="lazy" class="lazy"></p> <p>从上图我们可以看出：常见的 4 种处理器内存模型比常用的 3 中语言内存模型要弱，处理器内存模型和语言内存模型都比顺序一致性内存模型要弱。同处理器内存模型一样，越是追求执行性能的语言，内存模型设计的会越弱。</p> <h3 id="jmm-的设计"><a href="#jmm-的设计" class="header-anchor">¶</a> JMM 的设计</h3> <p>从 JMM 设计者的角度来说，在设计 JMM 时，需要考虑两个关键因素：</p> <ul><li>程序员对内存模型的使用。程序员希望内存模型易于理解，易于编程。程序员希望基于一个强内存模型来编写代码。</li> <li>编译器和处理器对内存模型的实现。编译器和处理器希望内存模型对它们的束缚越少越好，这样它们就可以做尽可能多的优化来提高性能。编译器和处理器希望实现一个弱内存模型。</li></ul> <p>由于这两个因素互相矛盾，所以 JSR-133 专家组在设计 JMM 时的核心目标就是找到一个好的平衡点：一方面要为程序员提供足够强的内存可见性保证；另一方面，对编译器和处理器的限制要尽可能的放松。下面让我们看看 JSR-133 是如何实现这一目标的。</p> <p>为了具体说明，请看前面提到过的计算圆面积的示例代码：</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token keyword">double</span> pi  <span class="token operator">=</span> <span class="token number">3.14</span><span class="token punctuation">;</span>    <span class="token comment">//A</span>
+<span class="token keyword">double</span> r   <span class="token operator">=</span> <span class="token number">1.0</span><span class="token punctuation">;</span>     <span class="token comment">//B</span>
+<span class="token keyword">double</span> area <span class="token operator">=</span> pi <span class="token operator">*</span> r <span class="token operator">*</span> r<span class="token punctuation">;</span> <span class="token comment">//C</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br></div></div><p>上面计算圆的面积的示例代码存在三个 happens- before 关系：</p> <ul><li>A happens- before B；</li> <li>B happens- before C；</li> <li>A happens- before C；</li></ul> <p>由于 A happens- before B，happens- before 的定义会要求：A 操作执行的结果要对 B 可见，且 A 操作的执行顺序排在 B 操作之前。 但是从程序语义的角度来说，对 A 和 B 做重排序即不会改变程序的执行结果，也还能提高程序的执行性能（允许这种重排序减少了对编译器和处理器优化的束缚）。也就是说，上面这 3 个 happens- before 关系中，虽然 2 和 3 是必需要的，但 1 是不必要的。因此，JMM 把 happens- before 要求禁止的重排序分为了下面两类：</p> <ul><li>会改变程序执行结果的重排序。</li> <li>不会改变程序执行结果的重排序。</li></ul> <p>JMM 对这两种不同性质的重排序，采取了不同的策略：</p> <ul><li>对于会改变程序执行结果的重排序，JMM 要求编译器和处理器必须禁止这种重排序。</li> <li>对于不会改变程序执行结果的重排序，JMM 对编译器和处理器不作要求（JMM 允许这种重排序）。</li></ul> <p>下面是 JMM 的设计示意图：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/jvm/java-jmm-x03.png" loading="lazy" class="lazy"></p> <p>从上图可以看出两点：</p> <ul><li>JMM 向程序员提供的 happens- before 规则能满足程序员的需求。JMM 的 happens- before 规则不但简单易懂，而且也向程序员提供了足够强的内存可见性保证（有些内存可见性保证其实并不一定真实存在，比如上面的 A happens- before B）。</li> <li>JMM 对编译器和处理器的束缚已经尽可能的少。从上面的分析我们可以看出，JMM 其实是在遵循一个基本原则：只要不改变程序的执行结果（指的是单线程程序和正确同步的多线程程序），编译器和处理器怎么优化都行。比如，如果编译器经过细致的分析后，认定一个锁只会被单个线程访问，那么这个锁可以被消除。再比如，如果编译器经过细致的分析后，认定一个 volatile 变量仅仅只会被单个线程访问，那么编译器可以把这个 volatile 变量当作一个普通变量来对待。这些优化既不会改变程序的执行结果，又能提高程序的执行效率。</li></ul> <h3 id="jmm-的内存可见性保证"><a href="#jmm-的内存可见性保证" class="header-anchor">¶</a> JMM 的内存可见性保证</h3> <p>Java 程序的内存可见性保证按程序类型可以分为下列三类：</p> <ul><li>单线程程序。单线程程序不会出现内存可见性问题。编译器，runtime 和处理器会共同确保单线程程序的执行结果与该程序在顺序一致性模型中的执行结果相同。</li> <li>正确同步的多线程程序。正确同步的多线程程序的执行将具有顺序一致性（程序的执行结果与该程序在顺序一致性内存模型中的执行结果相同）。这是 JMM 关注的重点，JMM 通过限制编译器和处理器的重排序来为程序员提供内存可见性保证。</li> <li>未同步 / 未正确同步的多线程程序。JMM 为它们提供了最小安全性保障：线程执行时读取到的值，要么是之前某个线程写入的值，要么是默认值（0，null，false）。</li></ul> <p>下图展示了这三类程序在 JMM 中与在顺序一致性内存模型中的执行结果的异同：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/jvm/java-jmm-x04.png" loading="lazy" class="lazy"></p> <p>只要多线程程序是正确同步的，JMM 保证该程序在任意的处理器平台上的执行结果，与该程序在顺序一致性内存模型中的执行结果一致。</p> <h3 id="jsr-133-对旧内存模型的修补"><a href="#jsr-133-对旧内存模型的修补" class="header-anchor">¶</a> JSR-133 对旧内存模型的修补</h3> <p>JSR-133 对 JDK5 之前的旧内存模型的修补主要有两个：</p> <ul><li>增强 volatile 的内存语义。旧内存模型允许 volatile 变量与普通变量重排序。JSR-133 严格限制 volatile 变量与普通变量的重排序，使 volatile 的写 - 读和锁的释放 - 获取具有相同的内存语义。</li> <li>增强 final 的内存语义。在旧内存模型中，多次读取同一个 final 变量的值可能会不相同。为此，JSR-133 为 final 增加了两个重排序规则。现在，final 具有了初始化安全性。</li></ul></div> <div class="page-contract"><h2>联系我</h2> <div class="c-content"><span style="font-size:1rem;font-weight:bold;">添加@pdai微信</span><br> <img src="../../../pdai.jpg" height="280px" style="margin:10px;"><br>
+        PS：添加时请备注<b>Java全栈</b>，谢谢！
+      </div></div> <footer class="page-edit"><div class="edit-link"><a href="https://github.com/realpdai/tech-arch-doc/edit/master/md/java/jvm/java-jvm-jmm.md" target="_blank" rel="noopener noreferrer">在 GitHub 上编辑此页</a> <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></div> <div class="last-updated"><span class="prefix">上次更新: </span> <span class="time">9/27/2021,</span></div></footer> <div class="page-nav"><p class="inner"><span class="prev">
+        ←
+        <a href="java-jvm-x-introduce.html" class="prev">
+          JVM 基础 - Java 内存模型引入
+        </a></span> <span class="next"><a href="java-jvm-gc.html">
+          JVM 基础 - Java 垃圾回收基础
+        </a>
+        →
+      </span></p></div> <div class="google_ad_bottom"><ins data-ad-client="ca-pub-5088193899865249" data-ad-slot="6822031208" data-ad-format="auto" data-full-width-responsive="true" class="adsbygoogle" style="display:block"></ins> <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script></div> </main></div> <aside class="page-sidebar"> <div class="page-side-toolbar"><div class="option-box-toc-fixed"><div class="toc-container-sidebar"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:650px"><div style="font-weight:bold;text-align:center;">JVM 基础 - Java 内存模型详解</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="java-jvm-jmm.html#基础" class="toc-sidebar-link">基础</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#并发编程模型的分类" class="toc-sidebar-link">并发编程模型的分类</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#java-内存模型的抽象" class="toc-sidebar-link">Java 内存模型的抽象</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#重排序" class="toc-sidebar-link">重排序</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#处理器重排序与内存屏障指令" class="toc-sidebar-link">处理器重排序与内存屏障指令</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#happens-before" class="toc-sidebar-link">happens-before</a></li></ul></li><li><a href="java-jvm-jmm.html#重排序-2" class="toc-sidebar-link">重排序</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#数据依赖性" class="toc-sidebar-link">数据依赖性</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#as-if-serial-语义" class="toc-sidebar-link">as-if-serial 语义</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#程序顺序规则" class="toc-sidebar-link">程序顺序规则</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#重排序对多线程的影响" class="toc-sidebar-link">重排序对多线程的影响</a></li></ul></li><li><a href="java-jvm-jmm.html#顺序一致性" class="toc-sidebar-link">顺序一致性</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#数据竞争与顺序一致性保证" class="toc-sidebar-link">数据竞争与顺序一致性保证</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#顺序一致性内存模型" class="toc-sidebar-link">顺序一致性内存模型</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#同步程序的顺序一致性效果" class="toc-sidebar-link">同步程序的顺序一致性效果</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#未同步程序的执行特性" class="toc-sidebar-link">未同步程序的执行特性</a></li></ul></li><li><a href="java-jvm-jmm.html#总结" class="toc-sidebar-link">总结</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#处理器内存模型" class="toc-sidebar-link">处理器内存模型</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#jmm处理器内存模型与顺序一致性内存模型之间的关系" class="toc-sidebar-link">JMM，处理器内存模型与顺序一致性内存模型之间的关系</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#jmm-的设计" class="toc-sidebar-link">JMM 的设计</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#jmm-的内存可见性保证" class="toc-sidebar-link">JMM 的内存可见性保证</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#jsr-133-对旧内存模型的修补" class="toc-sidebar-link">JSR-133 对旧内存模型的修补</a></li></ul></li></ul></div></div></div></div></div> <div class="option-box-toc-over"><img src="../../../toc.png" class="nozoom"> <span class="show-txt">目录</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:550px"><div style="font-weight:bold;text-align:center;">JVM 基础 - Java 内存模型详解</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="java-jvm-jmm.html#基础" class="toc-sidebar-link">基础</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#并发编程模型的分类" class="toc-sidebar-link">并发编程模型的分类</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#java-内存模型的抽象" class="toc-sidebar-link">Java 内存模型的抽象</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#重排序" class="toc-sidebar-link">重排序</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#处理器重排序与内存屏障指令" class="toc-sidebar-link">处理器重排序与内存屏障指令</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#happens-before" class="toc-sidebar-link">happens-before</a></li></ul></li><li><a href="java-jvm-jmm.html#重排序-2" class="toc-sidebar-link">重排序</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#数据依赖性" class="toc-sidebar-link">数据依赖性</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#as-if-serial-语义" class="toc-sidebar-link">as-if-serial 语义</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#程序顺序规则" class="toc-sidebar-link">程序顺序规则</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#重排序对多线程的影响" class="toc-sidebar-link">重排序对多线程的影响</a></li></ul></li><li><a href="java-jvm-jmm.html#顺序一致性" class="toc-sidebar-link">顺序一致性</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#数据竞争与顺序一致性保证" class="toc-sidebar-link">数据竞争与顺序一致性保证</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#顺序一致性内存模型" class="toc-sidebar-link">顺序一致性内存模型</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#同步程序的顺序一致性效果" class="toc-sidebar-link">同步程序的顺序一致性效果</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#未同步程序的执行特性" class="toc-sidebar-link">未同步程序的执行特性</a></li></ul></li><li><a href="java-jvm-jmm.html#总结" class="toc-sidebar-link">总结</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#处理器内存模型" class="toc-sidebar-link">处理器内存模型</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#jmm处理器内存模型与顺序一致性内存模型之间的关系" class="toc-sidebar-link">JMM，处理器内存模型与顺序一致性内存模型之间的关系</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#jmm-的设计" class="toc-sidebar-link">JMM 的设计</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#jmm-的内存可见性保证" class="toc-sidebar-link">JMM 的内存可见性保证</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-jmm.html#jsr-133-对旧内存模型的修补" class="toc-sidebar-link">JSR-133 对旧内存模型的修补</a></li></ul></li></ul></div></div></div></div></div> <div class="option-box"><img src="../../../wechat.png" class="nozoom"> <span class="show-txt">手机看</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.9rem">微信扫一扫</span> <img height="180px" src="https://api.qrserver.com/v1/create-qr-code/?data=https://www.pdai.tech/md/java/jvm/java-jvm-jmm.html" style="margin:10px;">
+              可以<b>手机看</b>或分享至<b>朋友圈</b></div></div></div></div> <div class="option-box"><a title="点击切换全屏" style="text-align:center;padding-left:2px;"><img src="../../../full.png" width="30px" class="nozoom"> <span style="color:gray;font-size:11px;font-weight:400;">全屏看</span></a></div> <div class="option-box"><img src="../../../toggle.png" width="30px" class="nozoom"> <span class="show-txt">左栏</span></div> <div class="option-box"><img src="../../../wexin2.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:yellow">交流圈</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">添加pdai微信进《Java全栈知识体系》学习交流圈「无任何套路」</span> <img src="../../../pdai.jpg" height="180px" style="margin:10px;">
+              PS：添加时请备注<b>Java全栈</b>，谢谢！
+            </div></div></div></div> <div class="option-box"><img src="../../../download.jpg" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:#a6f792">下资料</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">扫描公众号，回复“资料”下载<font style="color:red;">10GB+</font>书籍资料「无任何套路」</span> <img src="../../../pdai_gzh.jpg" height="180px" style="margin:10px;"> <b>公众号:</b> Java全栈知识体系
+            </div></div></div></div> <div class="option-box"><img src="../../../heart.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;background-color:#gray">支持我</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">鼓励/支持/赞赏我</span> <img src="../../../pdai-guli.png" height="180px" width="200px" style="margin:5px;">
+              1. 不靠它生存但仍希望得到你的鼓励；<br> 2. 时刻警醒自己保持技术人的初心，恒心，简单，利他；
+            </div></div></div></div> <div title="JVM 基础 - Java 内存模型引入" class="option-box" style="padding-left:2px;text-align:center;"><a href="java-jvm-x-introduce.html"><img src="../../../pre2.png" width="30px" class="nozoom"> <span class="show-txt">上一篇</span></a></div> <div title="JVM 基础 - Java 垃圾回收基础" class="option-box" style="padding-left:2px;text-align:center;"><a href="java-jvm-gc.html"><img src="../../../next2.png" width="30px" class="nozoom"> <span class="show-txt">下一篇</span></a></div></div>  <div class="page-side-sitemap"><div class="option-box"><img src="../../../sitemap.png" class="nozoom img"> <span class="show-txt">站点图</span> <div class="sitemap-container"><h4>站点导航图
+            <a href="../../about/me/about-me.html" class="sitemap-top-link"> 关于我</a> <a href="../../about/blog/blog-build-vuepress.html" class="sitemap-top-link"> 关于站点</a> <a href="../../about/me/blog-changelist.html" class="sitemap-top-link"> 最近更新记录</a> <a href="../../about/me/blog-question.html" class="sitemap-top-link"><font style="color:red;background-color:yellow;">问题反馈</font></a></h4> <table class="sitemap-table"><tr><td nowrap="nowrap"><div class="sitemap-col-group">常用搜索</div></td> <td><div class="sitemap-col-item"><a href="http://www.baidu.com/" target="_blank" title="百度">  
+            百度
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.google.com/" target="_blank" title="Google">  
+            Google
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.bing.com/" target="_blank" title="Bing">  
+            Bing
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://github.com/" target="_blank" title="Github">  
+            Github
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.programcreek.com/java-api-examples/index.php" target="_blank" title="搜代码">  
+            搜代码
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">技术社区</div></td> <td><div class="sitemap-col-item"><a href="http://www.csdn.net/" target="_blank" title="CDSN">  
+            CDSN
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.cnblogs.com/" target="_blank" title="博客园">  
+            博客园
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.oschina.net/" target="_blank" title="OSChina">  
+            OSChina
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://segmentfault.com/" target="_blank" title="知否">  
+            知否
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://juejin.im/" target="_blank" title="掘金">  
+            掘金
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.linuxidc.com/" target="_blank" title="Linux公社">  
+            Linux公社
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.ibm.com/developerworks/cn/" target="_blank" title="IBM 开发者">  
+            IBM 开发者
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://stackoverflow.com/" target="_blank" title="StackOverflow">  
+            StackOverflow
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">Java相关</div></td> <!----> <td><a href="../basic/java-basic-oop.html" class="sitemap-col-item">
+            面向对象基础
+          </a><a href="../basic/java-basic-lan-basic.html" class="sitemap-col-item">
+            语法基础
+          </a><a href="../collection/java-collection-all.html" class="sitemap-col-item">
+            集合框架
+          </a><a href="../thread/java-thread-x-overview.html" class="sitemap-col-item">
+            并发基础
+          </a><a href="../thread/java-thread-x-key-synchronized.html" class="sitemap-col-item">
+            并发关键字
+          </a><a href="../thread/java-thread-x-juc-overview.html" class="sitemap-col-item">
+            JUC并发框架
+          </a><a href="../io/java-io-overview.html" class="sitemap-col-item">
+            IO框架
+          </a><a href="../java8/java8.html" class="sitemap-col-item">
+            Java8 特性
+          </a><a href="java-jvm-x-overview.html" class="sitemap-col-item">
+            JVM基础
+          </a><a href="java-jvm-param.html" class="sitemap-col-item">
+            调试排错
+          </a><a href="../others/java-others-awesome-java.html" class="sitemap-col-item">
+            更多资源
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">算法相关</div></td> <!----> <td><a href="../../algorithm/alg-basic-array.html" class="sitemap-col-item">
+            数组与线性表
+          </a><a href="../../algorithm/alg-basic-tree.html" class="sitemap-col-item">
+            树详解
+          </a><a href="../../algorithm/alg-basic-graph.html" class="sitemap-col-item">
+            图详解
+          </a><a href="../../algorithm/alg-sort-overview.html" class="sitemap-col-item">
+            内部排序
+          </a><a href="../../algorithm/alg-core-divide-and-conquer.html" class="sitemap-col-item">
+            算法思想
+          </a><a href="../../algorithm/alg-domain-security-degist.html" class="sitemap-col-item">
+            安全算法
+          </a><a href="../../algorithm/alg-domain-bigdata-overview.html" class="sitemap-col-item">
+            大数据处理
+          </a><a href="../../algorithm/alg-domain-distribute-overview.html" class="sitemap-col-item">
+            分布式算法
+          </a><a href="../../algorithm/alg-domain-load-balance.html" class="sitemap-col-item">
+            负载均衡算法
+          </a><a href="../../algorithm/alg-domain-suggest.html" class="sitemap-col-item">
+            推荐算法
+          </a><a href="../../algorithm/alg-other-mind.html" class="sitemap-col-item">
+            头脑风暴
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">数据库相关</div></td> <!----> <td><a href="../../db/sql/sql-db-howitworks.html" class="sitemap-col-item">
+            数据库原理
+          </a><a href="../../db/sql-lan/sql-lan.html" class="sitemap-col-item">
+            SQL语言
+          </a><a href="../../db/sql-mysql/sql-mysql-theory.html" class="sitemap-col-item">
+            MySQL相关
+          </a><a href="../../db/nosql-mongo/mongo-performance-improve.html" class="sitemap-col-item">
+            MongoDB
+          </a><a href="../../db/nosql-es/elasticsearch.html" class="sitemap-col-item">
+            ElasticSearch
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">开发基础相关</div></td> <!----> <td><a href="../../develop/package/dev-package-x-apache-common.html" class="sitemap-col-item">
+            常用类库
+          </a><a href="../../develop/ut/dev-ut-x-junit.html" class="sitemap-col-item">
+            单元测试
+          </a><a href="../../develop/regex/dev-regex-all.html" class="sitemap-col-item">
+            正则表达式
+          </a><a href="../../develop/protocol/dev-protocol-overview.html" class="sitemap-col-item">
+            网络协议
+          </a><a href="../../develop/security/dev-security-overview.html" class="sitemap-col-item">
+            安全相关
+          </a><a href="../../develop/refactor/dev-refactor-if-else.html" class="sitemap-col-item">
+            常见重构技巧
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">架构相关</div></td> <!----> <td><a href="../../arch/arch-x-basic.html" class="sitemap-col-item">
+            架构基础
+          </a><a href="../../arch/arch-x-view.html" class="sitemap-col-item">
+            架构视角
+          </a><a href="../../arch/arch-x-evolution.html" class="sitemap-col-item">
+            架构演进
+          </a><a href="../../arch/arch-x-pattern.html" class="sitemap-col-item">
+            架构模式和要素
+          </a><a href="../../arch/arch-y-cache.html" class="sitemap-col-item">
+            高并发之缓存
+          </a><a href="../../arch/arch-y-ratelimit.html" class="sitemap-col-item">
+            高并发之限流
+          </a><a href="../../arch/arch-y-reduce.html" class="sitemap-col-item">
+            高并发之降级
+          </a><a href="../../arch/arch-y-loadbalance.html" class="sitemap-col-item">
+            负载均衡
+          </a><a href="../../arch/arch-y-backup.html" class="sitemap-col-item">
+            容灾备份
+          </a><a href="../../arch/arch-x-security.html" class="sitemap-col-item">
+            架构安全
+          </a><a href="../../arch/arch-example-seckill.html" class="sitemap-col-item">
+            秒杀系统设计
+          </a><a href="../../arch/arch-example-goods-detail.html" class="sitemap-col-item">
+            架构案例
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">工具和部署</div></td> <!----> <td><a href="../../devops/tool/tool-list-overview.html" class="sitemap-col-item">
+            工具集合
+          </a><a href="../../devops/tool/tool-ide.html" class="sitemap-col-item">
+            IDE相关
+          </a><a href="../../devops/tool/tool-git.html" class="sitemap-col-item">
+            Git
+          </a><a href="../../devops/tool/tool-maven.html" class="sitemap-col-item">
+            Maven
+          </a><a href="../../devops/linux/linux.html" class="sitemap-col-item">
+            Linux
+          </a><a href="../../devops/docker/docker-00-overview.html" class="sitemap-col-item">
+            Docker
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">方法论</div></td> <!----> <td><a href="../../dev-spec/spec/dev-th-solid.html" class="sitemap-col-item">
+            SOLID
+          </a><a href="../../dev-spec/spec/dev-th-cap.html" class="sitemap-col-item">
+            CAP
+          </a><a href="../../dev-spec/spec/dev-th-base.html" class="sitemap-col-item">
+            BASE
+          </a><a href="../../dev-spec/spec/dev-opensource.html" class="sitemap-col-item">
+            开源协议
+          </a><a href="../../dev-spec/code-style/code-style-alibaba.html" class="sitemap-col-item">
+            代码规范
+          </a><a href="../../dev-spec/pattern/1_overview.html" class="sitemap-col-item">
+            设计模式
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">产品和团队</div></td> <!----> <td><a href="../../team/team-z-wechat.html" class="sitemap-col-item">
+            产品相关
+          </a><a href="../../team/team-z-task-emergency.html" class="sitemap-col-item">
+            团队相关
+          </a><a href="../../team/team-z-arch-future.html" class="sitemap-col-item">
+            其它分享
+          </a></td></tr></table></div></div></div> <!----> </aside></div><div class="global-ui"></div></div>
+    <script src="../../../assets/js/app.691e72ae.js" defer></script><script src="../../../assets/js/4.2e3efdf6.js" defer></script><script src="../../../assets/js/3.d77b006c.js" defer></script><script src="../../../assets/js/475.013ceb00.js" defer></script>
+  </body>
+
+<!-- Mirrored from www.pdai.tech/md/java/jvm/java-jvm-jmm.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:30:34 GMT -->
+</html>

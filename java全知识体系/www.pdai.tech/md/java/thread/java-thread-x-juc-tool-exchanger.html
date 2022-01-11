@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  
+<!-- Mirrored from www.pdai.tech/md/java/thread/java-thread-x-juc-tool-exchanger.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:30:23 GMT -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>JUC工具类: Exchanger详解 | Java 全栈知识体系</title>
+    <meta name="generator" content="VuePress 1.8.2">
+    <link rel="icon" href="../../../favicon.ico">
+    <script src="../../../../hm.baidu.com/hma448.js?525d4abc4a8675472736969f817ceb47"></script>
+    <script defer="defer" async="async" src="../../../../pagead2.googlesyndication.com/pagead/js/f.txt"></script>
+    <meta name="description" content="包含: Java 基础, Java 部分源码, JVM, Spring, Spring Boot, Spring Cloud, 数据库原理, MySQL, ElasticSearch, MongoDB, Docker, k8s, CI&CD, Linux, DevOps, 分布式, 中间件, 开发工具, Git, IDE, 源码阅读，读书笔记, 开源项目...">
+    <meta property="article:modified_time" content="2019-12-29T04:36:59.000Z">
+    <meta property="og:title" content="JUC工具类: Exchanger详解">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="/md/java/thread/java-thread-x-juc-tool-exchanger.html">
+    <meta name="twitter:title" content="JUC工具类: Exchanger详解">
+    <meta name="twitter:url" content="/md/java/thread/java-thread-x-juc-tool-exchanger.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="robots" content="all">
+    <meta name="author" content="pdai">
+    <meta name="keywords" content="Java 全栈知识体系, java体系, java知识体系, java框架,java全栈,java学习路线,java全栈知识, java面试, 知识体系, java技术体系, java编程, java编程指南,java开发体系, java开发,java教程,java,java数据结构, 算法, 开发基础">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <link rel="preload" href="../../../assets/css/0.styles.d4bb5489.css" as="style"><link rel="preload" href="../../../assets/js/app.691e72ae.js" as="script"><link rel="preload" href="../../../assets/js/4.2e3efdf6.js" as="script"><link rel="preload" href="../../../assets/js/3.d77b006c.js" as="script"><link rel="preload" href="../../../assets/js/498.e75ee9d0.js" as="script">
+    <link rel="stylesheet" href="../../../assets/css/0.styles.d4bb5489.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="../../../index.html" class="home-link router-link-active"><!----> <span class="site-name">Java 全栈知识体系</span></a> <div class="links"><form id="search-form" role="search" class="algolia-search-wrapper search-box"><input id="algolia-search-input" class="search-query"></form> <nav class="nav-links can-hide"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav>  <ul class="sidebar-links"><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Java 基础</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../basic/java-basic-oop.html" class="sidebar-link">Java 基础 - 面向对象</a></li><li><a href="../basic/java-basic-lan-basic.html" class="sidebar-link">Java 基础 - 知识点</a></li><li><a href="../basic/java-basic-lan-sum.html" class="sidebar-link">Java 基础 - 图谱 &amp; Q/A</a></li><li><a href="../basic/java-basic-x-generic.html" class="sidebar-link">Java 基础 - 泛型机制详解</a></li><li><a href="../basic/java-basic-x-annotation.html" class="sidebar-link">Java 基础 - 注解机制详解</a></li><li><a href="../basic/java-basic-x-exception.html" class="sidebar-link">Java 基础 - 异常机制详解</a></li><li><a href="../basic/java-basic-x-reflection.html" class="sidebar-link">Java 基础 - 反射机制详解</a></li><li><a href="../advanced/java-advanced-spi.html" class="sidebar-link">Java常用机制 - SPI机制详解</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Java 集合框架</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../collection/java-collection-all.html" class="sidebar-link">Collection 类关系图</a></li><li><a href="../collection/java-collection-ArrayList.html" class="sidebar-link">Collection - ArrayList 源码解析</a></li><li><a href="../collection/java-collection-LinkedList.html" class="sidebar-link">Collection - LinkedList源码解析</a></li><li><a href="../collection/java-collection-Queue%26Stack.html" class="sidebar-link">Collection - Stack &amp; Queue 源码解析</a></li><li><a href="../collection/java-collection-PriorityQueue.html" class="sidebar-link">Collection - PriorityQueue源码解析</a></li><li><a href="../collection/java-map-HashMap%26HashSet.html" class="sidebar-link">Map - HashSet &amp; HashMap 源码解析</a></li><li><a href="../collection/java-map-LinkedHashMap%26LinkedHashSet.html" class="sidebar-link">Map - LinkedHashSet&amp;Map源码解析</a></li><li><a href="../collection/java-map-TreeMap%26TreeSet.html" class="sidebar-link">Map - TreeSet &amp; TreeMap 源码解析</a></li><li><a href="../collection/java-map-WeakHashMap.html" class="sidebar-link">Map - WeakHashMap源码解析</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading open"><span>Java 多线程与并发</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="java-thread-x-overview.html" class="sidebar-link">♥Java并发知识体系详解♥</a></li><li><a href="java-thread-x-theorty.html" class="sidebar-link">Java 并发 - 理论基础</a></li><li><a href="java-thread-x-thread-basic.html" class="sidebar-link">Java 并发 - 线程基础</a></li><li><a href="java-thread-x-key-synchronized.html" class="sidebar-link">关键字: synchronized详解</a></li><li><a href="java-thread-x-key-volatile.html" class="sidebar-link">关键字: volatile详解</a></li><li><a href="java-thread-x-key-final.html" class="sidebar-link">关键字: final详解</a></li><li><a href="java-thread-x-juc-overview.html" class="sidebar-link">JUC - 类汇总和学习指南</a></li><li><a href="java-thread-x-juc-AtomicInteger.html" class="sidebar-link">JUC原子类: CAS, Unsafe和原子类详解</a></li><li><a href="java-thread-x-lock-LockSupport.html" class="sidebar-link">JUC锁: LockSupport详解</a></li><li><a href="java-thread-x-lock-AbstractQueuedSynchronizer.html" class="sidebar-link">JUC锁: 锁核心类AQS详解</a></li><li><a href="java-thread-x-lock-ReentrantLock.html" class="sidebar-link">JUC锁: ReentrantLock详解</a></li><li><a href="java-thread-x-lock-ReentrantReadWriteLock.html" class="sidebar-link">JUC锁: ReentrantReadWriteLock详解</a></li><li><a href="java-thread-x-juc-collection-ConcurrentHashMap.html" class="sidebar-link">JUC集合: ConcurrentHashMap详解</a></li><li><a href="java-thread-x-juc-collection-CopyOnWriteArrayList.html" class="sidebar-link">JUC集合: CopyOnWriteArrayList详解</a></li><li><a href="java-thread-x-juc-collection-ConcurrentLinkedQueue.html" class="sidebar-link">JUC集合: ConcurrentLinkedQueue详解</a></li><li><a href="java-thread-x-juc-collection-BlockingQueue.html" class="sidebar-link">JUC集合: BlockingQueue详解</a></li><li><a href="java-thread-x-juc-executor-FutureTask.html" class="sidebar-link">JUC线程池: FutureTask详解</a></li><li><a href="java-thread-x-juc-executor-ThreadPoolExecutor.html" class="sidebar-link">JUC线程池: ThreadPoolExecutor详解</a></li><li><a href="java-thread-x-juc-executor-ScheduledThreadPoolExecutor.html" class="sidebar-link">JUC线程池: ScheduledThreadPoolExecutor详解</a></li><li><a href="java-thread-x-juc-executor-ForkJoinPool.html" class="sidebar-link">JUC线程池: Fork/Join框架详解</a></li><li><a href="java-thread-x-juc-tool-countdownlatch.html" class="sidebar-link">JUC工具类: CountDownLatch详解</a></li><li><a href="java-thread-x-juc-tool-cyclicbarrier.html" class="sidebar-link">JUC工具类: CyclicBarrier详解</a></li><li><a href="java-thread-x-juc-tool-semaphore.html" class="sidebar-link">JUC工具类: Semaphore详解</a></li><li><a href="java-thread-x-juc-tool-phaser.html" class="sidebar-link">JUC工具类: Phaser详解</a></li><li><a href="java-thread-x-juc-tool-exchanger.html" aria-current="page" class="active sidebar-link">JUC工具类: Exchanger详解</a></li><li><a href="java-thread-x-threadlocal.html" class="sidebar-link">Java 并发 - ThreadLocal详解</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Java IO/NIO/AIO</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../io/java-io-overview.html" class="sidebar-link">♥Java IO知识体系详解♥</a></li><li><a href="../io/java-io-basic-category.html" class="sidebar-link">Java IO - 分类(传输，操作)</a></li><li><a href="../io/java-io-basic-design-pattern.html" class="sidebar-link">Java IO - 设计模式(装饰者模式)</a></li><li><a href="../io/java-io-basic-code-inputstream.html" class="sidebar-link">Java IO - 源码: InputStream</a></li><li><a href="../io/java-io-basic-code-outputstream.html" class="sidebar-link">Java IO - 源码: OutputStream</a></li><li><a href="../io/java-io-basic-usage.html" class="sidebar-link">Java IO - 常见类使用</a></li><li><a href="../io/java-io-model.html" class="sidebar-link">IO 模型 - Unix IO 模型</a></li><li><a href="../io/java-io-bio.html" class="sidebar-link">Java IO - BIO 详解</a></li><li><a href="../io/java-io-nio.html" class="sidebar-link">Java NIO - 基础详解</a></li><li><a href="../io/java-io-nio-select-epoll.html" class="sidebar-link">Java NIO - IO多路复用详解</a></li><li><a href="../io/java-io-aio.html" class="sidebar-link">Java AIO - 异步IO详解</a></li><li><a href="../io/java-io-nio-netty.html" class="sidebar-link">Java N(A)IO - 框架: Netty</a></li><li><a href="../io/java-io-nio-zerocopy.html" class="sidebar-link">Java NIO - 零拷贝实现</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Java8 特性详解</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../java8/java8.html" class="sidebar-link">♥Java8特性知识体系详解♥</a></li><li><a href="../java8/java8-stream.html" class="sidebar-link">Java 8 - 函数编程(lambda表达式)</a></li><li><a href="../java8/java8-optional.html" class="sidebar-link">Java 8 - Optional类深度解析</a></li><li><a href="../java8/java8-default.html" class="sidebar-link">Java 8 - 默认方法</a></li><li><a href="../java8/java8-type-anno.html" class="sidebar-link">Java 8 - 类型注解</a></li><li><a href="../java8/java8-anno-repeat.html" class="sidebar-link">Java 8 - 重复注解</a></li><li><a href="../java8/java8-type.html" class="sidebar-link">Java 8 - 类型推断优化</a></li><li><a href="../java8/java8-jre.html" class="sidebar-link">Java 8 - JRE精简</a></li><li><a href="../java8/java8-permgen.html" class="sidebar-link">Java 8 - 移除Permgen</a></li><li><a href="../java8/java8-stampedlock.html" class="sidebar-link">Java 8 - StampedLock</a></li><li><a href="../java8/java8-localdatetime.html" class="sidebar-link">Java 8 - LocalDate/LocalDateTime</a></li><li><a href="../java8/java8-javafx.html" class="sidebar-link">Java 8 - JavaFx 2.0</a></li><li><a href="../java8/java8-others.html" class="sidebar-link">Java 8 - 其它更新: 字符串，base64,...</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Java8 以上特性概述</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../java8up/java-8-up-overview.html" class="sidebar-link">♥Java8+特性知识体系详解♥</a></li><li><a href="../java8up/java9.html" class="sidebar-link">Java 9 新特性概述</a></li><li><a href="../java8up/java10.html" class="sidebar-link">Java 10 新特性概述</a></li><li><a href="../java8up/java11.html" class="sidebar-link">Java 11 新特性概述</a></li><li><a href="../java8up/java13.html" class="sidebar-link">Java 13 新特性概述</a></li><li><a href="../java8up/java14.html" class="sidebar-link">Java 14 新特性概述</a></li><li><a href="../java8up/java15.html" class="sidebar-link">Java 15 新特性概述</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>JVM相关</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../jvm/java-jvm-x-overview.html" class="sidebar-link">♥JVM相关知识体系详解♥</a></li><li><a href="../jvm/java-jvm-class.html" class="sidebar-link">JVM 基础 - 类字节码详解</a></li><li><a href="../jvm/java-jvm-classload.html" class="sidebar-link">JVM 基础 - Java 类加载机制</a></li><li><a href="../jvm/java-jvm-struct.html" class="sidebar-link">JVM 基础 - JVM 内存结构</a></li><li><a href="../jvm/java-jvm-x-introduce.html" class="sidebar-link">JVM 基础 - Java 内存模型引入</a></li><li><a href="../jvm/java-jvm-jmm.html" class="sidebar-link">JVM 基础 - Java 内存模型详解</a></li><li><a href="../jvm/java-jvm-gc.html" class="sidebar-link">JVM 基础 - Java 垃圾回收基础</a></li><li><a href="../jvm/java-jvm-gc-g1.html" class="sidebar-link">JVM 基础 - Java 垃圾回收器G1详解</a></li><li><a href="../jvm/java-jvm-param.html" class="sidebar-link">调试排错 - JVM 调优参数</a></li><li><a href="../jvm/java-jvm-oom.html" class="sidebar-link">调试排错 - Java OOM 分析</a></li><li><a href="../jvm/java-jvm-thread-dump.html" class="sidebar-link">调试排错 - Java线程Dump分析</a></li><li><a href="../jvm/java-jvm-debug-tools-linux.html" class="sidebar-link">调试排错 - Java问题排查：Linux命令</a></li><li><a href="../jvm/java-jvm-debug-tools-list.html" class="sidebar-link">调试排错 - Java问题排查：工具单</a></li><li><a href="../jvm/java-jvm-cms-gc.html" class="sidebar-link">调试排错 - 9种常见的CMS GC问题分析与解决</a></li><li><a href="../jvm/java-jvm-agent-usage.html" class="sidebar-link">调试排错 - Java动态调试技术原理</a></li><li><a href="../jvm/java-jvm-agent-arthas.html" class="sidebar-link">调试排错 - Java应用在线调试Arthas</a></li><li><a href="../jvm/java-jvm-debug-idea.html" class="sidebar-link">调试排错 - 使用IDEA本地调试和远程调试</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Java其它相关</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../others/java-others-awesome-java.html" class="sidebar-link">Awesome Java</a></li><li><a href="../others/java-others-better-java.html" class="sidebar-link">Better Java</a></li></ul></section></li></ul> </aside> <div><main class="page"> <div class="theme-default-content content__default"><h1 id="juc工具类-exchanger详解"><a href="#juc工具类-exchanger详解" class="header-anchor">¶</a> JUC工具类: Exchanger详解</h1> <blockquote><p>Exchanger是用于线程协作的工具类, 主要用于两个线程之间的数据交换。@pdai</p></blockquote> <ul><li><a href="#juc%e5%b7%a5%e5%85%b7%e7%b1%bb-exchanger%e8%af%a6%e8%a7%a3">JUC工具类: Exchanger详解</a> <ul><li><a href="#%e5%b8%a6%e7%9d%80%e9%97%ae%e9%a2%98%e5%8e%bb%e7%90%86%e8%a7%a3exchanger">带着BAT大厂的面试问题去理解Exchanger</a></li> <li><a href="#exchanger%e7%ae%80%e4%bb%8b">Exchanger简介</a></li> <li><a href="#exchanger%e5%ae%9e%e7%8e%b0%e6%9c%ba%e5%88%b6">Exchanger实现机制</a></li> <li><a href="#exchanger%e6%ba%90%e7%a0%81%e8%a7%a3%e6%9e%90">Exchanger源码解析</a> <ul><li><a href="#%e5%86%85%e9%83%a8%e7%b1%bb---participant">内部类 - Participant</a></li> <li><a href="#%e5%86%85%e9%83%a8%e7%b1%bb---node">内部类 - Node</a></li> <li><a href="#%e6%a0%b8%e5%bf%83%e5%b1%9e%e6%80%a7">核心属性</a></li> <li><a href="#%e6%9e%84%e9%80%a0%e5%87%bd%e6%95%b0">构造函数</a></li> <li><a href="#%e6%a0%b8%e5%bf%83%e6%96%b9%e6%b3%95---exchangev-x">核心方法 - exchange(V x)</a></li> <li><a href="#slotexchangeobject-item-boolean-timed-long-ns">slotExchange(Object item, boolean timed, long ns)</a></li> <li><a href="#arenaexchangeobject-item-boolean-timed-long-ns">arenaExchange(Object item, boolean timed, long ns)</a></li></ul></li> <li><a href="#%e5%8f%82%e8%80%83%e6%96%87%e7%ab%a0">参考文章</a></li></ul></li></ul> <h2 id="带着bat大厂的面试问题去理解exchanger"><a href="#带着bat大厂的面试问题去理解exchanger" class="header-anchor">¶</a> 带着BAT大厂的面试问题去理解Exchanger</h2> <div class="custom-block tip"><p class="custom-block-title">TIP</p> <p>请带着这些问题继续后文，会很大程度上帮助你更好的理解Exchanger。@pdai</p></div> <ul><li>Exchanger主要解决什么问题?</li> <li>对比SynchronousQueue，为什么说Exchanger可被视为 SynchronousQueue 的双向形式?</li> <li>Exchanger在不同的JDK版本中实现有什么差别?</li> <li>Exchanger实现机制?</li> <li>Exchanger已经有了slot单节点，为什么会加入arena node数组? 什么时候会用到数组?</li> <li>arena可以确保不同的slot在arena中是不会相冲突的，那么是怎么保证的呢?</li> <li>什么是伪共享，Exchanger中如何体现的?</li> <li>Exchanger实现举例</li></ul> <h2 id="exchanger简介"><a href="#exchanger简介" class="header-anchor">¶</a> Exchanger简介</h2> <p>Exchanger用于进行两个线程之间的数据交换。它提供一个同步点，在这个同步点，两个线程可以交换彼此的数据。这两个线程通过exchange()方法交换数据，当一个线程先执行exchange()方法后，它会一直等待第二个线程也执行exchange()方法，当这两个线程到达同步点时，这两个线程就可以交换数据了。</p> <h2 id="exchanger实现机制"><a href="#exchanger实现机制" class="header-anchor">¶</a> Exchanger实现机制</h2> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token punctuation">;</span><span class="token punctuation">;</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>slot is empty<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// offer</span>
+        <span class="token comment">// slot为空时，将item 设置到Node 中        </span>
+        place item in a <span class="token class-name">Node</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>can CAS slot from empty <span class="token keyword">to</span> <span class="token namespace">node</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token comment">// 当将node通过CAS交换到slot中时，挂起线程等待被唤醒</span>
+            wait <span class="token keyword">for</span> release<span class="token punctuation">;</span>
+            <span class="token comment">// 被唤醒后返回node中匹配到的item</span>
+            <span class="token keyword">return</span> matching item in node<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>can CAS slot from node <span class="token keyword">to</span> <span class="token namespace">empty</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// release</span>
+         <span class="token comment">// 将slot设置为空</span>
+        <span class="token comment">// 获取node中的item，将需要交换的数据设置到匹配的item</span>
+        get the item in node<span class="token punctuation">;</span>
+        set matching item in node<span class="token punctuation">;</span>
+        <span class="token comment">// 唤醒等待的线程</span>
+        release waiting thread<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token comment">// else retry on CAS failure</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br></div></div><p>比如有2条线程A和B，A线程交换数据时，发现slot为空，则将需要交换的数据放在slot中等待其它线程进来交换数据，等线程B进来，读取A设置的数据，然后设置线程B需要交换的数据，然后唤醒A线程，原理就是这么简单。但是当多个线程之间进行交换数据时就会出现问题，所以Exchanger加入了slot数组。</p> <h2 id="exchanger源码解析"><a href="#exchanger源码解析" class="header-anchor">¶</a> Exchanger源码解析</h2> <h3 id="内部类---participant"><a href="#内部类---participant" class="header-anchor">¶</a> 内部类 - Participant</h3> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">class</span> <span class="token class-name">Participant</span> <span class="token keyword">extends</span> <span class="token class-name">ThreadLocal</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Node</span><span class="token punctuation">&gt;</span></span> <span class="token punctuation">{</span>
+    <span class="token keyword">public</span> <span class="token class-name">Node</span> <span class="token function">initialValue</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token keyword">return</span> <span class="token keyword">new</span> <span class="token class-name">Node</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br></div></div><p>Participant的作用是为每个线程保留唯一的一个Node节点, 它继承ThreadLocal，说明每个线程具有不同的状态。</p> <h3 id="内部类---node"><a href="#内部类---node" class="header-anchor">¶</a> 内部类 - Node</h3> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token annotation punctuation">@sun.misc.Contended</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">class</span> <span class="token class-name">Node</span> <span class="token punctuation">{</span>
+     <span class="token comment">// arena的下标，多个槽位的时候利用</span>
+    <span class="token keyword">int</span> index<span class="token punctuation">;</span> 
+    <span class="token comment">// 上一次记录的Exchanger.bound</span>
+    <span class="token keyword">int</span> bound<span class="token punctuation">;</span> 
+    <span class="token comment">// 在当前bound下CAS失败的次数；</span>
+    <span class="token keyword">int</span> collides<span class="token punctuation">;</span>
+    <span class="token comment">// 用于自旋；</span>
+    <span class="token keyword">int</span> hash<span class="token punctuation">;</span> 
+    <span class="token comment">// 这个线程的当前项，也就是需要交换的数据；</span>
+    <span class="token class-name">Object</span> item<span class="token punctuation">;</span> 
+    <span class="token comment">//做releasing操作的线程传递的项；</span>
+    <span class="token keyword">volatile</span> <span class="token class-name">Object</span> match<span class="token punctuation">;</span> 
+    <span class="token comment">//挂起时设置线程值，其他情况下为null；</span>
+    <span class="token keyword">volatile</span> <span class="token class-name">Thread</span> parked<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br></div></div><p>在Node定义中有两个变量值得思考：bound以及collides。前面提到了数组area是为了避免竞争而产生的，如果系统不存在竞争问题，那么完全没有必要开辟一个高效的arena来徒增系统的复杂性。首先通过单个slot的exchanger来交换数据，当探测到竞争时将安排不同的位置的slot来保存线程Node，并且可以确保没有slot会在同一个缓存行上。如何来判断会有竞争呢? CAS替换slot失败，如果失败，则通过记录冲突次数来扩展arena的尺寸，我们在记录冲突的过程中会跟踪“bound”的值，以及会重新计算冲突次数在bound的值被改变时。</p> <h3 id="核心属性"><a href="#核心属性" class="header-anchor">¶</a> 核心属性</h3> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token keyword">private</span> <span class="token keyword">final</span> <span class="token class-name">Participant</span> participant<span class="token punctuation">;</span>
+<span class="token keyword">private</span> <span class="token keyword">volatile</span> <span class="token class-name">Node</span><span class="token punctuation">[</span><span class="token punctuation">]</span> arena<span class="token punctuation">;</span>
+<span class="token keyword">private</span> <span class="token keyword">volatile</span> <span class="token class-name">Node</span> slot<span class="token punctuation">;</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br></div></div><ul><li><strong>为什么会有 <code>arena数组槽</code>?</strong></li></ul> <p>slot为单个槽，arena为数组槽, 他们都是Node类型。在这里可能会感觉到疑惑，slot作为Exchanger交换数据的场景，应该只需要一个就可以了啊? 为何还多了一个Participant 和数组类型的arena呢? 一个slot交换场所原则上来说应该是可以的，但实际情况却不是如此，多个参与者使用同一个交换场所时，会存在严重伸缩性问题。既然单个交换场所存在问题，那么我们就安排多个，也就是数组arena。通过数组arena来安排不同的线程使用不同的slot来降低竞争问题，并且可以保证最终一定会成对交换数据。但是<strong>Exchanger不是一来就会生成arena数组来降低竞争，只有当产生竞争是才会生成arena数组</strong>。</p> <ul><li><strong>那么怎么将Node与当前线程绑定呢？</strong></li></ul> <p>Participant，Participant 的作用就是为每个线程保留唯一的一个Node节点，它继承ThreadLocal，同时在Node节点中记录在arena中的下标index。</p> <h3 id="构造函数"><a href="#构造函数" class="header-anchor">¶</a> 构造函数</h3> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token comment">/**
+* Creates a new Exchanger.
+*/</span>
+<span class="token keyword">public</span> <span class="token class-name">Exchanger</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    participant <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Participant</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br></div></div><p>初始化participant对象。</p> <h3 id="核心方法---exchangev-x"><a href="#核心方法---exchangev-x" class="header-anchor">¶</a> 核心方法 - exchange(V x)</h3> <p>等待另一个线程到达此交换点(除非当前线程被中断)，然后将给定的对象传送给该线程，并接收该线程的对象。</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token keyword">public</span> <span class="token class-name">V</span> <span class="token function">exchange</span><span class="token punctuation">(</span><span class="token class-name">V</span> x<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">InterruptedException</span> <span class="token punctuation">{</span>
+    <span class="token class-name">Object</span> v<span class="token punctuation">;</span>
+    <span class="token comment">// 当参数为null时需要将item设置为空的对象</span>
+    <span class="token class-name">Object</span> item <span class="token operator">=</span> <span class="token punctuation">(</span>x <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token operator">?</span> NULL_ITEM <span class="token operator">:</span> x<span class="token punctuation">;</span> <span class="token comment">// translate null args</span>
+    <span class="token comment">// 注意到这里的这个表达式是整个方法的核心</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>arena <span class="token operator">!=</span> <span class="token keyword">null</span> <span class="token operator">||</span>
+            <span class="token punctuation">(</span>v <span class="token operator">=</span> <span class="token function">slotExchange</span><span class="token punctuation">(</span>item<span class="token punctuation">,</span> <span class="token boolean">false</span><span class="token punctuation">,</span> <span class="token number">0</span> <span class="token class-name">L</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span>
+        <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token class-name">Thread</span><span class="token punctuation">.</span><span class="token function">interrupted</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">||</span> <span class="token comment">// disambiguates null return</span>
+            <span class="token punctuation">(</span>v <span class="token operator">=</span> <span class="token function">arenaExchange</span><span class="token punctuation">(</span>item<span class="token punctuation">,</span> <span class="token boolean">false</span><span class="token punctuation">,</span> <span class="token number">0</span> <span class="token class-name">L</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">InterruptedException</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> <span class="token punctuation">(</span>v <span class="token operator">==</span> NULL_ITEM<span class="token punctuation">)</span> <span class="token operator">?</span> <span class="token keyword">null</span> <span class="token operator">:</span> <span class="token punctuation">(</span><span class="token class-name">V</span><span class="token punctuation">)</span> v<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br></div></div><p>这个方法比较好理解：arena为数组槽，如果为null，则执行slotExchange()方法，否则判断线程是否中断，如果中断值抛出InterruptedException异常，没有中断则执行arenaExchange()方法。整套逻辑就是：如果slotExchange(Object item, boolean timed, long ns)方法执行失败了就执行arenaExchange(Object item, boolean timed, long ns)方法，最后返回结果V。</p> <p>NULL_ITEM 为一个空节点，其实就是一个Object对象而已，slotExchange()为单个slot交换。</p> <h3 id="slotexchangeobject-item-boolean-timed-long-ns"><a href="#slotexchangeobject-item-boolean-timed-long-ns" class="header-anchor">¶</a> slotExchange(Object item, boolean timed, long ns)</h3> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token keyword">private</span> <span class="token keyword">final</span> <span class="token class-name">Object</span> <span class="token function">slotExchange</span><span class="token punctuation">(</span><span class="token class-name">Object</span> item<span class="token punctuation">,</span> <span class="token keyword">boolean</span> timed<span class="token punctuation">,</span> <span class="token keyword">long</span> ns<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token comment">// 获取当前线程node对象</span>
+    <span class="token class-name">Node</span> p <span class="token operator">=</span> participant<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">// 当前线程</span>
+    <span class="token class-name">Thread</span> t <span class="token operator">=</span> <span class="token class-name">Thread</span><span class="token punctuation">.</span><span class="token function">currentThread</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">// 若果线程被中断，就直接返回null</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>t<span class="token punctuation">.</span><span class="token function">isInterrupted</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token comment">// preserve interrupt status so caller can recheck</span>
+        <span class="token keyword">return</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+	<span class="token comment">// 自旋</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token class-name">Node</span> q<span class="token punctuation">;</span><span class="token punctuation">;</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token comment">// 将slot值赋给q</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>q <span class="token operator">=</span> slot<span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+             <span class="token comment">// slot 不为null，即表示已有线程已经把需要交换的数据设置在slot中了</span>
+			<span class="token comment">// 通过CAS将slot设置成null</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">U</span><span class="token punctuation">.</span><span class="token function">compareAndSwapObject</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">,</span> SLOT<span class="token punctuation">,</span> q<span class="token punctuation">,</span> <span class="token keyword">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                <span class="token comment">// CAS操作成功后，将slot中的item赋值给对象v，以便返回。</span>
+                <span class="token comment">// 这里也是就读取之前线程要交换的数据</span>
+                <span class="token class-name">Object</span> v <span class="token operator">=</span> q<span class="token punctuation">.</span>item<span class="token punctuation">;</span>
+                <span class="token comment">// 将当前线程需要交给的数据设置在q中的match</span>
+                q<span class="token punctuation">.</span>match <span class="token operator">=</span> item<span class="token punctuation">;</span>
+                 <span class="token comment">// 获取被挂起的线程</span>
+                <span class="token class-name">Thread</span> w <span class="token operator">=</span> q<span class="token punctuation">.</span>parked<span class="token punctuation">;</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>w <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">)</span>
+                    <span class="token comment">// 如果线程不为null，唤醒它</span>
+                    <span class="token class-name">U</span><span class="token punctuation">.</span><span class="token function">unpark</span><span class="token punctuation">(</span>w<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token comment">// 返回其他线程给的V</span>
+                <span class="token keyword">return</span> v<span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+            <span class="token comment">// create arena on contention, but continue until slot null</span>
+            <span class="token comment">// CAS 操作失败，表示有其它线程竞争，在此线程之前将数据已取走</span>
+            <span class="token comment">// NCPU:CPU的核数</span>
+            <span class="token comment">// bound == 0 表示arena数组未初始化过，CAS操作bound将其增加SEQ</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>NCPU <span class="token operator">&gt;</span> <span class="token number">1</span> <span class="token operator">&amp;&amp;</span> bound <span class="token operator">==</span> <span class="token number">0</span> <span class="token operator">&amp;&amp;</span>
+                <span class="token class-name">U</span><span class="token punctuation">.</span><span class="token function">compareAndSwapInt</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">,</span> BOUND<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> SEQ<span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token comment">// 初始化arena数组</span>
+                arena <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Node</span><span class="token punctuation">[</span><span class="token punctuation">(</span>FULL <span class="token operator">+</span> <span class="token number">2</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> ASHIFT<span class="token punctuation">]</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token comment">// 上面分析过，只有当arena不为空才会执行slotExchange方法的</span>
+		<span class="token comment">// 所以表示刚好已有其它线程加入进来将arena初始化</span>
+        <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>arena <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">)</span>
+            <span class="token comment">// 这里就需要去执行arenaExchange</span>
+            <span class="token keyword">return</span> <span class="token keyword">null</span><span class="token punctuation">;</span> <span class="token comment">// caller must reroute to arenaExchange</span>
+        <span class="token keyword">else</span> <span class="token punctuation">{</span>
+            <span class="token comment">// 这里表示当前线程是以第一个线程进来交换数据</span>
+            <span class="token comment">// 或者表示之前的数据交换已进行完毕，这里可以看作是第一个线程</span>
+            <span class="token comment">// 将需要交换的数据先存放在当前线程变量p中</span>
+            p<span class="token punctuation">.</span>item <span class="token operator">=</span> item<span class="token punctuation">;</span>
+            <span class="token comment">// 将需要交换的数据通过CAS设置到交换区slot</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">U</span><span class="token punctuation">.</span><span class="token function">compareAndSwapObject</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">,</span> SLOT<span class="token punctuation">,</span> <span class="token keyword">null</span><span class="token punctuation">,</span> p<span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token comment">// 交换成功后跳出自旋</span>
+                <span class="token keyword">break</span><span class="token punctuation">;</span>
+            <span class="token comment">// CAS操作失败，表示有其它线程刚好先于当前线程将数据设置到交换区slot</span>
+            <span class="token comment">// 将当前线程变量中的item设置为null，然后自旋获取其它线程存放在交换区slot的数据</span>
+            p<span class="token punctuation">.</span>item <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token comment">// await release</span>
+    <span class="token comment">// 执行到这里表示当前线程已将需要的交换的数据放置于交换区slot中了，</span>
+    <span class="token comment">// 等待其它线程交换数据然后唤醒当前线程</span>
+    <span class="token keyword">int</span> h <span class="token operator">=</span> p<span class="token punctuation">.</span>hash<span class="token punctuation">;</span>
+    <span class="token keyword">long</span> end <span class="token operator">=</span> timed <span class="token operator">?</span> <span class="token class-name">System</span><span class="token punctuation">.</span><span class="token function">nanoTime</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> ns <span class="token operator">:</span> <span class="token number">0</span> <span class="token class-name">L</span><span class="token punctuation">;</span>
+    <span class="token comment">// 自旋次数</span>
+    <span class="token keyword">int</span> spins <span class="token operator">=</span> <span class="token punctuation">(</span>NCPU <span class="token operator">&gt;</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">?</span> SPINS <span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">;</span>
+    <span class="token class-name">Object</span> v<span class="token punctuation">;</span>
+    <span class="token comment">// 自旋等待直到p.match不为null，也就是说等待其它线程将需要交换的数据放置于交换区slot</span>
+    <span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>v <span class="token operator">=</span> p<span class="token punctuation">.</span>match<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token comment">// 下面的逻辑主要是自旋等待，直到spins递减到0为止</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>spins <span class="token operator">&gt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            h <span class="token operator">^=</span> h <span class="token operator">&lt;&lt;</span> <span class="token number">1</span><span class="token punctuation">;</span>
+            h <span class="token operator">^=</span> h <span class="token operator">&gt;&gt;&gt;</span> <span class="token number">3</span><span class="token punctuation">;</span>
+            h <span class="token operator">^=</span> h <span class="token operator">&lt;&lt;</span> <span class="token number">10</span><span class="token punctuation">;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>h <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span>
+                h <span class="token operator">=</span> SPINS <span class="token operator">|</span> <span class="token punctuation">(</span><span class="token keyword">int</span><span class="token punctuation">)</span> t<span class="token punctuation">.</span><span class="token function">getId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>h <span class="token operator">&lt;</span> <span class="token number">0</span> <span class="token operator">&amp;&amp;</span> <span class="token punctuation">(</span><span class="token operator">--</span>spins <span class="token operator">&amp;</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>SPINS <span class="token operator">&gt;&gt;&gt;</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span>
+                <span class="token class-name">Thread</span><span class="token punctuation">.</span><span class="token keyword">yield</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>slot <span class="token operator">!=</span> p<span class="token punctuation">)</span>
+            spins <span class="token operator">=</span> SPINS<span class="token punctuation">;</span>
+        <span class="token comment">// 此处表示未设置超时或者时间未超时</span>
+        <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>t<span class="token punctuation">.</span><span class="token function">isInterrupted</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> arena <span class="token operator">==</span> <span class="token keyword">null</span> <span class="token operator">&amp;&amp;</span>
+            <span class="token punctuation">(</span><span class="token operator">!</span>timed <span class="token operator">||</span> <span class="token punctuation">(</span>ns <span class="token operator">=</span> end <span class="token operator">-</span> <span class="token class-name">System</span><span class="token punctuation">.</span><span class="token function">nanoTime</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&gt;</span> <span class="token number">0</span> <span class="token class-name">L</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token comment">// 设置线程t被当前对象阻塞</span>
+            <span class="token class-name">U</span><span class="token punctuation">.</span><span class="token function">putObject</span><span class="token punctuation">(</span>t<span class="token punctuation">,</span> BLOCKER<span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token comment">// 给p挂机线程的值赋值</span>
+            p<span class="token punctuation">.</span>parked <span class="token operator">=</span> t<span class="token punctuation">;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>slot <span class="token operator">==</span> p<span class="token punctuation">)</span>
+                <span class="token comment">// 如果slot还没有被置为null，也就表示暂未有线程过来交换数据，需要将当前线程挂起</span>
+                <span class="token class-name">U</span><span class="token punctuation">.</span><span class="token function">park</span><span class="token punctuation">(</span><span class="token boolean">false</span><span class="token punctuation">,</span> ns<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token comment">// 线程被唤醒，将被挂起的线程设置为null</span>
+            p<span class="token punctuation">.</span>parked <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+            <span class="token comment">// 设置线程t未被任何对象阻塞</span>
+            <span class="token class-name">U</span><span class="token punctuation">.</span><span class="token function">putObject</span><span class="token punctuation">(</span>t<span class="token punctuation">,</span> BLOCKER<span class="token punctuation">,</span> <span class="token keyword">null</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// 不是以上条件时(可能是arena已不为null或者超时)    </span>
+        <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">U</span><span class="token punctuation">.</span><span class="token function">compareAndSwapObject</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">,</span> SLOT<span class="token punctuation">,</span> p<span class="token punctuation">,</span> <span class="token keyword">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+             <span class="token comment">// arena不为null则v为null,其它为超时则v为超市对象TIMED_OUT，并且跳出循环</span>
+            v <span class="token operator">=</span> timed <span class="token operator">&amp;&amp;</span> ns <span class="token operator">&lt;=</span> <span class="token number">0</span> <span class="token class-name">L</span> <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span>t<span class="token punctuation">.</span><span class="token function">isInterrupted</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">?</span> TIMED_OUT <span class="token operator">:</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+            <span class="token keyword">break</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+    <span class="token comment">// 取走match值，并将p中的match置为null</span>
+    <span class="token class-name">U</span><span class="token punctuation">.</span><span class="token function">putOrderedObject</span><span class="token punctuation">(</span>p<span class="token punctuation">,</span> MATCH<span class="token punctuation">,</span> <span class="token keyword">null</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">// 设置item为null</span>
+    p<span class="token punctuation">.</span>item <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+    p<span class="token punctuation">.</span>hash <span class="token operator">=</span> h<span class="token punctuation">;</span>
+    <span class="token comment">// 返回交换值</span>
+    <span class="token keyword">return</span> v<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br><span class="line-number">35</span><br><span class="line-number">36</span><br><span class="line-number">37</span><br><span class="line-number">38</span><br><span class="line-number">39</span><br><span class="line-number">40</span><br><span class="line-number">41</span><br><span class="line-number">42</span><br><span class="line-number">43</span><br><span class="line-number">44</span><br><span class="line-number">45</span><br><span class="line-number">46</span><br><span class="line-number">47</span><br><span class="line-number">48</span><br><span class="line-number">49</span><br><span class="line-number">50</span><br><span class="line-number">51</span><br><span class="line-number">52</span><br><span class="line-number">53</span><br><span class="line-number">54</span><br><span class="line-number">55</span><br><span class="line-number">56</span><br><span class="line-number">57</span><br><span class="line-number">58</span><br><span class="line-number">59</span><br><span class="line-number">60</span><br><span class="line-number">61</span><br><span class="line-number">62</span><br><span class="line-number">63</span><br><span class="line-number">64</span><br><span class="line-number">65</span><br><span class="line-number">66</span><br><span class="line-number">67</span><br><span class="line-number">68</span><br><span class="line-number">69</span><br><span class="line-number">70</span><br><span class="line-number">71</span><br><span class="line-number">72</span><br><span class="line-number">73</span><br><span class="line-number">74</span><br><span class="line-number">75</span><br><span class="line-number">76</span><br><span class="line-number">77</span><br><span class="line-number">78</span><br><span class="line-number">79</span><br><span class="line-number">80</span><br><span class="line-number">81</span><br><span class="line-number">82</span><br><span class="line-number">83</span><br><span class="line-number">84</span><br><span class="line-number">85</span><br><span class="line-number">86</span><br><span class="line-number">87</span><br><span class="line-number">88</span><br><span class="line-number">89</span><br><span class="line-number">90</span><br><span class="line-number">91</span><br><span class="line-number">92</span><br><span class="line-number">93</span><br><span class="line-number">94</span><br><span class="line-number">95</span><br><span class="line-number">96</span><br><span class="line-number">97</span><br><span class="line-number">98</span><br><span class="line-number">99</span><br><span class="line-number">100</span><br><span class="line-number">101</span><br><span class="line-number">102</span><br><span class="line-number">103</span><br><span class="line-number">104</span><br><span class="line-number">105</span><br><span class="line-number">106</span><br><span class="line-number">107</span><br></div></div><p>程序首先通过participant获取当前线程节点Node。检测是否中断，如果中断return null，等待后续抛出InterruptedException异常。</p> <ul><li>如果slot不为null，则进行slot消除，成功直接返回数据V，否则失败，则创建arena消除数组。</li> <li>如果slot为null，但arena不为null，则返回null，进入arenaExchange逻辑。</li> <li>如果slot为null，且arena也为null，则尝试占领该slot，失败重试，成功则跳出循环进入spin+block(自旋+阻塞)模式。</li></ul> <p>在自旋+阻塞模式中，首先取得结束时间和自旋次数。如果match(做releasing操作的线程传递的项)为null，其首先尝试spins+随机次自旋(改自旋使用当前节点中的hash，并改变之)和退让。当自旋数为0后，假如slot发生了改变(slot != p)则重置自旋数并重试。否则假如：当前未中断&amp;arena为null&amp;(当前不是限时版本或者限时版本+当前时间未结束)：阻塞或者限时阻塞。假如：当前中断或者arena不为null或者当前为限时版本+时间已经结束：不限时版本：置v为null；限时版本：如果时间结束以及未中断则TIMED_OUT；否则给出null(原因是探测到arena非空或者当前线程中断)。</p> <p>match不为空时跳出循环。</p> <h3 id="arenaexchangeobject-item-boolean-timed-long-ns"><a href="#arenaexchangeobject-item-boolean-timed-long-ns" class="header-anchor">¶</a> arenaExchange(Object item, boolean timed, long ns)</h3> <p>此方法被执行时表示多个线程进入交换区交换数据，arena数组已被初始化，此方法中的一些处理方式和slotExchange比较类似，它是通过遍历arena数组找到需要交换的数据。</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token comment">// timed 为true表示设置了超时时间，ns为&gt;0的值，反之没有设置超时时间</span>
+<span class="token keyword">private</span> <span class="token keyword">final</span> <span class="token class-name">Object</span> <span class="token function">arenaExchange</span><span class="token punctuation">(</span><span class="token class-name">Object</span> item<span class="token punctuation">,</span> <span class="token keyword">boolean</span> timed<span class="token punctuation">,</span> <span class="token keyword">long</span> ns<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token class-name">Node</span><span class="token punctuation">[</span><span class="token punctuation">]</span> a <span class="token operator">=</span> arena<span class="token punctuation">;</span>
+    <span class="token comment">// 获取当前线程中的存放的node</span>
+    <span class="token class-name">Node</span> p <span class="token operator">=</span> participant<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">//index初始值0</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> p<span class="token punctuation">.</span>index<span class="token punctuation">;</span><span class="token punctuation">;</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// access slot at i</span>
+        <span class="token comment">// 遍历，如果在数组中找到数据则直接交换并唤醒线程，如未找到则将需要交换给其它线程的数据放置于数组中</span>
+        <span class="token keyword">int</span> b<span class="token punctuation">,</span> m<span class="token punctuation">,</span> c<span class="token punctuation">;</span>
+        <span class="token keyword">long</span> j<span class="token punctuation">;</span> <span class="token comment">// j is raw array offset</span>
+        <span class="token comment">// 其实这里就是向右遍历数组，只是用到了元素在内存偏移的偏移量</span>
+        <span class="token comment">// q实际为arena数组偏移(i + 1) *  128个地址位上的node</span>
+        <span class="token class-name">Node</span> q <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">Node</span><span class="token punctuation">)</span> <span class="token class-name">U</span><span class="token punctuation">.</span><span class="token function">getObjectVolatile</span><span class="token punctuation">(</span>a<span class="token punctuation">,</span> j <span class="token operator">=</span> <span class="token punctuation">(</span>i <span class="token operator">&lt;&lt;</span> ASHIFT<span class="token punctuation">)</span> <span class="token operator">+</span> ABASE<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// 如果q不为null，并且CAS操作成功，将下标j的元素置为null</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>q <span class="token operator">!=</span> <span class="token keyword">null</span> <span class="token operator">&amp;&amp;</span> <span class="token class-name">U</span><span class="token punctuation">.</span><span class="token function">compareAndSwapObject</span><span class="token punctuation">(</span>a<span class="token punctuation">,</span> j<span class="token punctuation">,</span> q<span class="token punctuation">,</span> <span class="token keyword">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token comment">// 表示当前线程已发现有交换的数据，然后获取数据，唤醒等待的线程</span>
+            <span class="token class-name">Object</span> v <span class="token operator">=</span> q<span class="token punctuation">.</span>item<span class="token punctuation">;</span> <span class="token comment">// release</span>
+            q<span class="token punctuation">.</span>match <span class="token operator">=</span> item<span class="token punctuation">;</span>
+            <span class="token class-name">Thread</span> w <span class="token operator">=</span> q<span class="token punctuation">.</span>parked<span class="token punctuation">;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>w <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">)</span>
+                <span class="token class-name">U</span><span class="token punctuation">.</span><span class="token function">unpark</span><span class="token punctuation">(</span>w<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">return</span> v<span class="token punctuation">;</span>
+        <span class="token comment">// q 为null 并且 i 未超过数组边界    </span>
+        <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>i <span class="token operator">&lt;=</span> <span class="token punctuation">(</span>m <span class="token operator">=</span> <span class="token punctuation">(</span>b <span class="token operator">=</span> bound<span class="token punctuation">)</span> <span class="token operator">&amp;</span> MMASK<span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> q <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+             <span class="token comment">// 将需要给其它线程的item赋予给p中的item</span>
+            p<span class="token punctuation">.</span>item <span class="token operator">=</span> item<span class="token punctuation">;</span> <span class="token comment">// offer</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">U</span><span class="token punctuation">.</span><span class="token function">compareAndSwapObject</span><span class="token punctuation">(</span>a<span class="token punctuation">,</span> j<span class="token punctuation">,</span> <span class="token keyword">null</span><span class="token punctuation">,</span> p<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                <span class="token comment">// 交换成功</span>
+                <span class="token keyword">long</span> end <span class="token operator">=</span> <span class="token punctuation">(</span>timed <span class="token operator">&amp;&amp;</span> m <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">?</span> <span class="token class-name">System</span><span class="token punctuation">.</span><span class="token function">nanoTime</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> ns <span class="token operator">:</span> <span class="token number">0</span> <span class="token class-name">L</span><span class="token punctuation">;</span>
+                <span class="token class-name">Thread</span> t <span class="token operator">=</span> <span class="token class-name">Thread</span><span class="token punctuation">.</span><span class="token function">currentThread</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// wait</span>
+                <span class="token comment">// 自旋直到有其它线程进入，遍历到该元素并与其交换，同时当前线程被唤醒</span>
+                <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> h <span class="token operator">=</span> p<span class="token punctuation">.</span>hash<span class="token punctuation">,</span> spins <span class="token operator">=</span> SPINS<span class="token punctuation">;</span><span class="token punctuation">;</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                    <span class="token class-name">Object</span> v <span class="token operator">=</span> p<span class="token punctuation">.</span>match<span class="token punctuation">;</span>
+                    <span class="token keyword">if</span> <span class="token punctuation">(</span>v <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                        <span class="token comment">// 其它线程设置的需要交换的数据match不为null</span>
+                        <span class="token comment">// 将match设置null,item设置为null</span>
+                        <span class="token class-name">U</span><span class="token punctuation">.</span><span class="token function">putOrderedObject</span><span class="token punctuation">(</span>p<span class="token punctuation">,</span> MATCH<span class="token punctuation">,</span> <span class="token keyword">null</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        p<span class="token punctuation">.</span>item <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span> <span class="token comment">// clear for next use</span>
+                        p<span class="token punctuation">.</span>hash <span class="token operator">=</span> h<span class="token punctuation">;</span>
+                        <span class="token keyword">return</span> v<span class="token punctuation">;</span>
+                    <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>spins <span class="token operator">&gt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                        h <span class="token operator">^=</span> h <span class="token operator">&lt;&lt;</span> <span class="token number">1</span><span class="token punctuation">;</span>
+                        h <span class="token operator">^=</span> h <span class="token operator">&gt;&gt;&gt;</span> <span class="token number">3</span><span class="token punctuation">;</span>
+                        h <span class="token operator">^=</span> h <span class="token operator">&lt;&lt;</span> <span class="token number">10</span><span class="token punctuation">;</span> <span class="token comment">// xorshift</span>
+                        <span class="token keyword">if</span> <span class="token punctuation">(</span>h <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token comment">// initialize hash</span>
+                            h <span class="token operator">=</span> SPINS <span class="token operator">|</span> <span class="token punctuation">(</span><span class="token keyword">int</span><span class="token punctuation">)</span> t<span class="token punctuation">.</span><span class="token function">getId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>h <span class="token operator">&lt;</span> <span class="token number">0</span> <span class="token operator">&amp;&amp;</span> <span class="token comment">// approx 50% true</span>
+                            <span class="token punctuation">(</span><span class="token operator">--</span>spins <span class="token operator">&amp;</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>SPINS <span class="token operator">&gt;&gt;&gt;</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span>
+                            <span class="token class-name">Thread</span><span class="token punctuation">.</span><span class="token keyword">yield</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// two yields per wait</span>
+                    <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">U</span><span class="token punctuation">.</span><span class="token function">getObjectVolatile</span><span class="token punctuation">(</span>a<span class="token punctuation">,</span> j<span class="token punctuation">)</span> <span class="token operator">!=</span> p<span class="token punctuation">)</span>
+                        <span class="token comment">// 和slotExchange方法中的类似，arena数组中的数据已被CAS设置</span>
+                       <span class="token comment">// match值还未设置，让其再自旋等待match被设置</span>
+                        spins <span class="token operator">=</span> SPINS<span class="token punctuation">;</span> <span class="token comment">// releaser hasn't set match yet</span>
+                    <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>t<span class="token punctuation">.</span><span class="token function">isInterrupted</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> m <span class="token operator">==</span> <span class="token number">0</span> <span class="token operator">&amp;&amp;</span>
+                        <span class="token punctuation">(</span><span class="token operator">!</span>timed <span class="token operator">||</span>
+                            <span class="token punctuation">(</span>ns <span class="token operator">=</span> end <span class="token operator">-</span> <span class="token class-name">System</span><span class="token punctuation">.</span><span class="token function">nanoTime</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&gt;</span> <span class="token number">0</span> <span class="token class-name">L</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                        <span class="token comment">// 设置线程t被当前对象阻塞</span>
+                        <span class="token class-name">U</span><span class="token punctuation">.</span><span class="token function">putObject</span><span class="token punctuation">(</span>t<span class="token punctuation">,</span> BLOCKER<span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// emulate LockSupport</span>
+                         <span class="token comment">// 线程t赋值</span>
+                        p<span class="token punctuation">.</span>parked <span class="token operator">=</span> t<span class="token punctuation">;</span> <span class="token comment">// minimize window</span>
+                        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">U</span><span class="token punctuation">.</span><span class="token function">getObjectVolatile</span><span class="token punctuation">(</span>a<span class="token punctuation">,</span> j<span class="token punctuation">)</span> <span class="token operator">==</span> p<span class="token punctuation">)</span>
+                            <span class="token comment">// 数组中对象还相等，表示线程还未被唤醒，唤醒线程</span>
+                            <span class="token class-name">U</span><span class="token punctuation">.</span><span class="token function">park</span><span class="token punctuation">(</span><span class="token boolean">false</span><span class="token punctuation">,</span> ns<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        p<span class="token punctuation">.</span>parked <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+                         <span class="token comment">// 设置线程t未被任何对象阻塞</span>
+                        <span class="token class-name">U</span><span class="token punctuation">.</span><span class="token function">putObject</span><span class="token punctuation">(</span>t<span class="token punctuation">,</span> BLOCKER<span class="token punctuation">,</span> <span class="token keyword">null</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">U</span><span class="token punctuation">.</span><span class="token function">getObjectVolatile</span><span class="token punctuation">(</span>a<span class="token punctuation">,</span> j<span class="token punctuation">)</span> <span class="token operator">==</span> p <span class="token operator">&amp;&amp;</span>
+                        <span class="token class-name">U</span><span class="token punctuation">.</span><span class="token function">compareAndSwapObject</span><span class="token punctuation">(</span>a<span class="token punctuation">,</span> j<span class="token punctuation">,</span> p<span class="token punctuation">,</span> <span class="token keyword">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                        <span class="token comment">// 这里给bound增加加一个SEQ</span>
+                        <span class="token keyword">if</span> <span class="token punctuation">(</span>m <span class="token operator">!=</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token comment">// try to shrink</span>
+                            <span class="token class-name">U</span><span class="token punctuation">.</span><span class="token function">compareAndSwapInt</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">,</span> BOUND<span class="token punctuation">,</span> b<span class="token punctuation">,</span> b <span class="token operator">+</span> SEQ <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        p<span class="token punctuation">.</span>item <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+                        p<span class="token punctuation">.</span>hash <span class="token operator">=</span> h<span class="token punctuation">;</span>
+                        i <span class="token operator">=</span> p<span class="token punctuation">.</span>index <span class="token operator">&gt;&gt;&gt;=</span> <span class="token number">1</span><span class="token punctuation">;</span> <span class="token comment">// descend</span>
+                        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">Thread</span><span class="token punctuation">.</span><span class="token function">interrupted</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                            <span class="token keyword">return</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+                        <span class="token keyword">if</span> <span class="token punctuation">(</span>timed <span class="token operator">&amp;&amp;</span> m <span class="token operator">==</span> <span class="token number">0</span> <span class="token operator">&amp;&amp;</span> ns <span class="token operator">&lt;=</span> <span class="token number">0</span> <span class="token class-name">L</span><span class="token punctuation">)</span>
+                            <span class="token keyword">return</span> TIMED_OUT<span class="token punctuation">;</span>
+                        <span class="token keyword">break</span><span class="token punctuation">;</span> <span class="token comment">// expired; restart</span>
+                    <span class="token punctuation">}</span>
+                <span class="token punctuation">}</span>
+            <span class="token punctuation">}</span> <span class="token keyword">else</span>
+                <span class="token comment">// 交换失败，表示有其它线程更改了arena数组中下标i的元素</span>
+                p<span class="token punctuation">.</span>item <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span> <span class="token comment">// clear offer</span>
+        <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+            <span class="token comment">// 此时表示下标不在bound &amp; MMASK或q不为null但CAS操作失败</span>
+           <span class="token comment">// 需要更新bound变化后的值</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>p<span class="token punctuation">.</span>bound <span class="token operator">!=</span> b<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// stale; reset</span>
+                p<span class="token punctuation">.</span>bound <span class="token operator">=</span> b<span class="token punctuation">;</span>
+                p<span class="token punctuation">.</span>collides <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+                <span class="token comment">// 反向遍历</span>
+                i <span class="token operator">=</span> <span class="token punctuation">(</span>i <span class="token operator">!=</span> m <span class="token operator">||</span> m <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">?</span> m <span class="token operator">:</span> m <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>c <span class="token operator">=</span> p<span class="token punctuation">.</span>collides<span class="token punctuation">)</span> <span class="token operator">&lt;</span> m <span class="token operator">||</span> m <span class="token operator">==</span> FULL <span class="token operator">||</span>
+                <span class="token operator">!</span><span class="token class-name">U</span><span class="token punctuation">.</span><span class="token function">compareAndSwapInt</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">,</span> BOUND<span class="token punctuation">,</span> b<span class="token punctuation">,</span> b <span class="token operator">+</span> SEQ <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                 <span class="token comment">// 记录CAS失败的次数</span>
+                p<span class="token punctuation">.</span>collides <span class="token operator">=</span> c <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">;</span>
+                <span class="token comment">// 循环遍历</span>
+                i <span class="token operator">=</span> <span class="token punctuation">(</span>i <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">?</span> m <span class="token operator">:</span> i <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">;</span> <span class="token comment">// cyclically traverse</span>
+            <span class="token punctuation">}</span> <span class="token keyword">else</span>
+                <span class="token comment">// 此时表示bound值增加了SEQ+1</span>
+                i <span class="token operator">=</span> m <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">;</span> <span class="token comment">// grow</span>
+            <span class="token comment">// 设置下标</span>
+            p<span class="token punctuation">.</span>index <span class="token operator">=</span> i<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br><span class="line-number">35</span><br><span class="line-number">36</span><br><span class="line-number">37</span><br><span class="line-number">38</span><br><span class="line-number">39</span><br><span class="line-number">40</span><br><span class="line-number">41</span><br><span class="line-number">42</span><br><span class="line-number">43</span><br><span class="line-number">44</span><br><span class="line-number">45</span><br><span class="line-number">46</span><br><span class="line-number">47</span><br><span class="line-number">48</span><br><span class="line-number">49</span><br><span class="line-number">50</span><br><span class="line-number">51</span><br><span class="line-number">52</span><br><span class="line-number">53</span><br><span class="line-number">54</span><br><span class="line-number">55</span><br><span class="line-number">56</span><br><span class="line-number">57</span><br><span class="line-number">58</span><br><span class="line-number">59</span><br><span class="line-number">60</span><br><span class="line-number">61</span><br><span class="line-number">62</span><br><span class="line-number">63</span><br><span class="line-number">64</span><br><span class="line-number">65</span><br><span class="line-number">66</span><br><span class="line-number">67</span><br><span class="line-number">68</span><br><span class="line-number">69</span><br><span class="line-number">70</span><br><span class="line-number">71</span><br><span class="line-number">72</span><br><span class="line-number">73</span><br><span class="line-number">74</span><br><span class="line-number">75</span><br><span class="line-number">76</span><br><span class="line-number">77</span><br><span class="line-number">78</span><br><span class="line-number">79</span><br><span class="line-number">80</span><br><span class="line-number">81</span><br><span class="line-number">82</span><br><span class="line-number">83</span><br><span class="line-number">84</span><br><span class="line-number">85</span><br><span class="line-number">86</span><br><span class="line-number">87</span><br><span class="line-number">88</span><br><span class="line-number">89</span><br><span class="line-number">90</span><br><span class="line-number">91</span><br><span class="line-number">92</span><br><span class="line-number">93</span><br><span class="line-number">94</span><br><span class="line-number">95</span><br><span class="line-number">96</span><br><span class="line-number">97</span><br><span class="line-number">98</span><br><span class="line-number">99</span><br><span class="line-number">100</span><br><span class="line-number">101</span><br><span class="line-number">102</span><br><span class="line-number">103</span><br><span class="line-number">104</span><br><span class="line-number">105</span><br><span class="line-number">106</span><br></div></div><p>首先通过participant取得当前节点Node，然后根据当前节点Node的index去取arena中相对应的节点node。</p> <ul><li><strong>前面提到过arena可以确保不同的slot在arena中是不会相冲突的，那么是怎么保证的呢？</strong></li></ul> <div class="language-java line-numbers-mode"><pre class="language-java"><code>arena <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Node</span><span class="token punctuation">[</span><span class="token punctuation">(</span>FULL <span class="token operator">+</span> <span class="token number">2</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> ASHIFT<span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token comment">// 这个arena到底有多大呢? 我们先看FULL 和ASHIFT的定义：</span>
+<span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">int</span> FULL <span class="token operator">=</span> <span class="token punctuation">(</span>NCPU <span class="token operator">&gt;=</span> <span class="token punctuation">(</span>MMASK <span class="token operator">&lt;&lt;</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">?</span> MMASK <span class="token operator">:</span> NCPU <span class="token operator">&gt;&gt;&gt;</span> <span class="token number">1</span><span class="token punctuation">;</span>
+<span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">int</span> ASHIFT <span class="token operator">=</span> <span class="token number">7</span><span class="token punctuation">;</span>
+
+<span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">int</span> NCPU <span class="token operator">=</span> <span class="token class-name">Runtime</span><span class="token punctuation">.</span><span class="token function">getRuntime</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">availableProcessors</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">int</span> MMASK <span class="token operator">=</span> <span class="token number">0xff</span><span class="token punctuation">;</span>        <span class="token comment">// 255</span>
+<span class="token comment">// 假如我的机器NCPU = 8 ，则得到的是768大小的arena数组。然后通过以下代码取得在arena中的节点：</span>
+
+<span class="token class-name">Node</span> q <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">Node</span><span class="token punctuation">)</span><span class="token class-name">U</span><span class="token punctuation">.</span><span class="token function">getObjectVolatile</span><span class="token punctuation">(</span>a<span class="token punctuation">,</span> j <span class="token operator">=</span> <span class="token punctuation">(</span>i <span class="token operator">&lt;&lt;</span> ASHIFT<span class="token punctuation">)</span> <span class="token operator">+</span> ABASE<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// 它仍然是通过右移ASHIFT位来取得Node的，ABASE定义如下：</span>
+
+<span class="token class-name">Class</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token operator">?</span><span class="token punctuation">&gt;</span></span> ak <span class="token operator">=</span> <span class="token class-name">Node</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">;</span>
+ABASE <span class="token operator">=</span> <span class="token class-name">U</span><span class="token punctuation">.</span><span class="token function">arrayBaseOffset</span><span class="token punctuation">(</span>ak<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token punctuation">(</span><span class="token number">1</span> <span class="token operator">&lt;&lt;</span> ASHIFT<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// U.arrayBaseOffset获取对象头长度，数组元素的大小可以通过unsafe.arrayIndexScale(T[].class) 方法获取到。这也就是说要访问类型为T的第N个元素的话，你的偏移量offset应该是arrayOffset+N*arrayScale。也就是说BASE = arrayOffset+ 128 。</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br></div></div><ul><li><strong>用@sun.misc.Contended来规避伪共享？</strong></li></ul> <p><strong>伪共享说明</strong>：假设一个类的两个相互独立的属性a和b在内存地址上是连续的(比如FIFO队列的头尾指针)，那么它们通常会被加载到相同的cpu cache line里面。并发情况下，如果一个线程修改了a，会导致整个cache line失效(包括b)，这时另一个线程来读b，就需要从内存里再次加载了，这种多线程频繁修改ab的情况下，虽然a和b看似独立，但它们会互相干扰，非常影响性能。</p> <p>我们再看Node节点的定义, 在Java 8 中我们是可以利用sun.misc.Contended来规避伪共享的。所以说通过 &lt;&lt; ASHIFT方式加上sun.misc.Contended，所以使得任意两个可用Node不会再同一个缓存行中。</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token annotation punctuation">@sun.misc.Contended</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">class</span> <span class="token class-name">Node</span><span class="token punctuation">{</span>
+<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br></div></div><p>我们再次回到arenaExchange()。取得arena中的node节点后，如果定位的节点q 不为空，且CAS操作成功，则交换数据，返回交换的数据，唤醒等待的线程。</p> <ul><li>如果q等于null且下标在bound &amp; MMASK范围之内，则尝试占领该位置，如果成功，则采用自旋 + 阻塞的方式进行等待交换数据。</li> <li>如果下标不在bound &amp; MMASK范围之内获取由于q不为null但是竞争失败的时候：消除p。加入bound 不等于当前节点的bond(b != p.bound)，则更新p.bound = b，collides = 0 ，i = m或者m - 1。如果冲突的次数不到m 获取m 已经为最大值或者修改当前bound的值失败，则通过增加一次collides以及循环递减下标i的值；否则更新当前bound的值成功：我们令i为m+1即为此时最大的下标。最后更新当前index的值。</li></ul> <h3 id="更深入理解"><a href="#更深入理解" class="header-anchor">¶</a> 更深入理解</h3> <ul><li><strong>SynchronousQueue对比？</strong></li></ul> <p>Exchanger是一种线程间安全交换数据的机制。可以和之前分析过的SynchronousQueue对比一下：线程A通过SynchronousQueue将数据a交给线程B；线程A通过Exchanger和线程B交换数据，线程A把数据a交给线程B，同时线程B把数据b交给线程A。可见，SynchronousQueue是交给一个数据，Exchanger是交换两个数据。</p> <ul><li><p><strong>不同JDK实现有何差别？</strong></p> <ul><li>在JDK5中Exchanger被设计成一个容量为1的容器，存放一个等待线程，直到有另外线程到来就会发生数据交换，然后清空容器，等到下一个到来的线程。</li> <li>从JDK6开始，Exchanger用了类似ConcurrentMap的分段思想，提供了多个slot，增加了并发执行时的吞吐量。</li></ul></li></ul> <p>JDK1.6实现可以参考 <a href="https://www.iteye.com/blog/brokendreams-2253956" target="_blank" rel="noopener noreferrer">这里<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></p> <h3 id="exchanger示例"><a href="#exchanger示例" class="header-anchor">¶</a> Exchanger示例</h3> <p>来一个非常经典的并发问题：你有相同的数据buffer，一个或多个数据生产者，和一个或多个数据消费者。只是Exchange类只能同步2个线程，所以你只能在你的生产者和消费者问题中只有一个生产者和一个消费者时使用这个类。</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Test</span> <span class="token punctuation">{</span>
+    <span class="token keyword">static</span> <span class="token keyword">class</span> <span class="token class-name">Producer</span> <span class="token keyword">extends</span> <span class="token class-name">Thread</span> <span class="token punctuation">{</span>
+        <span class="token keyword">private</span> <span class="token class-name">Exchanger</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Integer</span><span class="token punctuation">&gt;</span></span> exchanger<span class="token punctuation">;</span>
+        <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">int</span> data <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        <span class="token class-name">Producer</span><span class="token punctuation">(</span><span class="token class-name">String</span> name<span class="token punctuation">,</span> <span class="token class-name">Exchanger</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Integer</span><span class="token punctuation">&gt;</span></span> exchanger<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword">super</span><span class="token punctuation">(</span><span class="token string">&quot;Producer-&quot;</span> <span class="token operator">+</span> name<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">this</span><span class="token punctuation">.</span>exchanger <span class="token operator">=</span> exchanger<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+
+        <span class="token annotation punctuation">@Override</span>
+        <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">run</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">;</span> i<span class="token operator">&lt;</span><span class="token number">5</span><span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                <span class="token keyword">try</span> <span class="token punctuation">{</span>
+                    <span class="token class-name">TimeUnit</span><span class="token punctuation">.</span>SECONDS<span class="token punctuation">.</span><span class="token function">sleep</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    data <span class="token operator">=</span> i<span class="token punctuation">;</span>
+                    <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">+</span><span class="token string">&quot; 交换前:&quot;</span> <span class="token operator">+</span> data<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    data <span class="token operator">=</span> exchanger<span class="token punctuation">.</span><span class="token function">exchange</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">+</span><span class="token string">&quot; 交换后:&quot;</span> <span class="token operator">+</span> data<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">}</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">InterruptedException</span> e<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                    e<span class="token punctuation">.</span><span class="token function">printStackTrace</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">}</span>
+            <span class="token punctuation">}</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">static</span> <span class="token keyword">class</span> <span class="token class-name">Consumer</span> <span class="token keyword">extends</span> <span class="token class-name">Thread</span> <span class="token punctuation">{</span>
+        <span class="token keyword">private</span> <span class="token class-name">Exchanger</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Integer</span><span class="token punctuation">&gt;</span></span> exchanger<span class="token punctuation">;</span>
+        <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">int</span> data <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        <span class="token class-name">Consumer</span><span class="token punctuation">(</span><span class="token class-name">String</span> name<span class="token punctuation">,</span> <span class="token class-name">Exchanger</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Integer</span><span class="token punctuation">&gt;</span></span> exchanger<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword">super</span><span class="token punctuation">(</span><span class="token string">&quot;Consumer-&quot;</span> <span class="token operator">+</span> name<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">this</span><span class="token punctuation">.</span>exchanger <span class="token operator">=</span> exchanger<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+
+        <span class="token annotation punctuation">@Override</span>
+        <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">run</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                data <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+                <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">+</span><span class="token string">&quot; 交换前:&quot;</span> <span class="token operator">+</span> data<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword">try</span> <span class="token punctuation">{</span>
+                    <span class="token class-name">TimeUnit</span><span class="token punctuation">.</span>SECONDS<span class="token punctuation">.</span><span class="token function">sleep</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    data <span class="token operator">=</span> exchanger<span class="token punctuation">.</span><span class="token function">exchange</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">}</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">InterruptedException</span> e<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                    e<span class="token punctuation">.</span><span class="token function">printStackTrace</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">}</span>
+                <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">+</span><span class="token string">&quot; 交换后:&quot;</span> <span class="token operator">+</span> data<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">InterruptedException</span> <span class="token punctuation">{</span>
+        <span class="token class-name">Exchanger</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Integer</span><span class="token punctuation">&gt;</span></span> exchanger <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Exchanger</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Integer</span><span class="token punctuation">&gt;</span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">new</span> <span class="token class-name">Producer</span><span class="token punctuation">(</span><span class="token string">&quot;&quot;</span><span class="token punctuation">,</span> exchanger<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">new</span> <span class="token class-name">Consumer</span><span class="token punctuation">(</span><span class="token string">&quot;&quot;</span><span class="token punctuation">,</span> exchanger<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">TimeUnit</span><span class="token punctuation">.</span>SECONDS<span class="token punctuation">.</span><span class="token function">sleep</span><span class="token punctuation">(</span><span class="token number">7</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">System</span><span class="token punctuation">.</span><span class="token function">exit</span><span class="token punctuation">(</span><span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br><span class="line-number">35</span><br><span class="line-number">36</span><br><span class="line-number">37</span><br><span class="line-number">38</span><br><span class="line-number">39</span><br><span class="line-number">40</span><br><span class="line-number">41</span><br><span class="line-number">42</span><br><span class="line-number">43</span><br><span class="line-number">44</span><br><span class="line-number">45</span><br><span class="line-number">46</span><br><span class="line-number">47</span><br><span class="line-number">48</span><br><span class="line-number">49</span><br><span class="line-number">50</span><br><span class="line-number">51</span><br><span class="line-number">52</span><br><span class="line-number">53</span><br><span class="line-number">54</span><br><span class="line-number">55</span><br><span class="line-number">56</span><br><span class="line-number">57</span><br></div></div><p>可以看到，其结果可能如下：</p> <div class="language-html line-numbers-mode"><pre class="language-html"><code>Consumer- 交换前:0
+Producer- 交换前:1
+Consumer- 交换后:1
+Consumer- 交换前:0
+Producer- 交换后:0
+Producer- 交换前:2
+Producer- 交换后:0
+Consumer- 交换后:2
+Consumer- 交换前:0
+Producer- 交换前:3
+Producer- 交换后:0
+Consumer- 交换后:3
+Consumer- 交换前:0
+Producer- 交换前:4
+Producer- 交换后:0
+Consumer- 交换后:4
+Consumer- 交换前:0
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br></div></div><h2 id="参考文章"><a href="#参考文章" class="header-anchor">¶</a> 参考文章</h2> <ul><li>https://cloud.tencent.com/developer/article/1529492</li> <li>https://coderbee.net/index.php/concurrent/20140424/897</li> <li>https://www.cnblogs.com/wanly3643/p/3939552.html</li> <li>https://www.iteye.com/blog/brokendreams-2253956</li> <li>https://blog.csdn.net/u014634338/article/details/78385521</li></ul></div> <div class="page-contract"><h2>联系我</h2> <div class="c-content"><span style="font-size:1rem;font-weight:bold;">添加@pdai微信</span><br> <img src="../../../pdai.jpg" height="280px" style="margin:10px;"><br>
+        PS：添加时请备注<b>Java全栈</b>，谢谢！
+      </div></div> <footer class="page-edit"><div class="edit-link"><a href="https://github.com/realpdai/tech-arch-doc/edit/master/md/java/thread/java-thread-x-juc-tool-exchanger.md" target="_blank" rel="noopener noreferrer">在 GitHub 上编辑此页</a> <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></div> <div class="last-updated"><span class="prefix">上次更新: </span> <span class="time">12/29/2019,</span></div></footer> <div class="page-nav"><p class="inner"><span class="prev">
+        ←
+        <a href="java-thread-x-juc-tool-phaser.html" class="prev">
+          JUC工具类: Phaser详解
+        </a></span> <span class="next"><a href="java-thread-x-threadlocal.html">
+          Java 并发 - ThreadLocal详解
+        </a>
+        →
+      </span></p></div> <div class="google_ad_bottom"><ins data-ad-client="ca-pub-5088193899865249" data-ad-slot="6822031208" data-ad-format="auto" data-full-width-responsive="true" class="adsbygoogle" style="display:block"></ins> <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script></div> </main></div> <aside class="page-sidebar"> <div class="page-side-toolbar"><div class="option-box-toc-fixed"><div class="toc-container-sidebar"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:650px"><div style="font-weight:bold;text-align:center;">JUC工具类: Exchanger详解</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="java-thread-x-juc-tool-exchanger.html#带着bat大厂的面试问题去理解exchanger" class="toc-sidebar-link">带着BAT大厂的面试问题去理解Exchanger</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="java-thread-x-juc-tool-exchanger.html#exchanger简介" class="toc-sidebar-link">Exchanger简介</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="java-thread-x-juc-tool-exchanger.html#exchanger实现机制" class="toc-sidebar-link">Exchanger实现机制</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="java-thread-x-juc-tool-exchanger.html#exchanger源码解析" class="toc-sidebar-link">Exchanger源码解析</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="java-thread-x-juc-tool-exchanger.html#内部类---participant" class="toc-sidebar-link">内部类 - Participant</a></li><li class="toc-sidebar-sub-header"><a href="java-thread-x-juc-tool-exchanger.html#内部类---node" class="toc-sidebar-link">内部类 - Node</a></li><li class="toc-sidebar-sub-header"><a href="java-thread-x-juc-tool-exchanger.html#核心属性" class="toc-sidebar-link">核心属性</a></li><li class="toc-sidebar-sub-header"><a href="java-thread-x-juc-tool-exchanger.html#构造函数" class="toc-sidebar-link">构造函数</a></li><li class="toc-sidebar-sub-header"><a href="java-thread-x-juc-tool-exchanger.html#核心方法---exchangev-x" class="toc-sidebar-link">核心方法 - exchange(V x)</a></li><li class="toc-sidebar-sub-header"><a href="java-thread-x-juc-tool-exchanger.html#slotexchangeobject-item-boolean-timed-long-ns" class="toc-sidebar-link">slotExchange(Object item, boolean timed, long ns)</a></li><li class="toc-sidebar-sub-header"><a href="java-thread-x-juc-tool-exchanger.html#arenaexchangeobject-item-boolean-timed-long-ns" class="toc-sidebar-link">arenaExchange(Object item, boolean timed, long ns)</a></li><li class="toc-sidebar-sub-header"><a href="java-thread-x-juc-tool-exchanger.html#更深入理解" class="toc-sidebar-link">更深入理解</a></li><li class="toc-sidebar-sub-header"><a href="java-thread-x-juc-tool-exchanger.html#exchanger示例" class="toc-sidebar-link">Exchanger示例</a></li></ul></li><li><a href="java-thread-x-juc-tool-exchanger.html#参考文章" class="toc-sidebar-link">参考文章</a><ul class="toc-sidebar-sub-headers"></ul></li></ul></div></div></div></div></div> <div class="option-box-toc-over"><img src="../../../toc.png" class="nozoom"> <span class="show-txt">目录</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:550px"><div style="font-weight:bold;text-align:center;">JUC工具类: Exchanger详解</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="java-thread-x-juc-tool-exchanger.html#带着bat大厂的面试问题去理解exchanger" class="toc-sidebar-link">带着BAT大厂的面试问题去理解Exchanger</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="java-thread-x-juc-tool-exchanger.html#exchanger简介" class="toc-sidebar-link">Exchanger简介</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="java-thread-x-juc-tool-exchanger.html#exchanger实现机制" class="toc-sidebar-link">Exchanger实现机制</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="java-thread-x-juc-tool-exchanger.html#exchanger源码解析" class="toc-sidebar-link">Exchanger源码解析</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="java-thread-x-juc-tool-exchanger.html#内部类---participant" class="toc-sidebar-link">内部类 - Participant</a></li><li class="toc-sidebar-sub-header"><a href="java-thread-x-juc-tool-exchanger.html#内部类---node" class="toc-sidebar-link">内部类 - Node</a></li><li class="toc-sidebar-sub-header"><a href="java-thread-x-juc-tool-exchanger.html#核心属性" class="toc-sidebar-link">核心属性</a></li><li class="toc-sidebar-sub-header"><a href="java-thread-x-juc-tool-exchanger.html#构造函数" class="toc-sidebar-link">构造函数</a></li><li class="toc-sidebar-sub-header"><a href="java-thread-x-juc-tool-exchanger.html#核心方法---exchangev-x" class="toc-sidebar-link">核心方法 - exchange(V x)</a></li><li class="toc-sidebar-sub-header"><a href="java-thread-x-juc-tool-exchanger.html#slotexchangeobject-item-boolean-timed-long-ns" class="toc-sidebar-link">slotExchange(Object item, boolean timed, long ns)</a></li><li class="toc-sidebar-sub-header"><a href="java-thread-x-juc-tool-exchanger.html#arenaexchangeobject-item-boolean-timed-long-ns" class="toc-sidebar-link">arenaExchange(Object item, boolean timed, long ns)</a></li><li class="toc-sidebar-sub-header"><a href="java-thread-x-juc-tool-exchanger.html#更深入理解" class="toc-sidebar-link">更深入理解</a></li><li class="toc-sidebar-sub-header"><a href="java-thread-x-juc-tool-exchanger.html#exchanger示例" class="toc-sidebar-link">Exchanger示例</a></li></ul></li><li><a href="java-thread-x-juc-tool-exchanger.html#参考文章" class="toc-sidebar-link">参考文章</a><ul class="toc-sidebar-sub-headers"></ul></li></ul></div></div></div></div></div> <div class="option-box"><img src="../../../wechat.png" class="nozoom"> <span class="show-txt">手机看</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.9rem">微信扫一扫</span> <img height="180px" src="https://api.qrserver.com/v1/create-qr-code/?data=https://www.pdai.tech/md/java/thread/java-thread-x-juc-tool-exchanger.html" style="margin:10px;">
+              可以<b>手机看</b>或分享至<b>朋友圈</b></div></div></div></div> <div class="option-box"><a title="点击切换全屏" style="text-align:center;padding-left:2px;"><img src="../../../full.png" width="30px" class="nozoom"> <span style="color:gray;font-size:11px;font-weight:400;">全屏看</span></a></div> <div class="option-box"><img src="../../../toggle.png" width="30px" class="nozoom"> <span class="show-txt">左栏</span></div> <div class="option-box"><img src="../../../wexin2.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:yellow">交流圈</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">添加pdai微信进《Java全栈知识体系》学习交流圈「无任何套路」</span> <img src="../../../pdai.jpg" height="180px" style="margin:10px;">
+              PS：添加时请备注<b>Java全栈</b>，谢谢！
+            </div></div></div></div> <div class="option-box"><img src="../../../download.jpg" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:#a6f792">下资料</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">扫描公众号，回复“资料”下载<font style="color:red;">10GB+</font>书籍资料「无任何套路」</span> <img src="../../../pdai_gzh.jpg" height="180px" style="margin:10px;"> <b>公众号:</b> Java全栈知识体系
+            </div></div></div></div> <div class="option-box"><img src="../../../heart.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;background-color:#gray">支持我</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">鼓励/支持/赞赏我</span> <img src="../../../pdai-guli.png" height="180px" width="200px" style="margin:5px;">
+              1. 不靠它生存但仍希望得到你的鼓励；<br> 2. 时刻警醒自己保持技术人的初心，恒心，简单，利他；
+            </div></div></div></div> <div title="JUC工具类: Phaser详解" class="option-box" style="padding-left:2px;text-align:center;"><a href="java-thread-x-juc-tool-phaser.html"><img src="../../../pre2.png" width="30px" class="nozoom"> <span class="show-txt">上一篇</span></a></div> <div title="Java 并发 - ThreadLocal详解" class="option-box" style="padding-left:2px;text-align:center;"><a href="java-thread-x-threadlocal.html"><img src="../../../next2.png" width="30px" class="nozoom"> <span class="show-txt">下一篇</span></a></div></div>  <div class="page-side-sitemap"><div class="option-box"><img src="../../../sitemap.png" class="nozoom img"> <span class="show-txt">站点图</span> <div class="sitemap-container"><h4>站点导航图
+            <a href="../../about/me/about-me.html" class="sitemap-top-link"> 关于我</a> <a href="../../about/blog/blog-build-vuepress.html" class="sitemap-top-link"> 关于站点</a> <a href="../../about/me/blog-changelist.html" class="sitemap-top-link"> 最近更新记录</a> <a href="../../about/me/blog-question.html" class="sitemap-top-link"><font style="color:red;background-color:yellow;">问题反馈</font></a></h4> <table class="sitemap-table"><tr><td nowrap="nowrap"><div class="sitemap-col-group">常用搜索</div></td> <td><div class="sitemap-col-item"><a href="http://www.baidu.com/" target="_blank" title="百度">  
+            百度
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.google.com/" target="_blank" title="Google">  
+            Google
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.bing.com/" target="_blank" title="Bing">  
+            Bing
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://github.com/" target="_blank" title="Github">  
+            Github
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.programcreek.com/java-api-examples/index.php" target="_blank" title="搜代码">  
+            搜代码
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">技术社区</div></td> <td><div class="sitemap-col-item"><a href="http://www.csdn.net/" target="_blank" title="CDSN">  
+            CDSN
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.cnblogs.com/" target="_blank" title="博客园">  
+            博客园
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.oschina.net/" target="_blank" title="OSChina">  
+            OSChina
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://segmentfault.com/" target="_blank" title="知否">  
+            知否
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://juejin.im/" target="_blank" title="掘金">  
+            掘金
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.linuxidc.com/" target="_blank" title="Linux公社">  
+            Linux公社
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.ibm.com/developerworks/cn/" target="_blank" title="IBM 开发者">  
+            IBM 开发者
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://stackoverflow.com/" target="_blank" title="StackOverflow">  
+            StackOverflow
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">Java相关</div></td> <!----> <td><a href="../basic/java-basic-oop.html" class="sitemap-col-item">
+            面向对象基础
+          </a><a href="../basic/java-basic-lan-basic.html" class="sitemap-col-item">
+            语法基础
+          </a><a href="../collection/java-collection-all.html" class="sitemap-col-item">
+            集合框架
+          </a><a href="java-thread-x-overview.html" class="sitemap-col-item">
+            并发基础
+          </a><a href="java-thread-x-key-synchronized.html" class="sitemap-col-item">
+            并发关键字
+          </a><a href="java-thread-x-juc-overview.html" class="sitemap-col-item">
+            JUC并发框架
+          </a><a href="../io/java-io-overview.html" class="sitemap-col-item">
+            IO框架
+          </a><a href="../java8/java8.html" class="sitemap-col-item">
+            Java8 特性
+          </a><a href="../jvm/java-jvm-x-overview.html" class="sitemap-col-item">
+            JVM基础
+          </a><a href="../jvm/java-jvm-param.html" class="sitemap-col-item">
+            调试排错
+          </a><a href="../others/java-others-awesome-java.html" class="sitemap-col-item">
+            更多资源
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">算法相关</div></td> <!----> <td><a href="../../algorithm/alg-basic-array.html" class="sitemap-col-item">
+            数组与线性表
+          </a><a href="../../algorithm/alg-basic-tree.html" class="sitemap-col-item">
+            树详解
+          </a><a href="../../algorithm/alg-basic-graph.html" class="sitemap-col-item">
+            图详解
+          </a><a href="../../algorithm/alg-sort-overview.html" class="sitemap-col-item">
+            内部排序
+          </a><a href="../../algorithm/alg-core-divide-and-conquer.html" class="sitemap-col-item">
+            算法思想
+          </a><a href="../../algorithm/alg-domain-security-degist.html" class="sitemap-col-item">
+            安全算法
+          </a><a href="../../algorithm/alg-domain-bigdata-overview.html" class="sitemap-col-item">
+            大数据处理
+          </a><a href="../../algorithm/alg-domain-distribute-overview.html" class="sitemap-col-item">
+            分布式算法
+          </a><a href="../../algorithm/alg-domain-load-balance.html" class="sitemap-col-item">
+            负载均衡算法
+          </a><a href="../../algorithm/alg-domain-suggest.html" class="sitemap-col-item">
+            推荐算法
+          </a><a href="../../algorithm/alg-other-mind.html" class="sitemap-col-item">
+            头脑风暴
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">数据库相关</div></td> <!----> <td><a href="../../db/sql/sql-db-howitworks.html" class="sitemap-col-item">
+            数据库原理
+          </a><a href="../../db/sql-lan/sql-lan.html" class="sitemap-col-item">
+            SQL语言
+          </a><a href="../../db/sql-mysql/sql-mysql-theory.html" class="sitemap-col-item">
+            MySQL相关
+          </a><a href="../../db/nosql-mongo/mongo-performance-improve.html" class="sitemap-col-item">
+            MongoDB
+          </a><a href="../../db/nosql-es/elasticsearch.html" class="sitemap-col-item">
+            ElasticSearch
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">开发基础相关</div></td> <!----> <td><a href="../../develop/package/dev-package-x-apache-common.html" class="sitemap-col-item">
+            常用类库
+          </a><a href="../../develop/ut/dev-ut-x-junit.html" class="sitemap-col-item">
+            单元测试
+          </a><a href="../../develop/regex/dev-regex-all.html" class="sitemap-col-item">
+            正则表达式
+          </a><a href="../../develop/protocol/dev-protocol-overview.html" class="sitemap-col-item">
+            网络协议
+          </a><a href="../../develop/security/dev-security-overview.html" class="sitemap-col-item">
+            安全相关
+          </a><a href="../../develop/refactor/dev-refactor-if-else.html" class="sitemap-col-item">
+            常见重构技巧
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">架构相关</div></td> <!----> <td><a href="../../arch/arch-x-basic.html" class="sitemap-col-item">
+            架构基础
+          </a><a href="../../arch/arch-x-view.html" class="sitemap-col-item">
+            架构视角
+          </a><a href="../../arch/arch-x-evolution.html" class="sitemap-col-item">
+            架构演进
+          </a><a href="../../arch/arch-x-pattern.html" class="sitemap-col-item">
+            架构模式和要素
+          </a><a href="../../arch/arch-y-cache.html" class="sitemap-col-item">
+            高并发之缓存
+          </a><a href="../../arch/arch-y-ratelimit.html" class="sitemap-col-item">
+            高并发之限流
+          </a><a href="../../arch/arch-y-reduce.html" class="sitemap-col-item">
+            高并发之降级
+          </a><a href="../../arch/arch-y-loadbalance.html" class="sitemap-col-item">
+            负载均衡
+          </a><a href="../../arch/arch-y-backup.html" class="sitemap-col-item">
+            容灾备份
+          </a><a href="../../arch/arch-x-security.html" class="sitemap-col-item">
+            架构安全
+          </a><a href="../../arch/arch-example-seckill.html" class="sitemap-col-item">
+            秒杀系统设计
+          </a><a href="../../arch/arch-example-goods-detail.html" class="sitemap-col-item">
+            架构案例
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">工具和部署</div></td> <!----> <td><a href="../../devops/tool/tool-list-overview.html" class="sitemap-col-item">
+            工具集合
+          </a><a href="../../devops/tool/tool-ide.html" class="sitemap-col-item">
+            IDE相关
+          </a><a href="../../devops/tool/tool-git.html" class="sitemap-col-item">
+            Git
+          </a><a href="../../devops/tool/tool-maven.html" class="sitemap-col-item">
+            Maven
+          </a><a href="../../devops/linux/linux.html" class="sitemap-col-item">
+            Linux
+          </a><a href="../../devops/docker/docker-00-overview.html" class="sitemap-col-item">
+            Docker
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">方法论</div></td> <!----> <td><a href="../../dev-spec/spec/dev-th-solid.html" class="sitemap-col-item">
+            SOLID
+          </a><a href="../../dev-spec/spec/dev-th-cap.html" class="sitemap-col-item">
+            CAP
+          </a><a href="../../dev-spec/spec/dev-th-base.html" class="sitemap-col-item">
+            BASE
+          </a><a href="../../dev-spec/spec/dev-opensource.html" class="sitemap-col-item">
+            开源协议
+          </a><a href="../../dev-spec/code-style/code-style-alibaba.html" class="sitemap-col-item">
+            代码规范
+          </a><a href="../../dev-spec/pattern/1_overview.html" class="sitemap-col-item">
+            设计模式
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">产品和团队</div></td> <!----> <td><a href="../../team/team-z-wechat.html" class="sitemap-col-item">
+            产品相关
+          </a><a href="../../team/team-z-task-emergency.html" class="sitemap-col-item">
+            团队相关
+          </a><a href="../../team/team-z-arch-future.html" class="sitemap-col-item">
+            其它分享
+          </a></td></tr></table></div></div></div> <!----> </aside></div><div class="global-ui"></div></div>
+    <script src="../../../assets/js/app.691e72ae.js" defer></script><script src="../../../assets/js/4.2e3efdf6.js" defer></script><script src="../../../assets/js/3.d77b006c.js" defer></script><script src="../../../assets/js/498.e75ee9d0.js" defer></script>
+  </body>
+
+<!-- Mirrored from www.pdai.tech/md/java/thread/java-thread-x-juc-tool-exchanger.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:30:24 GMT -->
+</html>

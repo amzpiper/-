@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  
+<!-- Mirrored from www.pdai.tech/md/develop/protocol/dev-protocol-dns.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:31:24 GMT -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>网络协议 - DNS 相关详解 | Java 全栈知识体系</title>
+    <meta name="generator" content="VuePress 1.8.2">
+    <link rel="icon" href="../../../favicon.ico">
+    <script src="../../../../hm.baidu.com/hma448.js?525d4abc4a8675472736969f817ceb47"></script>
+    <script defer="defer" async="async" src="../../../../pagead2.googlesyndication.com/pagead/js/f.txt"></script>
+    <meta name="description" content="包含: Java 基础, Java 部分源码, JVM, Spring, Spring Boot, Spring Cloud, 数据库原理, MySQL, ElasticSearch, MongoDB, Docker, k8s, CI&CD, Linux, DevOps, 分布式, 中间件, 开发工具, Git, IDE, 源码阅读，读书笔记, 开源项目...">
+    <meta property="article:modified_time" content="2021-09-27T13:15:21.000Z">
+    <meta property="og:title" content="网络协议 - DNS 相关详解">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="/md/develop/protocol/dev-protocol-dns.html">
+    <meta name="twitter:title" content="网络协议 - DNS 相关详解">
+    <meta name="twitter:url" content="/md/develop/protocol/dev-protocol-dns.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="robots" content="all">
+    <meta name="author" content="pdai">
+    <meta name="keywords" content="Java 全栈知识体系, java体系, java知识体系, java框架,java全栈,java学习路线,java全栈知识, java面试, 知识体系, java技术体系, java编程, java编程指南,java开发体系, java开发,java教程,java,java数据结构, 算法, 开发基础">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <link rel="preload" href="../../../assets/css/0.styles.d4bb5489.css" as="style"><link rel="preload" href="../../../assets/js/app.691e72ae.js" as="script"><link rel="preload" href="../../../assets/js/4.2e3efdf6.js" as="script"><link rel="preload" href="../../../assets/js/3.d77b006c.js" as="script"><link rel="preload" href="../../../assets/js/291.3af9c2ec.js" as="script">
+    <link rel="stylesheet" href="../../../assets/css/0.styles.d4bb5489.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="../../../index.html" class="home-link router-link-active"><!----> <span class="site-name">Java 全栈知识体系</span></a> <div class="links"><form id="search-form" role="search" class="algolia-search-wrapper search-box"><input id="algolia-search-input" class="search-query"></form> <nav class="nav-links can-hide"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav>  <ul class="sidebar-links"><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>开发之常用类库</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../package/dev-package-x-overview.html" class="sidebar-link">♥常用开发库知识体系详解♥</a></li><li><a href="../package/dev-package-x-apache-common.html" class="sidebar-link">常用开发库 - Apache Common包</a></li><li><a href="../package/dev-package-x-google-guava.html" class="sidebar-link">常用开发库 - Google Guava包</a></li><li><a href="../package/dev-package-x-hu-tool.html" class="sidebar-link">常用开发库 - Hutool包</a></li><li><a href="../package/dev-package-x-spring-util.html" class="sidebar-link">常用开发库 - Spring常用工具类</a></li><li><a href="../package/dev-package-x-log.html" class="sidebar-link">常用开发库 - 日志类库详解</a></li><li><a href="../package/dev-package-x-json.html" class="sidebar-link">常用开发库 - JSON库详解</a></li><li><a href="../package/dev-package-x-lombok-2.html" class="sidebar-link">常用开发库 - Lombok工具库详解</a></li><li><a href="../package/dev-package-x-mapstruct.html" class="sidebar-link">常用开发库 - MapStruct工具库详解</a></li><li><a href="../package/dev-package-x-others.html" class="sidebar-link">常用开发库 - 其它常用类库</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>开发之代码质量</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../ut/dev-qt-overview.html" class="sidebar-link">♥代码质量保障知识体系详解♥</a></li><li><a href="../ut/dev-ut-unit-test.html" class="sidebar-link">单元测试 - 浅谈单元测试</a></li><li><a href="../ut/dev-ut-x-junit.html" class="sidebar-link">单元测试 - JUnit4 详解</a></li><li><a href="../ut/dev-ut-x-junit5.html" class="sidebar-link">单元测试 - Junit5 详解</a></li><li><a href="../ut/dev-ut-x-mockito.html" class="sidebar-link">单元测试 - Mockito 详解</a></li><li><a href="../ut/dev-ut-x-junit-idea.html" class="sidebar-link">单元测试 - IDEA下单元测试详解</a></li><li><a href="../ut/dev-ut-springboot2.html" class="sidebar-link">单元测试 - SpringBoot2+H2+Mockito实战</a></li><li><a href="../ut/dev-qt-code-style.html" class="sidebar-link">代码质量 - 统一风格：统一代码格式化详解</a></li><li><a href="../ut/dev-qt-code-style-2.html" class="sidebar-link">代码质量 - 统一风格：统一命名规范详解</a></li><li><a href="../ut/dev-qt-code-style-1.html" class="sidebar-link">代码质量 - 统一风格：静态样式检查详解</a></li><li><a href="../ut/dev-qt-sonarlint.html" class="sidebar-link">代码质量 - 代码质量管理: Sonarlint插件详解</a></li><li><a href="../ut/dev-qt-spotbugs.html" class="sidebar-link">代码质量 - 代码质量管理: SpotBugs插件详解</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading open"><span>开发之网络协议</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="dev-protocol-overview.html" class="sidebar-link">♥网络协议和工具知识体系详解♥</a></li><li><a href="dev-protocol-network-basic.html" class="sidebar-link">网络基础(1) - 计算机网络基础部分梳理</a></li><li><a href="dev-protocol-osi7.html" class="sidebar-link">网络基础(2) - 7层协议，4层，5层</a></li><li><a href="dev-protocol-ip.html" class="sidebar-link">网络基础(3) - IP相关协议详解</a></li><li><a href="dev-protocol-tcpip.html" class="sidebar-link">网络协议 - TCP 协议详解</a></li><li><a href="dev-protocol-udp.html" class="sidebar-link">网络协议 - UDP 协议详解</a></li><li><a href="dev-protocol-http.html" class="sidebar-link">网络协议 - HTTP 协议详解</a></li><li><a href="dev-protocol-dns.html" aria-current="page" class="active sidebar-link">网络协议 - DNS 相关详解</a></li><li><a href="dev-protocol-url.html" class="sidebar-link">知识点串联：输入URL 到页面加载过程详解</a></li><li><a href="dev-protocol-tool-netstat.html" class="sidebar-link">工具: netstat查看服务及监听端口详解</a></li><li><a href="dev-protocol-tool-tcpdump.html" class="sidebar-link">工具: 网络抓包神器 tcpdump 使用详解</a></li><li><a href="dev-protocol-tool-wireshark.html" class="sidebar-link">工具: Wireshark介绍及抓包分析</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>开发之安全相关</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../security/dev-security-overview.html" class="sidebar-link">♥开发安全相关知识体系详解♥</a></li><li><a href="../security/dev-security-x-owasp.html" class="sidebar-link">开发安全 - OWASP Top 10</a></li><li><a href="../security/dev-security-x-injection.html" class="sidebar-link">开发安全 - 注入攻击详解</a></li><li><a href="../security/dev-security-x-csrf.html" class="sidebar-link">开发安全 - CSRF 详解</a></li><li><a href="../security/dev-security-x-xss.html" class="sidebar-link">开发安全 - XSS 详解</a></li><li><a href="../security/dev-security-x-ddos.html" class="sidebar-link">开发安全 - DDoS 详解</a></li><li><a href="../security/dev-security-x-click-hijack.html" class="sidebar-link">开发安全 - 点击劫持详解</a></li><li><a href="../security/dev-security-y-pratice.html" class="sidebar-link">开发安全实战 - Web安全测试平台(DVWA)</a></li><li><a href="../security/dev-security-y-pentest-workflow.html" class="sidebar-link">开发安全实战 - 渗透测试流程示例</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>开发之正则表达式</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../regex/dev-regex-all.html" class="sidebar-link">正则表达式 - 知识点学习</a></li><li><a href="../regex/dev-regex-usage.html" class="sidebar-link">正则表达式 - 常用正则表达式</a></li><li><a href="../regex/dev-regex-tools.html" class="sidebar-link">正则表达式 - 在线工具汇总</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>开发之CRON表达式</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../cron/dev-cron-x-usage.html" class="sidebar-link">CRON表达式 - CRON表达式介绍和使用</a></li><li><a href="../cron/dev-cron-x-tools.html" class="sidebar-link">CRON表达式 - CRON生成和校验工具</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>开发之常见重构技巧</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../refactor/dev-refactor-if-else.html" class="sidebar-link">常见重构技巧 - 去除多余的if else</a></li><li><a href="../refactor/dev-refactor-not-null.html" class="sidebar-link">常见重构技巧 - 去除不必要的!=</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>开发之随手记</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../usage/dev-usage-overview.html" class="sidebar-link">开发随手记 - Overview</a></li><li><a href="../usage/dev-usage-newObj.html" class="sidebar-link">Java 创建对象的四种方法</a></li><li><a href="../usage/dev-usage-exe-package.html" class="sidebar-link">Windows 打包EXE部署</a></li><li><a href="../usage/dev-usage-jar-readfile.html" class="sidebar-link">从jar包中读取资源文件</a></li><li><a href="../usage/dev-usage-input-password.html" class="sidebar-link">Input Password防止自动填充</a></li><li><a href="../usage/dev-usage-export-pdf.html" class="sidebar-link">Itext PDF 导出</a></li><li><a href="../usage/dev-usage-flotjs.html" class="sidebar-link">FlotJS 画图</a></li><li><a href="../usage/dev-usage-zkfinger.html" class="sidebar-link">指纹自动登录实战</a></li></ul></section></li></ul> </aside> <div><main class="page"> <div class="theme-default-content content__default"><h1 id="网络协议---dns-相关详解"><a href="#网络协议---dns-相关详解" class="header-anchor">¶</a> 网络协议 - DNS 相关详解</h1> <blockquote><p>DNS的核心工作就是将域名翻译成计算机IP地址, 它是基于UDP协议实现的，本文将具体阐述DNS相关的概念，解析，调度原理（负载均衡和区域调度）等DNS相关的所有知识点。 @pdai</p></blockquote> <ul><li><a href="#%e7%bd%91%e7%bb%9c%e5%8d%8f%e8%ae%ae---dns-%e7%9b%b8%e5%85%b3%e8%af%a6%e8%a7%a3">网络协议 - DNS 相关详解</a> <ul><li><a href="#dns%e7%ae%80%e4%bb%8b">DNS简介</a> <ul><li><a href="#%e5%9f%9f%e5%90%8d%e5%b1%82%e7%ba%a7%e7%bb%93%e6%9e%84">域名层级结构</a></li> <li><a href="#%e5%9f%9f%e5%90%8d%e6%9c%8d%e5%8a%a1%e5%99%a8">域名服务器</a></li></ul></li> <li><a href="#dns-%e8%a7%a3%e6%9e%90%e6%b5%81%e7%a8%8b">DNS 解析流程</a> <ul><li><a href="#%e4%b8%ba%e4%bb%80%e4%b9%88dns%e9%80%9a%e5%b8%b8%e5%9f%ba%e4%ba%8eudp">为什么DNS通常基于UDP</a></li></ul></li> <li><a href="#dns-%e6%9f%a5%e8%af%a2">DNS 查询</a> <ul><li><a href="#dig-%e6%9f%a5%e8%af%a2">dig 查询</a></li> <li><a href="#host%e6%9f%a5%e8%af%a2">host查询</a></li> <li><a href="#nslookup%e6%9f%a5%e8%af%a2">nslookup查询</a></li> <li><a href="#whois%e6%9f%a5%e8%af%a2">whois查询</a></li> <li><a href="#%e5%9c%a8%e7%ba%bf%e5%b7%a5%e5%85%b7%e6%9f%a5%e8%af%a2">在线工具查询</a></li></ul></li> <li><a href="#dns-%e8%b0%83%e5%ba%a6%e5%8e%9f%e7%90%86">DNS 调度原理</a> <ul><li><a href="#%e5%9c%b0%e7%90%86%e4%bd%8d%e7%bd%ae%e8%b0%83%e5%ba%a6%e4%b8%8d%e5%87%86%e7%a1%ae">地理位置调度不准确</a></li> <li><a href="#%e8%a7%84%e5%88%99%e5%8f%98%e6%9b%b4%e7%94%9f%e6%95%88%e6%97%b6%e9%97%b4%e4%b8%8d%e7%a1%ae%e5%ae%9a">规则变更生效时间不确定</a></li> <li><a href="#%e9%ab%98%e5%8f%af%e7%94%a8">高可用</a></li></ul></li> <li><a href="#dns-%e5%ae%89%e5%85%a8%e7%9b%b8%e5%85%b3">DNS 安全相关</a> <ul><li><a href="#%e4%bb%80%e4%b9%88%e6%98%afdns%e5%8a%ab%e6%8c%81">什么是DNS劫持</a></li> <li><a href="#%e4%bb%80%e4%b9%88%e6%98%afdns%e6%b1%a1%e6%9f%93">什么是DNS污染</a></li> <li><a href="#%e4%b8%ba%e4%bb%80%e4%b9%88%e8%a6%81dns%e6%b5%81%e9%87%8f%e7%9b%91%e6%8e%a7">为什么要DNS流量监控</a></li> <li><a href="#dns-%e6%b5%81%e9%87%8f%e7%9b%91%e6%8e%a7">DNS 流量监控</a> <ul><li><a href="#%e9%98%b2%e7%81%ab%e5%a2%99">防火墙</a></li> <li><a href="#%e5%85%a5%e4%be%b5%e6%a3%80%e6%b5%8b%e7%b3%bb%e7%bb%9f">入侵检测系统</a></li> <li><a href="#%e6%b5%81%e9%87%8f%e5%88%86%e6%9e%90%e5%b7%a5%e5%85%b7">流量分析工具</a></li> <li><a href="#dns-%e8%a2%ab%e5%8a%a8%e5%a4%8d%e5%88%b6">DNS 被动复制</a></li> <li><a href="#%e8%a7%a3%e6%9e%90%e5%99%a8%e6%97%a5%e5%bf%97%e8%ae%b0%e5%bd%95">解析器日志记录</a></li></ul></li> <li><a href="#dns-%e6%9c%8d%e5%8a%a1%e5%99%a8%e7%9b%91%e6%8e%a7">DNS 服务器监控</a></li></ul></li> <li><a href="#%e5%8f%82%e8%80%83%e6%96%87%e7%ab%a0">参考文章</a></li></ul></li></ul> <h2 id="dns简介"><a href="#dns简介" class="header-anchor">¶</a> DNS简介</h2> <p>域名系统并不像电话号码通讯录那么简单，通讯录主要是单个个体在使用，同一个名字出现在不同个体的通讯录里并不会出现问题，但域名是群体中所有人都在用的，必须要保持唯一性。为了达到唯一性的目的，因特网在命名的时候采用了层次结构的命名方法。每一个域名（本文只讨论英文域名）都是一个标号序列（labels），用字母（A-Z，a-z，大小写等价）、数字（0-9）和连接符（-）组成，标号序列总长度不能超过255个字符，它由点号分割成一个个的标号（label），每个标号应该在63个字符之内，每个标号都可以看成一个层次的域名。级别最低的域名写在左边，级别最高的域名写在右边。域名服务主要是基于UDP实现的，服务器的端口号为53。</p> <h3 id="域名层级结构"><a href="#域名层级结构" class="header-anchor">¶</a> 域名层级结构</h3> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/develop/network/dev-network-dns-9.png" loading="lazy" class="lazy"></p> <blockquote><p>注意：最开始的域名最后都是带了点号的，比如 <code>www.kernel.org.</code> ，最后面的点号表示根域名服务器，后来发现所有的网址都要加上最后的点，就简化了写法，干脆所有的都不加即<code>www.kernel.org</code>，但是你在网址后面加上点号也是可以正常解析的。</p></blockquote> <h3 id="域名服务器"><a href="#域名服务器" class="header-anchor">¶</a> 域名服务器</h3> <p>有域名结构还不行，还需要有一个东西去解析域名，手机通讯录是由通讯录软件解析的，域名需要由遍及全世界的域名服务器去解析，域名服务器实际上就是装有域名系统的主机。由高向低进行层次划分，可分为以下几大类：</p> <ul><li><strong>根域名服务器</strong>：最高层次的域名服务器，也是最重要的域名服务器，本地域名服务器如果解析不了域名就会向根域名服务器求助。全球共有13个不同IP地址的根域名服务器，它们的名称用一个英文字母命名，从a一直到m。这些服务器由各种组织控制，并由 ICANN（互联网名称和数字地址分配公司）授权，由于每分钟都要解析的名称数量多得令人难以置信，所以实际上每个根服务器都有镜像服务器，每个根服务器与它的镜像服务器共享同一个 IP 地址，中国大陆地区内只有6组根服务器镜像（F，I（3台），J，L）。当你对某个根服务器发出请求时，请求会被路由到该根服务器离你最近的镜像服务器。所有的根域名服务器都知道所有的顶级域名服务器的域名和地址，如果向根服务器发出对 “pdai.tech” 的请求，则根服务器是不能在它的记录文件中找到与 “pdai.tech” 匹配的记录。但是它会找到 &quot;tech&quot; 的顶级域名记录，并把负责 &quot;tech&quot; 地址的顶级域名服务器的地址发回给请求者。</li> <li><strong>顶级域名服务器</strong>：负责管理在该顶级域名服务器下注册的二级域名。当根域名服务器告诉查询者顶级域名服务器地址时，查询者紧接着就会到顶级域名服务器进行查询。比如还是查询&quot;pdai.tech&quot;，根域名服务器已经告诉了查询者&quot;tech&quot;顶级域名服务器的地址，&quot;tech&quot;顶级域名服务器会找到 “pdai.tech”的域名服务器的记录，域名服务器检查其区域文件，并发现它有与 “pdai.tech” 相关联的区域文件。在此文件的内部，有该主机的记录。此记录说明此主机所在的 IP 地址，并向请求者返回最终答案。</li> <li><strong>权限域名服务器</strong>：负责一个区的域名解析工作</li> <li><strong>本地域名服务器</strong>：当一个主机发出DNS查询请求的时候，这个查询请求首先就是发给本地域名服务器的。</li></ul> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/develop/network/dev-network-dns-11.png" loading="lazy" class="lazy"></p> <h2 id="dns-解析流程"><a href="#dns-解析流程" class="header-anchor">¶</a> DNS 解析流程</h2> <blockquote><p>网上找了个比较好的例子</p></blockquote> <p>.com.fi国际金融域名DNS解析的步骤一共分为9步，如果每次解析都要走完9个步骤，大家浏览网站的速度也不会那么快，现在之所以能保持这么快的访问速度，其实一般的解析都是跑完第4步就可以了。除非一个地区完全是第一次访问（在都没有缓存的情况下）才会走完9个步骤，这个情况很少。</p> <ul><li>1、本地客户机提出域名解析请求，查找本地HOST文件后将该请求发送给本地的域名服务器。</li> <li>2、将请求发送给本地的域名服务器。</li> <li>3、当本地的域名服务器收到请求后，就先查询本地的缓存。</li> <li>4、如果有该纪录项，则本地的域名服务器就直接把查询的结果返回浏览器。</li> <li>5、如果本地DNS缓存中没有该纪录，则本地域名服务器就直接把请求发给根域名服务器。</li> <li>6、然后根域名服务器再返回给本地域名服务器一个所查询域（根的子域）的主域名服务器的地址。</li> <li>7、本地服务器再向上一步返回的域名服务器发送请求，然后接受请求的服务器查询自己的缓存，如果没有该纪录，则返回相关的下级的域名服务器的地址。</li> <li>8、重复第7步，直到找到正确的纪录。</li> <li>9、本地域名服务器把返回的结果保存到缓存，以备下一次使用，同时还将结果返回给客户机。</li></ul> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/develop/network/dev-network-dns-12.png" loading="lazy" class="lazy"></p> <p>注意事项：</p> <p><strong>递归查询</strong>：在该模式下DNS服务器接收到客户机请求，必须使用一个准确的查询结果回复客户机。如果DNS服务器本地没有存储查询DNS信息，那么该服务器会询问其他服务器，并将返回的查询结果提交给客户机。</p> <p><strong>迭代查询</strong>：DNS所在服务器若没有可以响应的结果，会向客户机提供其他能够解析查询请求的DNS服务器地址，当客户机发送查询请求时，DNS服务器并不直接回复查询结果，而是告诉客户机另一台DNS服务器地址，客户机再向这台DNS服务器提交请求，依次循环直到返回查询的结果为止。</p> <h3 id="为什么dns通常基于udp"><a href="#为什么dns通常基于udp" class="header-anchor">¶</a> 为什么DNS通常基于UDP</h3> <p>使用基于UDP的DNS协议只要一个请求、一个应答就好了</p> <p>而使用基于TCP的DNS协议要三次握手、发送数据以及应答、四次挥手</p> <p>明显基于TCP协议的DNS更浪费网络资源！</p> <p>当然以上只是从数据包的数量以及占有网络资源的层面来进行的分析，那数据一致性层面呢？</p> <p>DNS数据包不是那种大数据包，所以使用UDP不需要考虑分包，如果丢包那么就是全部丢包，如果收到了数据，那就是收到了全部数据！所以只需要考虑丢包的情况，那就算是丢包了，重新请求一次就好了。而且DNS的报文允许填入序号字段，对于请求报文和其对应的应答报文，这个字段是相同的，通过它可以区分DNS应答是对应的哪个请求</p> <blockquote><p>DNS通常是基于UDP的，但当数据长度大于512字节的时候，为了保证传输质量，就会使用基于TCP的实现方式</p></blockquote> <h2 id="dns-查询"><a href="#dns-查询" class="header-anchor">¶</a> DNS 查询</h2> <h3 id="dig-查询"><a href="#dig-查询" class="header-anchor">¶</a> dig 查询</h3> <blockquote><p>用<code>dig</code>可以查看整个过程，看下下面的返回就能理解的</p></blockquote> <ul><li>dig www.sina.com</li></ul> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>pdaiMbp:/ pdai$ <span class="token function">dig</span> www.sina.com
+
+<span class="token punctuation">;</span> <span class="token operator">&lt;&lt;</span><span class="token operator">&gt;&gt;</span> DiG <span class="token number">9.10</span>.6 <span class="token operator">&lt;&lt;</span><span class="token operator">&gt;&gt;</span> www.sina.com
+<span class="token punctuation">;</span><span class="token punctuation">;</span> global options: +cmd
+<span class="token punctuation">;</span><span class="token punctuation">;</span> Got answer:
+<span class="token punctuation">;</span><span class="token punctuation">;</span> -<span class="token operator">&gt;&gt;</span>HEADER<span class="token operator">&lt;&lt;-</span> opcode: QUERY, status: NOERROR, id: <span class="token number">15304</span>
+<span class="token punctuation">;</span><span class="token punctuation">;</span> flags: qr rd ra<span class="token punctuation">;</span> QUERY: <span class="token number">1</span>, ANSWER: <span class="token number">3</span>, AUTHORITY: <span class="token number">0</span>, ADDITIONAL: <span class="token number">0</span>
+
+<span class="token punctuation">;</span><span class="token punctuation">;</span> QUESTION SECTION:
+<span class="token punctuation">;</span>www.sina.com.			IN	A
+
+<span class="token punctuation">;</span><span class="token punctuation">;</span> ANSWER SECTION:
+www.sina.com.		<span class="token number">32</span>	IN	CNAME	us.sina.com.cn.
+us.sina.com.cn.		<span class="token number">32</span>	IN	CNAME	spool.grid.sinaedge.com.
+spool.grid.sinaedge.com. <span class="token number">32</span>	IN	A	<span class="token number">115.238</span>.190.240
+
+<span class="token punctuation">;</span><span class="token punctuation">;</span> Query time: <span class="token number">20</span> msec
+<span class="token punctuation">;</span><span class="token punctuation">;</span> SERVER: <span class="token number">192.168</span>.3.1<span class="token comment">#53(192.168.3.1)</span>
+<span class="token punctuation">;</span><span class="token punctuation">;</span> WHEN: Fri Jan <span class="token number">31</span> <span class="token number">14</span>:53:39 CST <span class="token number">2020</span>
+<span class="token punctuation">;</span><span class="token punctuation">;</span> MSG SIZE  rcvd: <span class="token number">108</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br></div></div><ul><li>dig +trace www.sina.com // 分级查询</li></ul> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>pdaiMbp:/ pdai$ <span class="token function">dig</span> +trace www.sina.com
+
+<span class="token punctuation">;</span> <span class="token operator">&lt;&lt;</span><span class="token operator">&gt;&gt;</span> DiG <span class="token number">9.10</span>.6 <span class="token operator">&lt;&lt;</span><span class="token operator">&gt;&gt;</span> +trace www.sina.com
+<span class="token punctuation">;</span><span class="token punctuation">;</span> global options: +cmd
+<span class="token builtin class-name">.</span>			<span class="token number">52722</span>	IN	NS	f.root-servers.net.
+<span class="token builtin class-name">.</span>			<span class="token number">52722</span>	IN	NS	k.root-servers.net.
+<span class="token builtin class-name">.</span>			<span class="token number">52722</span>	IN	NS	m.root-servers.net.
+<span class="token builtin class-name">.</span>			<span class="token number">52722</span>	IN	NS	l.root-servers.net.
+<span class="token builtin class-name">.</span>			<span class="token number">52722</span>	IN	NS	d.root-servers.net.
+<span class="token builtin class-name">.</span>			<span class="token number">52722</span>	IN	NS	i.root-servers.net.
+<span class="token builtin class-name">.</span>			<span class="token number">52722</span>	IN	NS	c.root-servers.net.
+<span class="token builtin class-name">.</span>			<span class="token number">52722</span>	IN	NS	e.root-servers.net.
+<span class="token builtin class-name">.</span>			<span class="token number">52722</span>	IN	NS	a.root-servers.net.
+<span class="token builtin class-name">.</span>			<span class="token number">52722</span>	IN	NS	g.root-servers.net.
+<span class="token builtin class-name">.</span>			<span class="token number">52722</span>	IN	NS	b.root-servers.net.
+<span class="token builtin class-name">.</span>			<span class="token number">52722</span>	IN	NS	h.root-servers.net.
+<span class="token builtin class-name">.</span>			<span class="token number">52722</span>	IN	NS	j.root-servers.net.
+<span class="token punctuation">;</span><span class="token punctuation">;</span> Received <span class="token number">228</span> bytes from <span class="token number">192.168</span>.3.1<span class="token comment">#53(192.168.3.1) in 3 ms</span>
+
+com.			<span class="token number">172800</span>	IN	NS	a.gtld-servers.net.
+com.			<span class="token number">172800</span>	IN	NS	b.gtld-servers.net.
+com.			<span class="token number">172800</span>	IN	NS	c.gtld-servers.net.
+com.			<span class="token number">172800</span>	IN	NS	d.gtld-servers.net.
+com.			<span class="token number">172800</span>	IN	NS	e.gtld-servers.net.
+com.			<span class="token number">172800</span>	IN	NS	f.gtld-servers.net.
+com.			<span class="token number">172800</span>	IN	NS	g.gtld-servers.net.
+com.			<span class="token number">172800</span>	IN	NS	h.gtld-servers.net.
+com.			<span class="token number">172800</span>	IN	NS	i.gtld-servers.net.
+com.			<span class="token number">172800</span>	IN	NS	j.gtld-servers.net.
+com.			<span class="token number">172800</span>	IN	NS	k.gtld-servers.net.
+com.			<span class="token number">172800</span>	IN	NS	l.gtld-servers.net.
+com.			<span class="token number">172800</span>	IN	NS	m.gtld-servers.net.
+com.			<span class="token number">86400</span>	IN	DS	<span class="token number">30909</span> <span class="token number">8</span> <span class="token number">2</span> E2D3C916F6DEEAC73294E8268FB5885044A833FC5459588F4A9184CF C41A5766
+com.			<span class="token number">86400</span>	IN	RRSIG	DS <span class="token number">8</span> <span class="token number">1</span> <span class="token number">86400</span> <span class="token number">20200213050000</span> <span class="token number">20200131040000</span> <span class="token number">33853</span> <span class="token builtin class-name">.</span> zMeZpKg/LGzpVjlBUJRfkmk8tSvZW+L0UFHnzSn8agztJ8sMGU+knBLW 5LLoPoh6iG7exLV5wVIJZVh+0ISk3AG85VJXZ3HSTWcHZfjMOYI7JXpe pv/5JqT9Eai0ScEJAowDa1qctGOE/LHdNwr30VF8U0LoZL0iXVN3KQ4k iKnl0S0hB41KH+BHFcNpWqxKHRK2piMZRNe8+8Nu9I4GilfW/D90e69p SgG7puU3J3srarhccj0OS5WcLi6nsMf/2k0C6rQMe+WD7aOVZXoLts93 /thoNSWIprseKrYze2STnuG+T/VxzZRJ3fjoZARGHtDf3gTibHC2syXL <span class="token assign-left variable">xaXz5w</span><span class="token operator">==</span>
+<span class="token punctuation">;</span><span class="token punctuation">;</span> Received <span class="token number">1172</span> bytes from <span class="token number">198.97</span>.190.53<span class="token comment">#53(h.root-servers.net) in 54 ms</span>
+
+sina.com.		<span class="token number">172800</span>	IN	NS	ns1.sina.com.cn.
+sina.com.		<span class="token number">172800</span>	IN	NS	ns2.sina.com.cn.
+sina.com.		<span class="token number">172800</span>	IN	NS	ns3.sina.com.cn.
+sina.com.		<span class="token number">172800</span>	IN	NS	ns1.sina.com.
+sina.com.		<span class="token number">172800</span>	IN	NS	ns2.sina.com.
+sina.com.		<span class="token number">172800</span>	IN	NS	ns4.sina.com.
+sina.com.		<span class="token number">172800</span>	IN	NS	ns3.sina.com.
+CK0POJMG874LJREF7EFN8430QVIT8BSM.com. <span class="token number">86400</span> IN NSEC3 <span class="token number">1</span> <span class="token number">1</span> <span class="token number">0</span> - CK0Q1GIN43N1ARRC9OSM6QPQR81H5M9A  NS SOA RRSIG DNSKEY NSEC3PARAM
+CK0POJMG874LJREF7EFN8430QVIT8BSM.com. <span class="token number">86400</span> IN RRSIG NSEC3 <span class="token number">8</span> <span class="token number">2</span> <span class="token number">86400</span> <span class="token number">20200207054811</span> <span class="token number">20200131043811</span> <span class="token number">56311</span> com. N15f7ia8A0pd2A5iWM/8t+T6gs8mQJaOWe/aj3bs4cWxpG7WmCaquZp7 6gfbfotFmss+DuBm9MAd6bwe2fm9m60FQgROWGOZwGRrvZqawy/5eDeV sLIJqhnwM0lT1PuDgNe2SFYsV506melwC4cEtR8M6gkX3nwYMCf6Frus anO+4Lufi229N5Y00N4x9vrlO3zsGBR1yg2xBki9Ni379A<span class="token operator">==</span>
+TGAG8VMC6NS5VVK68CIGRJ6Q414N2KB2.com. <span class="token number">86400</span> IN NSEC3 <span class="token number">1</span> <span class="token number">1</span> <span class="token number">0</span> - TGAGRAEN3DVBS761O1PSQ1TU0407EVHO  NS DS RRSIG
+TGAG8VMC6NS5VVK68CIGRJ6Q414N2KB2.com. <span class="token number">86400</span> IN RRSIG NSEC3 <span class="token number">8</span> <span class="token number">2</span> <span class="token number">86400</span> <span class="token number">20200206061700</span> <span class="token number">20200130050700</span> <span class="token number">56311</span> com. TMrk1/56Wa+isS5Y6OFQz9OZWMAAbt2TOEzaBp1Uuj9z1Eg4uio92+ff sWRB6vACYSBAJJLy4NPJfqxYpue39hvaDgFRYAZreDuCC0x+p9yi7yQ8 JaN2mS7W8Mbv0iEV0AUyzZGyhYq83DA58slNSGRhZfcvLYBAETURyH0X bJp+Hgq0bqXOqGyi/lAAv8/2mr+tiramb/pNst1MBBPaig<span class="token operator">==</span>
+<span class="token punctuation">;</span><span class="token punctuation">;</span> Received <span class="token number">791</span> bytes from <span class="token number">192.48</span>.79.30<span class="token comment">#53(j.gtld-servers.net) in 215 ms</span>
+
+www.sina.com.		<span class="token number">60</span>	IN	CNAME	us.sina.com.cn.
+us.sina.com.cn.		<span class="token number">60</span>	IN	CNAME	spool.grid.sinaedge.com.
+<span class="token punctuation">;</span><span class="token punctuation">;</span> Received <span class="token number">103</span> bytes from <span class="token number">180.149</span>.138.199<span class="token comment">#53(ns2.sina.com.cn) in 30 ms</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br><span class="line-number">35</span><br><span class="line-number">36</span><br><span class="line-number">37</span><br><span class="line-number">38</span><br><span class="line-number">39</span><br><span class="line-number">40</span><br><span class="line-number">41</span><br><span class="line-number">42</span><br><span class="line-number">43</span><br><span class="line-number">44</span><br><span class="line-number">45</span><br><span class="line-number">46</span><br><span class="line-number">47</span><br><span class="line-number">48</span><br><span class="line-number">49</span><br><span class="line-number">50</span><br><span class="line-number">51</span><br><span class="line-number">52</span><br></div></div><p>域名与IP之间的对应关系，称为&quot;记录&quot;（record）。根据使用场景，&quot;记录&quot;可以分成不同的类型（type），前面已经看到了有A记录和NS记录。</p> <p>常见的DNS记录类型如下。</p> <ul><li><strong>A</strong>：地址记录（Address），返回域名指向的IP地址。</li> <li><strong>NS</strong>：域名服务器记录（Name Server），返回保存下一级域名信息的服务器地址。该记录只能设置为域名，不能设置为IP地址。</li> <li><strong>MX</strong>：邮件记录（Mail eXchange），返回接收电子邮件的服务器地址。</li> <li><strong>CNAME</strong>：规范名称记录（Canonical Name），返回另一个域名，即当前查询的域名是另一个域名的跳转，详见下文。</li> <li><strong>PTR</strong>：逆向查询记录（Pointer Record），只用于从IP地址查询域名，详见下文。</li></ul> <p>一般来说，为了服务的安全可靠，至少应该有两条NS记录，而A记录和MX记录也可以有多条，这样就提供了服务的冗余性，防止出现单点失败。</p> <p>CNAME记录主要用于域名的内部跳转，为服务器配置提供灵活性，用户感知不到。</p> <h3 id="host查询"><a href="#host查询" class="header-anchor">¶</a> host查询</h3> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>pdaiMbp:/ pdai$ <span class="token function">host</span> www.sina.com
+www.sina.com is an <span class="token builtin class-name">alias</span> <span class="token keyword">for</span> us.sina.com.cn.
+us.sina.com.cn is an <span class="token builtin class-name">alias</span> <span class="token keyword">for</span> spool.grid.sinaedge.com.
+spool.grid.sinaedge.com has address <span class="token number">115.238</span>.190.240
+spool.grid.sinaedge.com has IPv6 address 240e:f7:a000:221::75:71
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br></div></div><h3 id="nslookup查询"><a href="#nslookup查询" class="header-anchor">¶</a> nslookup查询</h3> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>pdaiMbp:/ pdai$ <span class="token function">nslookup</span>
+<span class="token operator">&gt;</span> www.sina.com
+Server:		<span class="token number">192.168</span>.3.1
+Address:	<span class="token number">192.168</span>.3.1<span class="token comment">#53</span>
+
+Non-authoritative answer:
+www.sina.com	canonical name <span class="token operator">=</span> us.sina.com.cn.
+us.sina.com.cn	canonical name <span class="token operator">=</span> spool.grid.sinaedge.com.
+Name:	spool.grid.sinaedge.com
+Address: <span class="token number">115.238</span>.190.240
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br></div></div><h3 id="whois查询"><a href="#whois查询" class="header-anchor">¶</a> whois查询</h3> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>pdaiMbp:/ pdai$ whois www.sina.com
+% IANA WHOIS server
+% <span class="token keyword">for</span> <span class="token function">more</span> information on IANA, visit http://www.iana.org
+% This query returned <span class="token number">1</span> object
+
+refer:        whois.verisign-grs.com
+
+domain:       COM
+
+organisation: VeriSign Global Registry Services
+address:      <span class="token number">12061</span> Bluemont Way
+address:      Reston Virginia <span class="token number">20190</span>
+address:      United States
+
+contact:      administrative
+name:         Registry Customer Service
+organisation: VeriSign Global Registry Services
+address:      <span class="token number">12061</span> Bluemont Way
+address:      Reston Virginia <span class="token number">20190</span>
+address:      United States
+phone:        +1 <span class="token number">703</span> <span class="token number">925</span>-6999
+fax-no:       +1 <span class="token number">703</span> <span class="token number">948</span> <span class="token number">3978</span>
+e-mail:       info@verisign-grs.com
+
+contact:      technical
+name:         Registry Customer Service
+organisation: VeriSign Global Registry Services
+address:      <span class="token number">12061</span> Bluemont Way
+address:      Reston Virginia <span class="token number">20190</span>
+address:      United States
+phone:        +1 <span class="token number">703</span> <span class="token number">925</span>-6999
+fax-no:       +1 <span class="token number">703</span> <span class="token number">948</span> <span class="token number">3978</span>
+e-mail:       info@verisign-grs.com
+
+nserver:      A.GTLD-SERVERS.NET <span class="token number">192.5</span>.6.30 <span class="token number">2001</span>:503:a83e:0:0:0:2:30
+nserver:      B.GTLD-SERVERS.NET <span class="token number">192.33</span>.14.30 <span class="token number">2001</span>:503:231d:0:0:0:2:30
+nserver:      C.GTLD-SERVERS.NET <span class="token number">192.26</span>.92.30 <span class="token number">2001</span>:503:83eb:0:0:0:0:30
+nserver:      D.GTLD-SERVERS.NET <span class="token number">192.31</span>.80.30 <span class="token number">2001</span>:500:856e:0:0:0:0:30
+nserver:      E.GTLD-SERVERS.NET <span class="token number">192.12</span>.94.30 <span class="token number">2001</span>:502:1ca1:0:0:0:0:30
+nserver:      F.GTLD-SERVERS.NET <span class="token number">192.35</span>.51.30 <span class="token number">2001</span>:503:d414:0:0:0:0:30
+nserver:      G.GTLD-SERVERS.NET <span class="token number">192.42</span>.93.30 <span class="token number">2001</span>:503:eea3:0:0:0:0:30
+nserver:      H.GTLD-SERVERS.NET <span class="token number">192.54</span>.112.30 <span class="token number">2001</span>:502:8cc:0:0:0:0:30
+nserver:      I.GTLD-SERVERS.NET <span class="token number">192.43</span>.172.30 <span class="token number">2001</span>:503:39c1:0:0:0:0:30
+nserver:      J.GTLD-SERVERS.NET <span class="token number">192.48</span>.79.30 <span class="token number">2001</span>:502:7094:0:0:0:0:30
+nserver:      K.GTLD-SERVERS.NET <span class="token number">192.52</span>.178.30 <span class="token number">2001</span>:503:d2d:0:0:0:0:30
+nserver:      L.GTLD-SERVERS.NET <span class="token number">192.41</span>.162.30 <span class="token number">2001</span>:500:d937:0:0:0:0:30
+nserver:      M.GTLD-SERVERS.NET <span class="token number">192.55</span>.83.30 <span class="token number">2001</span>:501:b1f9:0:0:0:0:30
+ds-rdata:     <span class="token number">30909</span> <span class="token number">8</span> <span class="token number">2</span> E2D3C916F6DEEAC73294E8268FB5885044A833FC5459588F4A9184CFC41A5766
+
+whois:        whois.verisign-grs.com
+
+status:       ACTIVE
+remarks:      Registration information: http://www.verisigninc.com
+
+created:      <span class="token number">1985</span>-01-01
+changed:      <span class="token number">2017</span>-10-05
+source:       IANA
+
+No match <span class="token keyword">for</span> domain <span class="token string">&quot;WWW.SINA.COM&quot;</span><span class="token builtin class-name">.</span>
+<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> Last update of whois database: <span class="token number">2020</span>-01-31T07:03:29Z <span class="token operator">&lt;&lt;&lt;</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br><span class="line-number">35</span><br><span class="line-number">36</span><br><span class="line-number">37</span><br><span class="line-number">38</span><br><span class="line-number">39</span><br><span class="line-number">40</span><br><span class="line-number">41</span><br><span class="line-number">42</span><br><span class="line-number">43</span><br><span class="line-number">44</span><br><span class="line-number">45</span><br><span class="line-number">46</span><br><span class="line-number">47</span><br><span class="line-number">48</span><br><span class="line-number">49</span><br><span class="line-number">50</span><br><span class="line-number">51</span><br><span class="line-number">52</span><br><span class="line-number">53</span><br><span class="line-number">54</span><br><span class="line-number">55</span><br><span class="line-number">56</span><br><span class="line-number">57</span><br><span class="line-number">58</span><br><span class="line-number">59</span><br><span class="line-number">60</span><br></div></div><h3 id="在线工具查询"><a href="#在线工具查询" class="header-anchor">¶</a> 在线工具查询</h3> <p><a href="https://www.nslookuptool.com/chs/" target="_blank" rel="noopener noreferrer">https://www.nslookuptool.com/chs/<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/develop/network/dev-network-dns-10.png" loading="lazy" class="lazy"></p> <h2 id="dns-调度原理"><a href="#dns-调度原理" class="header-anchor">¶</a> DNS 调度原理</h2> <blockquote><p>本节转自：<a href="https://segmentfault.com/a/1190000010787338" target="_blank" rel="noopener noreferrer">【网易MC】DNS 调度原理解析<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></p></blockquote> <p>现在，大部分应用和业务都采用域名作为服务的入口，因此用 DNS 来负载均衡和区域调度是非常普遍的做法，网易云也有着一套基于 DNS 的调度系统。某些用户在进行直播推流时用的并不是网易云的直播 SDK，而是一些第三方的推流软件，如obs，这样就不能使用我们的 GSLB 全局调度服务器来调度。对于这些用户，我们使用 DNS 调度的方式，对不同地域的请求返回不同解析结果，将请求调度到离用户最近的服务器节点，从而减少延迟访问。</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/develop/network/dev-network-dns-2.jpeg" loading="lazy" class="lazy"></p> <p>咋一看，DNS 调度这么简单方便，那为什么不让所有的用户都走 DNS 调度呢？想知道原因？来，我们继续讲。</p> <h3 id="地理位置调度不准确"><a href="#地理位置调度不准确" class="header-anchor">¶</a> 地理位置调度不准确</h3> <p>在 DNS 解析过程中，与权威服务器通信的只有 DNS 缓存服务器，所以权威服务器只能根据 DNS 缓存服务器的IP来进行调度。因此 DNS 调度有一个前提：假定用户使用的缓存DNS与用户本身在同个网络内，即至少在同一个 AS(自治域)内，在该前提下，DNS 的解析才是准确的。通常情况下，用户使用 ISP 提供的本地缓存(简称 local DNS)，local DNS 一般与用户在同个网络内，这时候 DNS 调度是有效的。</p> <p>但近些年，不少互联网厂商推广基于 BGP Anycast 的公共 DNS (Public DNS)，而这些Anycaset IP 的节点一般是远少于各个ISP的节点，例如可能广州电信用户使用了某公共 DNS，但该公共 DNS 里用户最近的是上海电信节点，甚至更极端的如 Google DNS 8.8.8.8，在中国大陆没有节点(最近的是台湾)。而不幸的是国内有不少用户使用了 Google DNS，这其实降低了他们的网络访问体验。总的来说，<strong>使用公共 DNS，实际上破坏了上文的前提，导致 DNS 区域调度失效，用户以为得到了更快更安全的 DNS 解析，但实际得到了错误的解析，增加了网络访问延迟</strong>。</p> <p>传统 DNS 协议的区域调度过程示例如下图，假定某业务以 foo.163.com 对外提供服务，在北京和东京各有一个节点，业务期望国内大陆的用户访问北京节点，而非大陆用户则访问东京节点。因为权威是根据 DNS 缓存来决定返回的结果，所以当用户使用不用的 DNS 缓存时，可能会解析到不同的结果。</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/develop/network/dev-network-dns-3.jpeg" loading="lazy" class="lazy"></p> <p>2011 年，Google 为首的几家公司在提出了一个 DNS 的扩展方案 edns-client-subnet (以下简称 ECS)，该扩展方案的核心思想是通过在 DNS 请求报文里加入原始请求的 IP(即 client 的 IP)，使得权威能根据该信息返回正确的结果。目前，该方案仍处于草案阶段。该方案很好地解决了上述提到的 remote DNS 导致解析不准确的问题，但也带了一些问题：</p> <ul><li>至少需要 cache 和权威都支持，才能完成完整的 ECS 解析</li> <li>ECS 给 cache 增加了很大的缓存压力，因为理论上可能需要为每个IP段分配空间去缓存解析结果</li></ul> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/develop/network/dev-network-dns-4.jpeg" loading="lazy" class="lazy"></p> <h3 id="规则变更生效时间不确定"><a href="#规则变更生效时间不确定" class="header-anchor">¶</a> 规则变更生效时间不确定</h3> <p>当缓存服务器向权威服务器查询得到记录之后，会将其缓存起来，在缓存有效期内，如果收到相同记录的查询，缓存服务器会直接返回给客户端，而不需要再次向权威查询，当有效期过后，缓存则是需要再次发起查询。这个缓存有效期即是 TTL。</p> <p>虽然 DNS 的缓存机制在大多数情况下缩短了客户端的记录解析时间，但缓存也意味着生效同步的延迟。当权威服务器的记录变更时，需要等待一段时间才能让所有客户端能解析到新的结果，因为很可能缓存服务器还缓存着旧的记录。</p> <p>我们将权威的记录变更到全网生效这个过程称为 propagation，它的时间是不确定的，理论上的最大值即是 TTL 的值，对于记录变更或删除，这个时间是记录原本的 TTL，对于记录新增则是域的 nTTL 值。</p> <p>如果一个域名记录原本的 TTL 是 18000，可以认为，变更该记录理论上需要等待 5 个小时才能保证记录能生效到全网。假设该域名的业务方希望缩短切换的时间，正确的做法是，至少提前5个小时修改记录，仅改小 TTL，例如改为5分钟，等待该变更同步到全网之后，再进行修改指向的操作，确认无误再将 TTL 修改为原本的值。</p> <p>虽然 DNS 协议标准里建议缓存服务器应该记住或者缩短 TTL 的值，但实际上，有一些DNS缓存会修改权威服务器的 TTL，将其变大，这在国内几大运营商中是很常见的。例如，某域记录的 TTL 值实际上设置为 60，但在运营商的 DNS 缓存上，却变成 600 或者更大的值，甚至还有一些 DNS 缓存是不遵循 TTL 机制。这些都会影响域名的实际生效时间。</p> <h3 id="高可用"><a href="#高可用" class="header-anchor">¶</a> 高可用</h3> <p>为避免受 DNS 缓存的影响，需要保证 DNS 中 A 记录的 IP 节点高可用性。对此，网易云DNS 调度系统采用的方案是在同一区域的多台直播服务器节点之间做负载均衡，对外只暴露一个虚 IP，这样，即使某台服务器宕机，负载均衡能迅速感知到，排除故障节点，而对 DNS 而言，因为虚 IP 不变而不受影响。</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/develop/network/dev-network-dns-5.jpeg" loading="lazy" class="lazy"></p> <h2 id="dns-安全相关"><a href="#dns-安全相关" class="header-anchor">¶</a> DNS 安全相关</h2> <blockquote><p>本章节部分内容参考自： <a href="http://blog.oneapm.com/" target="_blank" rel="noopener noreferrer">OneAPM blog<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></p></blockquote> <p>犯罪分子会抓住任何互联网服务或协议的漏洞发动攻击，这当然也包括域名系统（ DNS ）。他们会注册一次性域名用于垃圾邮件活动和僵尸网络管理，还会盗用域名进行钓鱼和恶意软件下载。他们会注入恶意查询代码以利用域名服务器的漏洞或扰乱域名解析过程。他们会注入伪造的响应污染解析器缓存或强化 DDOS 攻击。他们甚至将 DNS 用作数据渗漏或恶意软件更新的隐蔽通道。</p> <p>你可能没办法了解每一个新的 DNS 漏洞攻击，但是可以使用防火墙、网络入侵监测系统或域名解析器报告可疑的 DNS 行为迹象，作为主动防范的措施。</p> <p>先讲下最常用的手段：<code>DNS劫持</code>和<code>DNS污染</code>。</p> <h3 id="什么是dns劫持"><a href="#什么是dns劫持" class="header-anchor">¶</a> 什么是DNS劫持</h3> <p>DNS劫持就是通过劫持了DNS服务器，通过某些手段取得某域名的解析记录控制权，进而修改此域名的解析结果，导致对该域名的访问由原IP地址转入到修改后的指定IP，其结果就是对特定的网址不能访问或访问的是假网址，从而实现窃取资料或者破坏原有正常服务的目的。DNS劫持通过篡改DNS服务器上的数据返回给用户一个错误的查询结果来实现的。</p> <blockquote><p>DNS劫持症状：在某些地区的用户在成功连接宽带后，首次打开任何页面都指向ISP提供的“电信互联星空”、“网通黄页广告”等内容页面。还有就是曾经出现过用户访问Google域名的时候出现了百度的网站。这些都属于DNS劫持。</p></blockquote> <h3 id="什么是dns污染"><a href="#什么是dns污染" class="header-anchor">¶</a> 什么是DNS污染</h3> <p>DNS污染是一种让一般用户由于得到虚假目标主机IP而不能与其通信的方法，是一种DNS缓存投毒攻击（DNS cache poisoning）。其工作方式是：由于通常的DNS查询没有任何认证机制，而且DNS查询通常基于的UDP是无连接不可靠的协议，因此DNS的查询非常容易被篡改，通过对UDP端口53上的DNS查询进行入侵检测，一经发现与关键词相匹配的请求则立即伪装成目标域名的解析服务器（NS，Name Server）给查询者返回虚假结果。</p> <p>而DNS污染则是发生在用户请求的第一步上，直接从协议上对用户的DNS请求进行干扰。</p> <p><strong>DNS污染症状</strong>：目前一些被禁止访问的网站很多就是通过DNS污染来实现的，例如YouTube、Facebook等网站。</p> <p><strong>解决方法</strong>:</p> <ul><li>对于DNS劫持，可以采用使用国外免费公用的DNS服务器解决。例如OpenDNS（208.67.222.222）或GoogleDNS（8.8.8.8）。</li> <li>对于DNS污染，可以说，个人用户很难单单靠设置解决，通常可以使用VPN或者域名远程解析的方法解决，但这大多需要购买付费的VPN或SSH等，也可以通过修改Hosts的方法，手动设置域名正确的IP地址。</li></ul> <h3 id="为什么要dns流量监控"><a href="#为什么要dns流量监控" class="header-anchor">¶</a> 为什么要DNS流量监控</h3> <p>预示网络中正出现可疑或恶意代码的 DNS 组合查询或流量特征。例如：</p> <ul><li><p>1.来自伪造源地址的 DNS 查询、或未授权使用且无出口过滤地址的 DNS 查询，若同时观察到异常大的 DNS 查询量或使用 TCP 而非 UDP 进行 DNS 查询，这可能表明网络内存在被感染的主机，受到了 DDoS 攻击。</p></li> <li><p>2.异常 DNS 查询可能是针对域名服务器或解析器（根据目标 IP 地址确定）的漏洞攻击的标志。与此同时，这些查询也可能表明网络中有不正常运行的设备。原因可能是恶意软件或未能成功清除恶意软件。</p></li> <li><p>3.在很多情况下，DNS 查询要求解析的域名如果是已知的恶意域名，或具有域名生成算法( DGA )（与非法僵尸网络有关）常见特征的域名，或者向未授权使用的解析器发送的查询，都是证明网络中存在被感染主机的有力证据。</p></li> <li><p>4.DNS 响应也能显露可疑或恶意数据在网络主机间传播的迹象。例如，DNS 响应的长度或组合特征可以暴露恶意或非法行为。例如，响应消息异常巨大（放大攻击），或响应消息的 Answer Section 或 Additional Section 非常可疑（缓存污染，隐蔽通道）。</p></li> <li><p>5.针对自身域名组合的 DNS 响应，如果解析至不同于你发布在授权区域中的 IP 地址，或来自未授权区域主机的域名服务器的响应，或解析为名称错误( NXDOMAIN )的对区域主机名的肯定响应，均表明域名或注册账号可能被劫持或 DNS 响应被篡改。</p></li> <li><p>6.来自可疑 IP 地址的 DNS 响应，例如来自分配给宽带接入网络 IP 段的地址、非标准端口上出现的 DNS 流量，异常大量的解析至短生存时间( TTL )域名的响应消息，或异常大量的包含“ name error ”( NXDOMAIN )的响应消息，往往是主机被僵尸网络控制、运行恶意软件或被感染的表现。</p></li></ul> <h3 id="dns-流量监控"><a href="#dns-流量监控" class="header-anchor">¶</a> DNS 流量监控</h3> <blockquote><p>如何借助网络入侵检测系统、流量分析和日志数据在网络防火墙上应用这些机制以检测此类威胁?</p></blockquote> <h4 id="防火墙"><a href="#防火墙" class="header-anchor">¶</a> 防火墙</h4> <p>我们从最常用的安全系统开始吧，那就是防火墙。所有的防火墙都允许自定义规则以防止 IP 地址欺骗。添加一条规则，拒绝接收来自指定范围段以外的 IP 地址的 DNS 查询，从而避免域名解析器被 DDOS 攻击用作开放的反射器。</p> <p>接下来，启动 DNS 流量检测功能，监测是否存在可疑的字节模式或异常 DNS 流量，以阻止域名服务器软件漏洞攻击。具备本功能的常用防火墙的介绍资料在许多网站都可以找到（例如 Palo Alto、思科、沃奇卫士等）。Sonicwall 和 Palo Alto 还可以监测并拦截特定的 DNS 隧道流量。</p> <h4 id="入侵检测系统"><a href="#入侵检测系统" class="header-anchor">¶</a> 入侵检测系统</h4> <p>无论你使用 Snort、Suricata 还是 OSSEC，都可以制定规则，要求系统对未授权客户的 DNS 请求发送报告。你也可以制定规则来计数或报告 NXDomain 响应、包含较小 TTL 数值记录的响应、通过 TCP 发起的 DNS 查询、对非标准端口的 DNS 查询和可疑的大规模 DNS 响应等。DNS 查询或响应信息中的任何字段、任何数值基本上都“能检测”。唯一能限制你的，就是你的想象力和对 DNS 的熟悉程度。防火墙的 IDS （入侵检测系统）对大多数常见检测项目都提供了允许和拒绝两种配置规则。</p> <h4 id="流量分析工具"><a href="#流量分析工具" class="header-anchor">¶</a> 流量分析工具</h4> <p>Wireshark 和 Bro 的实际案例都表明，被动流量分析对识别恶意软件流量很有效果。捕获并过滤客户端与解析器之间的 DNS 数据，保存为 PCAP （网络封包）文件。创建脚本程序搜索这些网络封包，以寻找你正在调查的某种可疑行为。或使用 PacketQ （最初是 DNS2DB ）对网络封包直接进行 SQL 查询。</p> <p>（记住：除了自己的本地解析器之外，禁止客户使用任何其他解析器或非标准端口。）</p> <h4 id="dns-被动复制"><a href="#dns-被动复制" class="header-anchor">¶</a> DNS 被动复制</h4> <p>该方法涉及对解析器使用传感器以创建数据库，使之包含通过给定解析器或解析器组进行的所有 DNS 交易（查询/响应）。在分析中包含 DNS 被动数据对识别恶意软件域名有着重要作用，尤其适用于恶意软件使用由算法生成的域名的情况。将 Suricata 用做 IDS （入侵检测系统）引擎的 Palo Alto 防火墙和安全管理系统，正是结合使用被动 DNS 与 IPS （入侵防御系统）以防御已知恶意域名的安全系统范例。</p> <h4 id="解析器日志记录"><a href="#解析器日志记录" class="header-anchor">¶</a> 解析器日志记录</h4> <p>本地解析器的日志文件是调查 DNS 流量的最后一项，也可能是最明显的数据来源。在开启日志记录的情况下，你可以使用 Splunk 加 getwatchlist 或是 OSSEC 之类的工具收集 DNS 服务器的日志，并搜索已知恶意域名。</p> <p>尽管本文提到了不少资料链接、案例分析和实际例子，但也只是涉及了众多监控 DNS 流量方法中的九牛一毛，疏漏在所难免，要想全面快捷及时有效监控 DNS 流量，不妨试试 DNS 服务器监控。</p> <h3 id="dns-服务器监控"><a href="#dns-服务器监控" class="header-anchor">¶</a> DNS 服务器监控</h3> <p>应用管理器可对域名系统（ DNS ）进行全面深入的可用性和性能监控，也可监控 DNS 监控器的个别属性，比如响应时间、记录类型、可用记录、搜索字段、搜索值、搜索值状态以及搜索时间等。</p> <p>DNS 中被监控的一些关键组件：</p> <table><thead><tr><th>指标</th> <th>描述</th></tr></thead> <tbody><tr><td>响应时间</td> <td>给出 DNS 监控器的响应时间，以毫秒表示</td></tr> <tr><td>记录类型</td> <td>显示记录类型连接到 DNS 服务器的耗时</td></tr> <tr><td>可用记录</td> <td>根据可用记录类型输出 True 或 False</td></tr> <tr><td>搜索字段</td> <td>显示用于 DNS 服务器的字段类型</td></tr> <tr><td>搜索值</td> <td>显示在DNS 服务器中执行的搜索值</td></tr> <tr><td>搜索值状态</td> <td>根据输出信息显示搜索值状态：Success (成功)或 Failed (失败)</td></tr> <tr><td>搜索时间</td> <td>DNS 服务器中的搜索执行时间</td></tr></tbody></table> <p><code>监控可用性</code>和<code>响应时间</code>等性能统计数据。这些数据可绘制成性能图表和报表，即时可用，还可以按照可用性和完善性对报表进行分组显示。</p> <p>若 DNS 服务器或系统内任何特定属性出现问题，会根据配置好的阈值生成通知和警告，并根据配置自动执行相关操作。目前，国内外 DNS 监控工具主要有 New relic、appDynamic、OneAPM。</p> <h2 id="参考文章"><a href="#参考文章" class="header-anchor">¶</a> 参考文章</h2> <ul><li><a href="https://segmentfault.com/a/1190000010787338" target="_blank" rel="noopener noreferrer">【网易MC】DNS 调度原理解析 <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li> <li><a href="http://www.ruanyifeng.com/blog/2016/06/dns.html" target="_blank" rel="noopener noreferrer">DNS 原理入门 <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li> <li><a href="http://blog.51cto.com/369369/812889" target="_blank" rel="noopener noreferrer">DNS原理及其解析过程【精彩剖析】<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li> <li><a href="https://segmentfault.com/a/1190000004127680" target="_blank" rel="noopener noreferrer">当我们谈网络时，我们谈些什么(2)--DNS的工作原理 <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li> <li><a href="https://segmentfault.com/a/1190000003876712" target="_blank" rel="noopener noreferrer">企业如何抵御利用DNS隧道的恶意软件? <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li> <li><a href="https://segmentfault.com/a/1190000004332646" target="_blank" rel="noopener noreferrer">监控 DNS 流量，预防安全隐患五大招！<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li> <li><a href="https://pdai.tech/2017/06/18/dns-protocol-principle.html" target="_blank" rel="noopener noreferrer">DNS协议详解及报文格式分析<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li></ul></div> <div class="page-contract"><h2>联系我</h2> <div class="c-content"><span style="font-size:1rem;font-weight:bold;">添加@pdai微信</span><br> <img src="../../../pdai.jpg" height="280px" style="margin:10px;"><br>
+        PS：添加时请备注<b>Java全栈</b>，谢谢！
+      </div></div> <footer class="page-edit"><div class="edit-link"><a href="https://github.com/realpdai/tech-arch-doc/edit/master/md/develop/protocol/dev-protocol-dns.md" target="_blank" rel="noopener noreferrer">在 GitHub 上编辑此页</a> <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></div> <div class="last-updated"><span class="prefix">上次更新: </span> <span class="time">9/27/2021,</span></div></footer> <div class="page-nav"><p class="inner"><span class="prev">
+        ←
+        <a href="dev-protocol-http.html" class="prev">
+          网络协议 - HTTP 协议详解
+        </a></span> <span class="next"><a href="dev-protocol-url.html">
+          知识点串联：输入URL 到页面加载过程详解
+        </a>
+        →
+      </span></p></div> <div class="google_ad_bottom"><ins data-ad-client="ca-pub-5088193899865249" data-ad-slot="6822031208" data-ad-format="auto" data-full-width-responsive="true" class="adsbygoogle" style="display:block"></ins> <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script></div> </main></div> <aside class="page-sidebar"> <div class="page-side-toolbar"><div class="option-box-toc-fixed"><div class="toc-container-sidebar"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:650px"><div style="font-weight:bold;text-align:center;">网络协议 - DNS 相关详解</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="dev-protocol-dns.html#dns简介" class="toc-sidebar-link">DNS简介</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#域名层级结构" class="toc-sidebar-link">域名层级结构</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#域名服务器" class="toc-sidebar-link">域名服务器</a></li></ul></li><li><a href="dev-protocol-dns.html#dns-解析流程" class="toc-sidebar-link">DNS 解析流程</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#为什么dns通常基于udp" class="toc-sidebar-link">为什么DNS通常基于UDP</a></li></ul></li><li><a href="dev-protocol-dns.html#dns-查询" class="toc-sidebar-link">DNS 查询</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#dig-查询" class="toc-sidebar-link">dig 查询</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#host查询" class="toc-sidebar-link">host查询</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#nslookup查询" class="toc-sidebar-link">nslookup查询</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#whois查询" class="toc-sidebar-link">whois查询</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#在线工具查询" class="toc-sidebar-link">在线工具查询</a></li></ul></li><li><a href="dev-protocol-dns.html#dns-调度原理" class="toc-sidebar-link">DNS 调度原理</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#地理位置调度不准确" class="toc-sidebar-link">地理位置调度不准确</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#规则变更生效时间不确定" class="toc-sidebar-link">规则变更生效时间不确定</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#高可用" class="toc-sidebar-link">高可用</a></li></ul></li><li><a href="dev-protocol-dns.html#dns-安全相关" class="toc-sidebar-link">DNS 安全相关</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#什么是dns劫持" class="toc-sidebar-link">什么是DNS劫持</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#什么是dns污染" class="toc-sidebar-link">什么是DNS污染</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#为什么要dns流量监控" class="toc-sidebar-link">为什么要DNS流量监控</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#dns-流量监控" class="toc-sidebar-link">DNS 流量监控</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#dns-服务器监控" class="toc-sidebar-link">DNS 服务器监控</a></li></ul></li><li><a href="dev-protocol-dns.html#参考文章" class="toc-sidebar-link">参考文章</a><ul class="toc-sidebar-sub-headers"></ul></li></ul></div></div></div></div></div> <div class="option-box-toc-over"><img src="../../../toc.png" class="nozoom"> <span class="show-txt">目录</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:550px"><div style="font-weight:bold;text-align:center;">网络协议 - DNS 相关详解</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="dev-protocol-dns.html#dns简介" class="toc-sidebar-link">DNS简介</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#域名层级结构" class="toc-sidebar-link">域名层级结构</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#域名服务器" class="toc-sidebar-link">域名服务器</a></li></ul></li><li><a href="dev-protocol-dns.html#dns-解析流程" class="toc-sidebar-link">DNS 解析流程</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#为什么dns通常基于udp" class="toc-sidebar-link">为什么DNS通常基于UDP</a></li></ul></li><li><a href="dev-protocol-dns.html#dns-查询" class="toc-sidebar-link">DNS 查询</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#dig-查询" class="toc-sidebar-link">dig 查询</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#host查询" class="toc-sidebar-link">host查询</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#nslookup查询" class="toc-sidebar-link">nslookup查询</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#whois查询" class="toc-sidebar-link">whois查询</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#在线工具查询" class="toc-sidebar-link">在线工具查询</a></li></ul></li><li><a href="dev-protocol-dns.html#dns-调度原理" class="toc-sidebar-link">DNS 调度原理</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#地理位置调度不准确" class="toc-sidebar-link">地理位置调度不准确</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#规则变更生效时间不确定" class="toc-sidebar-link">规则变更生效时间不确定</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#高可用" class="toc-sidebar-link">高可用</a></li></ul></li><li><a href="dev-protocol-dns.html#dns-安全相关" class="toc-sidebar-link">DNS 安全相关</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#什么是dns劫持" class="toc-sidebar-link">什么是DNS劫持</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#什么是dns污染" class="toc-sidebar-link">什么是DNS污染</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#为什么要dns流量监控" class="toc-sidebar-link">为什么要DNS流量监控</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#dns-流量监控" class="toc-sidebar-link">DNS 流量监控</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-dns.html#dns-服务器监控" class="toc-sidebar-link">DNS 服务器监控</a></li></ul></li><li><a href="dev-protocol-dns.html#参考文章" class="toc-sidebar-link">参考文章</a><ul class="toc-sidebar-sub-headers"></ul></li></ul></div></div></div></div></div> <div class="option-box"><img src="../../../wechat.png" class="nozoom"> <span class="show-txt">手机看</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.9rem">微信扫一扫</span> <img height="180px" src="https://api.qrserver.com/v1/create-qr-code/?data=https://www.pdai.tech/md/develop/protocol/dev-protocol-dns.html" style="margin:10px;">
+              可以<b>手机看</b>或分享至<b>朋友圈</b></div></div></div></div> <div class="option-box"><a title="点击切换全屏" style="text-align:center;padding-left:2px;"><img src="../../../full.png" width="30px" class="nozoom"> <span style="color:gray;font-size:11px;font-weight:400;">全屏看</span></a></div> <div class="option-box"><img src="../../../toggle.png" width="30px" class="nozoom"> <span class="show-txt">左栏</span></div> <div class="option-box"><img src="../../../wexin2.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:yellow">交流圈</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">添加pdai微信进《Java全栈知识体系》学习交流圈「无任何套路」</span> <img src="../../../pdai.jpg" height="180px" style="margin:10px;">
+              PS：添加时请备注<b>Java全栈</b>，谢谢！
+            </div></div></div></div> <div class="option-box"><img src="../../../download.jpg" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:#a6f792">下资料</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">扫描公众号，回复“资料”下载<font style="color:red;">10GB+</font>书籍资料「无任何套路」</span> <img src="../../../pdai_gzh.jpg" height="180px" style="margin:10px;"> <b>公众号:</b> Java全栈知识体系
+            </div></div></div></div> <div class="option-box"><img src="../../../heart.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;background-color:#gray">支持我</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">鼓励/支持/赞赏我</span> <img src="../../../pdai-guli.png" height="180px" width="200px" style="margin:5px;">
+              1. 不靠它生存但仍希望得到你的鼓励；<br> 2. 时刻警醒自己保持技术人的初心，恒心，简单，利他；
+            </div></div></div></div> <div title="网络协议 - HTTP 协议详解" class="option-box" style="padding-left:2px;text-align:center;"><a href="dev-protocol-http.html"><img src="../../../pre2.png" width="30px" class="nozoom"> <span class="show-txt">上一篇</span></a></div> <div title="知识点串联：输入URL 到页面加载过程详解" class="option-box" style="padding-left:2px;text-align:center;"><a href="dev-protocol-url.html"><img src="../../../next2.png" width="30px" class="nozoom"> <span class="show-txt">下一篇</span></a></div></div>  <div class="page-side-sitemap"><div class="option-box"><img src="../../../sitemap.png" class="nozoom img"> <span class="show-txt">站点图</span> <div class="sitemap-container"><h4>站点导航图
+            <a href="../../about/me/about-me.html" class="sitemap-top-link"> 关于我</a> <a href="../../about/blog/blog-build-vuepress.html" class="sitemap-top-link"> 关于站点</a> <a href="../../about/me/blog-changelist.html" class="sitemap-top-link"> 最近更新记录</a> <a href="../../about/me/blog-question.html" class="sitemap-top-link"><font style="color:red;background-color:yellow;">问题反馈</font></a></h4> <table class="sitemap-table"><tr><td nowrap="nowrap"><div class="sitemap-col-group">常用搜索</div></td> <td><div class="sitemap-col-item"><a href="http://www.baidu.com/" target="_blank" title="百度">  
+            百度
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.google.com/" target="_blank" title="Google">  
+            Google
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.bing.com/" target="_blank" title="Bing">  
+            Bing
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://github.com/" target="_blank" title="Github">  
+            Github
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.programcreek.com/java-api-examples/index.php" target="_blank" title="搜代码">  
+            搜代码
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">技术社区</div></td> <td><div class="sitemap-col-item"><a href="http://www.csdn.net/" target="_blank" title="CDSN">  
+            CDSN
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.cnblogs.com/" target="_blank" title="博客园">  
+            博客园
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.oschina.net/" target="_blank" title="OSChina">  
+            OSChina
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://segmentfault.com/" target="_blank" title="知否">  
+            知否
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://juejin.im/" target="_blank" title="掘金">  
+            掘金
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.linuxidc.com/" target="_blank" title="Linux公社">  
+            Linux公社
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.ibm.com/developerworks/cn/" target="_blank" title="IBM 开发者">  
+            IBM 开发者
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://stackoverflow.com/" target="_blank" title="StackOverflow">  
+            StackOverflow
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">Java相关</div></td> <!----> <td><a href="../../java/basic/java-basic-oop.html" class="sitemap-col-item">
+            面向对象基础
+          </a><a href="../../java/basic/java-basic-lan-basic.html" class="sitemap-col-item">
+            语法基础
+          </a><a href="../../java/collection/java-collection-all.html" class="sitemap-col-item">
+            集合框架
+          </a><a href="../../java/thread/java-thread-x-overview.html" class="sitemap-col-item">
+            并发基础
+          </a><a href="../../java/thread/java-thread-x-key-synchronized.html" class="sitemap-col-item">
+            并发关键字
+          </a><a href="../../java/thread/java-thread-x-juc-overview.html" class="sitemap-col-item">
+            JUC并发框架
+          </a><a href="../../java/io/java-io-overview.html" class="sitemap-col-item">
+            IO框架
+          </a><a href="../../java/java8/java8.html" class="sitemap-col-item">
+            Java8 特性
+          </a><a href="../../java/jvm/java-jvm-x-overview.html" class="sitemap-col-item">
+            JVM基础
+          </a><a href="../../java/jvm/java-jvm-param.html" class="sitemap-col-item">
+            调试排错
+          </a><a href="../../java/others/java-others-awesome-java.html" class="sitemap-col-item">
+            更多资源
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">算法相关</div></td> <!----> <td><a href="../../algorithm/alg-basic-array.html" class="sitemap-col-item">
+            数组与线性表
+          </a><a href="../../algorithm/alg-basic-tree.html" class="sitemap-col-item">
+            树详解
+          </a><a href="../../algorithm/alg-basic-graph.html" class="sitemap-col-item">
+            图详解
+          </a><a href="../../algorithm/alg-sort-overview.html" class="sitemap-col-item">
+            内部排序
+          </a><a href="../../algorithm/alg-core-divide-and-conquer.html" class="sitemap-col-item">
+            算法思想
+          </a><a href="../../algorithm/alg-domain-security-degist.html" class="sitemap-col-item">
+            安全算法
+          </a><a href="../../algorithm/alg-domain-bigdata-overview.html" class="sitemap-col-item">
+            大数据处理
+          </a><a href="../../algorithm/alg-domain-distribute-overview.html" class="sitemap-col-item">
+            分布式算法
+          </a><a href="../../algorithm/alg-domain-load-balance.html" class="sitemap-col-item">
+            负载均衡算法
+          </a><a href="../../algorithm/alg-domain-suggest.html" class="sitemap-col-item">
+            推荐算法
+          </a><a href="../../algorithm/alg-other-mind.html" class="sitemap-col-item">
+            头脑风暴
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">数据库相关</div></td> <!----> <td><a href="../../db/sql/sql-db-howitworks.html" class="sitemap-col-item">
+            数据库原理
+          </a><a href="../../db/sql-lan/sql-lan.html" class="sitemap-col-item">
+            SQL语言
+          </a><a href="../../db/sql-mysql/sql-mysql-theory.html" class="sitemap-col-item">
+            MySQL相关
+          </a><a href="../../db/nosql-mongo/mongo-performance-improve.html" class="sitemap-col-item">
+            MongoDB
+          </a><a href="../../db/nosql-es/elasticsearch.html" class="sitemap-col-item">
+            ElasticSearch
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">开发基础相关</div></td> <!----> <td><a href="../package/dev-package-x-apache-common.html" class="sitemap-col-item">
+            常用类库
+          </a><a href="../ut/dev-ut-x-junit.html" class="sitemap-col-item">
+            单元测试
+          </a><a href="../regex/dev-regex-all.html" class="sitemap-col-item">
+            正则表达式
+          </a><a href="dev-protocol-overview.html" class="sitemap-col-item">
+            网络协议
+          </a><a href="../security/dev-security-overview.html" class="sitemap-col-item">
+            安全相关
+          </a><a href="../refactor/dev-refactor-if-else.html" class="sitemap-col-item">
+            常见重构技巧
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">架构相关</div></td> <!----> <td><a href="../../arch/arch-x-basic.html" class="sitemap-col-item">
+            架构基础
+          </a><a href="../../arch/arch-x-view.html" class="sitemap-col-item">
+            架构视角
+          </a><a href="../../arch/arch-x-evolution.html" class="sitemap-col-item">
+            架构演进
+          </a><a href="../../arch/arch-x-pattern.html" class="sitemap-col-item">
+            架构模式和要素
+          </a><a href="../../arch/arch-y-cache.html" class="sitemap-col-item">
+            高并发之缓存
+          </a><a href="../../arch/arch-y-ratelimit.html" class="sitemap-col-item">
+            高并发之限流
+          </a><a href="../../arch/arch-y-reduce.html" class="sitemap-col-item">
+            高并发之降级
+          </a><a href="../../arch/arch-y-loadbalance.html" class="sitemap-col-item">
+            负载均衡
+          </a><a href="../../arch/arch-y-backup.html" class="sitemap-col-item">
+            容灾备份
+          </a><a href="../../arch/arch-x-security.html" class="sitemap-col-item">
+            架构安全
+          </a><a href="../../arch/arch-example-seckill.html" class="sitemap-col-item">
+            秒杀系统设计
+          </a><a href="../../arch/arch-example-goods-detail.html" class="sitemap-col-item">
+            架构案例
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">工具和部署</div></td> <!----> <td><a href="../../devops/tool/tool-list-overview.html" class="sitemap-col-item">
+            工具集合
+          </a><a href="../../devops/tool/tool-ide.html" class="sitemap-col-item">
+            IDE相关
+          </a><a href="../../devops/tool/tool-git.html" class="sitemap-col-item">
+            Git
+          </a><a href="../../devops/tool/tool-maven.html" class="sitemap-col-item">
+            Maven
+          </a><a href="../../devops/linux/linux.html" class="sitemap-col-item">
+            Linux
+          </a><a href="../../devops/docker/docker-00-overview.html" class="sitemap-col-item">
+            Docker
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">方法论</div></td> <!----> <td><a href="../../dev-spec/spec/dev-th-solid.html" class="sitemap-col-item">
+            SOLID
+          </a><a href="../../dev-spec/spec/dev-th-cap.html" class="sitemap-col-item">
+            CAP
+          </a><a href="../../dev-spec/spec/dev-th-base.html" class="sitemap-col-item">
+            BASE
+          </a><a href="../../dev-spec/spec/dev-opensource.html" class="sitemap-col-item">
+            开源协议
+          </a><a href="../../dev-spec/code-style/code-style-alibaba.html" class="sitemap-col-item">
+            代码规范
+          </a><a href="../../dev-spec/pattern/1_overview.html" class="sitemap-col-item">
+            设计模式
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">产品和团队</div></td> <!----> <td><a href="../../team/team-z-wechat.html" class="sitemap-col-item">
+            产品相关
+          </a><a href="../../team/team-z-task-emergency.html" class="sitemap-col-item">
+            团队相关
+          </a><a href="../../team/team-z-arch-future.html" class="sitemap-col-item">
+            其它分享
+          </a></td></tr></table></div></div></div> <!----> </aside></div><div class="global-ui"></div></div>
+    <script src="../../../assets/js/app.691e72ae.js" defer></script><script src="../../../assets/js/4.2e3efdf6.js" defer></script><script src="../../../assets/js/3.d77b006c.js" defer></script><script src="../../../assets/js/291.3af9c2ec.js" defer></script>
+  </body>
+
+<!-- Mirrored from www.pdai.tech/md/develop/protocol/dev-protocol-dns.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:31:24 GMT -->
+</html>

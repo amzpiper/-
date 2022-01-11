@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  
+<!-- Mirrored from www.pdai.tech/md/develop/protocol/dev-protocol-tool-tcpdump.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:31:25 GMT -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>工具: 网络抓包神器 tcpdump 使用详解 | Java 全栈知识体系</title>
+    <meta name="generator" content="VuePress 1.8.2">
+    <link rel="icon" href="../../../favicon.ico">
+    <script src="../../../../hm.baidu.com/hma448.js?525d4abc4a8675472736969f817ceb47"></script>
+    <script defer="defer" async="async" src="../../../../pagead2.googlesyndication.com/pagead/js/f.txt"></script>
+    <meta name="description" content="包含: Java 基础, Java 部分源码, JVM, Spring, Spring Boot, Spring Cloud, 数据库原理, MySQL, ElasticSearch, MongoDB, Docker, k8s, CI&CD, Linux, DevOps, 分布式, 中间件, 开发工具, Git, IDE, 源码阅读，读书笔记, 开源项目...">
+    <meta property="article:modified_time" content="2021-09-27T13:15:21.000Z">
+    <meta property="og:title" content="工具: 网络抓包神器 tcpdump 使用详解">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="/md/develop/protocol/dev-protocol-tool-tcpdump.html">
+    <meta name="twitter:title" content="工具: 网络抓包神器 tcpdump 使用详解">
+    <meta name="twitter:url" content="/md/develop/protocol/dev-protocol-tool-tcpdump.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="robots" content="all">
+    <meta name="author" content="pdai">
+    <meta name="keywords" content="Java 全栈知识体系, java体系, java知识体系, java框架,java全栈,java学习路线,java全栈知识, java面试, 知识体系, java技术体系, java编程, java编程指南,java开发体系, java开发,java教程,java,java数据结构, 算法, 开发基础">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <link rel="preload" href="../../../assets/css/0.styles.d4bb5489.css" as="style"><link rel="preload" href="../../../assets/js/app.691e72ae.js" as="script"><link rel="preload" href="../../../assets/js/4.2e3efdf6.js" as="script"><link rel="preload" href="../../../assets/js/3.d77b006c.js" as="script"><link rel="preload" href="../../../assets/js/300.1500f89e.js" as="script">
+    <link rel="stylesheet" href="../../../assets/css/0.styles.d4bb5489.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="../../../index.html" class="home-link router-link-active"><!----> <span class="site-name">Java 全栈知识体系</span></a> <div class="links"><form id="search-form" role="search" class="algolia-search-wrapper search-box"><input id="algolia-search-input" class="search-query"></form> <nav class="nav-links can-hide"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav>  <ul class="sidebar-links"><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>开发之常用类库</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../package/dev-package-x-overview.html" class="sidebar-link">♥常用开发库知识体系详解♥</a></li><li><a href="../package/dev-package-x-apache-common.html" class="sidebar-link">常用开发库 - Apache Common包</a></li><li><a href="../package/dev-package-x-google-guava.html" class="sidebar-link">常用开发库 - Google Guava包</a></li><li><a href="../package/dev-package-x-hu-tool.html" class="sidebar-link">常用开发库 - Hutool包</a></li><li><a href="../package/dev-package-x-spring-util.html" class="sidebar-link">常用开发库 - Spring常用工具类</a></li><li><a href="../package/dev-package-x-log.html" class="sidebar-link">常用开发库 - 日志类库详解</a></li><li><a href="../package/dev-package-x-json.html" class="sidebar-link">常用开发库 - JSON库详解</a></li><li><a href="../package/dev-package-x-lombok-2.html" class="sidebar-link">常用开发库 - Lombok工具库详解</a></li><li><a href="../package/dev-package-x-mapstruct.html" class="sidebar-link">常用开发库 - MapStruct工具库详解</a></li><li><a href="../package/dev-package-x-others.html" class="sidebar-link">常用开发库 - 其它常用类库</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>开发之代码质量</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../ut/dev-qt-overview.html" class="sidebar-link">♥代码质量保障知识体系详解♥</a></li><li><a href="../ut/dev-ut-unit-test.html" class="sidebar-link">单元测试 - 浅谈单元测试</a></li><li><a href="../ut/dev-ut-x-junit.html" class="sidebar-link">单元测试 - JUnit4 详解</a></li><li><a href="../ut/dev-ut-x-junit5.html" class="sidebar-link">单元测试 - Junit5 详解</a></li><li><a href="../ut/dev-ut-x-mockito.html" class="sidebar-link">单元测试 - Mockito 详解</a></li><li><a href="../ut/dev-ut-x-junit-idea.html" class="sidebar-link">单元测试 - IDEA下单元测试详解</a></li><li><a href="../ut/dev-ut-springboot2.html" class="sidebar-link">单元测试 - SpringBoot2+H2+Mockito实战</a></li><li><a href="../ut/dev-qt-code-style.html" class="sidebar-link">代码质量 - 统一风格：统一代码格式化详解</a></li><li><a href="../ut/dev-qt-code-style-2.html" class="sidebar-link">代码质量 - 统一风格：统一命名规范详解</a></li><li><a href="../ut/dev-qt-code-style-1.html" class="sidebar-link">代码质量 - 统一风格：静态样式检查详解</a></li><li><a href="../ut/dev-qt-sonarlint.html" class="sidebar-link">代码质量 - 代码质量管理: Sonarlint插件详解</a></li><li><a href="../ut/dev-qt-spotbugs.html" class="sidebar-link">代码质量 - 代码质量管理: SpotBugs插件详解</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading open"><span>开发之网络协议</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="dev-protocol-overview.html" class="sidebar-link">♥网络协议和工具知识体系详解♥</a></li><li><a href="dev-protocol-network-basic.html" class="sidebar-link">网络基础(1) - 计算机网络基础部分梳理</a></li><li><a href="dev-protocol-osi7.html" class="sidebar-link">网络基础(2) - 7层协议，4层，5层</a></li><li><a href="dev-protocol-ip.html" class="sidebar-link">网络基础(3) - IP相关协议详解</a></li><li><a href="dev-protocol-tcpip.html" class="sidebar-link">网络协议 - TCP 协议详解</a></li><li><a href="dev-protocol-udp.html" class="sidebar-link">网络协议 - UDP 协议详解</a></li><li><a href="dev-protocol-http.html" class="sidebar-link">网络协议 - HTTP 协议详解</a></li><li><a href="dev-protocol-dns.html" class="sidebar-link">网络协议 - DNS 相关详解</a></li><li><a href="dev-protocol-url.html" class="sidebar-link">知识点串联：输入URL 到页面加载过程详解</a></li><li><a href="dev-protocol-tool-netstat.html" class="sidebar-link">工具: netstat查看服务及监听端口详解</a></li><li><a href="dev-protocol-tool-tcpdump.html" aria-current="page" class="active sidebar-link">工具: 网络抓包神器 tcpdump 使用详解</a></li><li><a href="dev-protocol-tool-wireshark.html" class="sidebar-link">工具: Wireshark介绍及抓包分析</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>开发之安全相关</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../security/dev-security-overview.html" class="sidebar-link">♥开发安全相关知识体系详解♥</a></li><li><a href="../security/dev-security-x-owasp.html" class="sidebar-link">开发安全 - OWASP Top 10</a></li><li><a href="../security/dev-security-x-injection.html" class="sidebar-link">开发安全 - 注入攻击详解</a></li><li><a href="../security/dev-security-x-csrf.html" class="sidebar-link">开发安全 - CSRF 详解</a></li><li><a href="../security/dev-security-x-xss.html" class="sidebar-link">开发安全 - XSS 详解</a></li><li><a href="../security/dev-security-x-ddos.html" class="sidebar-link">开发安全 - DDoS 详解</a></li><li><a href="../security/dev-security-x-click-hijack.html" class="sidebar-link">开发安全 - 点击劫持详解</a></li><li><a href="../security/dev-security-y-pratice.html" class="sidebar-link">开发安全实战 - Web安全测试平台(DVWA)</a></li><li><a href="../security/dev-security-y-pentest-workflow.html" class="sidebar-link">开发安全实战 - 渗透测试流程示例</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>开发之正则表达式</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../regex/dev-regex-all.html" class="sidebar-link">正则表达式 - 知识点学习</a></li><li><a href="../regex/dev-regex-usage.html" class="sidebar-link">正则表达式 - 常用正则表达式</a></li><li><a href="../regex/dev-regex-tools.html" class="sidebar-link">正则表达式 - 在线工具汇总</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>开发之CRON表达式</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../cron/dev-cron-x-usage.html" class="sidebar-link">CRON表达式 - CRON表达式介绍和使用</a></li><li><a href="../cron/dev-cron-x-tools.html" class="sidebar-link">CRON表达式 - CRON生成和校验工具</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>开发之常见重构技巧</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../refactor/dev-refactor-if-else.html" class="sidebar-link">常见重构技巧 - 去除多余的if else</a></li><li><a href="../refactor/dev-refactor-not-null.html" class="sidebar-link">常见重构技巧 - 去除不必要的!=</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>开发之随手记</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../usage/dev-usage-overview.html" class="sidebar-link">开发随手记 - Overview</a></li><li><a href="../usage/dev-usage-newObj.html" class="sidebar-link">Java 创建对象的四种方法</a></li><li><a href="../usage/dev-usage-exe-package.html" class="sidebar-link">Windows 打包EXE部署</a></li><li><a href="../usage/dev-usage-jar-readfile.html" class="sidebar-link">从jar包中读取资源文件</a></li><li><a href="../usage/dev-usage-input-password.html" class="sidebar-link">Input Password防止自动填充</a></li><li><a href="../usage/dev-usage-export-pdf.html" class="sidebar-link">Itext PDF 导出</a></li><li><a href="../usage/dev-usage-flotjs.html" class="sidebar-link">FlotJS 画图</a></li><li><a href="../usage/dev-usage-zkfinger.html" class="sidebar-link">指纹自动登录实战</a></li></ul></section></li></ul> </aside> <div><main class="page"> <div class="theme-default-content content__default"><h1 id="工具-网络抓包神器-tcpdump-使用详解"><a href="#工具-网络抓包神器-tcpdump-使用详解" class="header-anchor">¶</a> 工具: 网络抓包神器 tcpdump 使用详解</h1> <blockquote><p>tcpdump 是一款强大的网络抓包工具，它使用 libpcap 库来抓取网络数据包，这个库在几乎在所有的 Linux/Unix 中都有。熟悉 tcpdump 的使用能够帮助你分析调试网络数据，本文将通过一个个具体的示例来介绍它在不同场景下的使用方法。不管你是系统管理员，程序员，云原生工程师还是 yaml 工程师，掌握 tcpdump 的使用都能让你如虎添翼，升职加薪。</p></blockquote> <ul><li><a href="#%E5%B7%A5%E5%85%B7-%E7%BD%91%E7%BB%9C%E6%8A%93%E5%8C%85%E7%A5%9E%E5%99%A8-tcpdump-%E4%BD%BF%E7%94%A8%E8%AF%A6%E8%A7%A3">工具: 网络抓包神器 tcpdump 使用详解</a> <ul><li><a href="#%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95%E5%92%8C%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95">基本语法和使用方法</a> <ul><li><a href="#%E5%B8%B8%E7%94%A8%E5%8F%82%E6%95%B0">常用参数</a></li> <li><a href="#%E6%98%BE%E7%A4%BA-ascii-%E5%AD%97%E7%AC%A6%E4%B8%B2">显示 ASCII 字符串</a></li> <li><a href="#%E6%8A%93%E5%8F%96%E7%89%B9%E5%AE%9A%E5%8D%8F%E8%AE%AE%E7%9A%84%E6%95%B0%E6%8D%AE">抓取特定协议的数据</a></li> <li><a href="#%E6%8A%93%E5%8F%96%E7%89%B9%E5%AE%9A%E4%B8%BB%E6%9C%BA%E7%9A%84%E6%95%B0%E6%8D%AE">抓取特定主机的数据</a></li> <li><a href="#%E5%B0%86%E6%8A%93%E5%8F%96%E7%9A%84%E6%95%B0%E6%8D%AE%E5%86%99%E5%85%A5%E6%96%87%E4%BB%B6">将抓取的数据写入文件</a></li> <li><a href="#%E8%A1%8C%E7%BC%93%E5%86%B2%E6%A8%A1%E5%BC%8F">行缓冲模式</a></li> <li><a href="#%E7%BB%84%E5%90%88%E8%BF%87%E6%BB%A4%E5%99%A8">组合过滤器</a></li></ul></li> <li><a href="#%E8%BF%87%E6%BB%A4%E5%99%A8">过滤器</a> <ul><li><a href="#host-%E8%BF%87%E6%BB%A4%E5%99%A8">Host 过滤器</a></li> <li><a href="#network-%E8%BF%87%E6%BB%A4%E5%99%A8">Network 过滤器</a></li> <li><a href="#proto-%E8%BF%87%E6%BB%A4%E5%99%A8">Proto 过滤器</a></li> <li><a href="#port-%E8%BF%87%E6%BB%A4%E5%99%A8">Port 过滤器</a></li></ul></li> <li><a href="#%E7%90%86%E8%A7%A3-tcpdump-%E7%9A%84%E8%BE%93%E5%87%BA">理解 tcpdump 的输出</a></li> <li><a href="#%E4%BE%8B%E5%AD%90">例子</a> <ul><li><a href="#%E6%8F%90%E5%8F%96-http-%E7%94%A8%E6%88%B7%E4%BB%A3%E7%90%86">提取 HTTP 用户代理</a></li> <li><a href="#%E5%8F%AA%E6%8A%93%E5%8F%96-http-get-%E5%92%8C-post-%E6%B5%81%E9%87%8F">只抓取 HTTP GET 和 POST 流量</a></li> <li><a href="#%E6%8F%90%E5%8F%96-http-%E8%AF%B7%E6%B1%82%E7%9A%84-url">提取 HTTP 请求的 URL</a></li> <li><a href="#%E6%8F%90%E5%8F%96-http-post-%E8%AF%B7%E6%B1%82%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81">提取 HTTP POST 请求中的密码</a></li> <li><a href="#%E6%8F%90%E5%8F%96-cookies">提取 Cookies</a></li> <li><a href="#%E6%8A%93%E5%8F%96-icmp-%E6%95%B0%E6%8D%AE%E5%8C%85">抓取 ICMP 数据包</a></li> <li><a href="#%E6%8A%93%E5%8F%96%E9%9D%9E-echoreply-%E7%B1%BB%E5%9E%8B%E7%9A%84-icmp-%E6%95%B0%E6%8D%AE%E5%8C%85">抓取非 ECHO/REPLY 类型的 ICMP 数据包</a></li> <li><a href="#%E6%8A%93%E5%8F%96-smtppop3-%E5%8D%8F%E8%AE%AE%E7%9A%84%E9%82%AE%E4%BB%B6">抓取 SMTP/POP3 协议的邮件</a></li> <li><a href="#%E6%8A%93%E5%8F%96-ntp-%E6%9C%8D%E5%8A%A1%E7%9A%84%E6%9F%A5%E8%AF%A2%E5%92%8C%E5%93%8D%E5%BA%94">抓取 NTP 服务的查询和响应</a></li> <li><a href="#%E6%8A%93%E5%8F%96-snmp-%E6%9C%8D%E5%8A%A1%E7%9A%84%E6%9F%A5%E8%AF%A2%E5%92%8C%E5%93%8D%E5%BA%94">抓取 SNMP 服务的查询和响应</a></li> <li><a href="#%E5%88%87%E5%89%B2-pcap-%E6%96%87%E4%BB%B6">切割 pcap 文件</a></li> <li><a href="#%E6%8A%93%E5%8F%96-ipv6-%E6%B5%81%E9%87%8F">抓取 IPv6 流量</a></li> <li><a href="#%E6%A3%80%E6%B5%8B%E7%AB%AF%E5%8F%A3%E6%89%AB%E6%8F%8F">检测端口扫描</a></li> <li><a href="#%E8%BF%87%E6%BB%A4-nmap-nse-%E8%84%9A%E6%9C%AC%E6%B5%8B%E8%AF%95%E7%BB%93%E6%9E%9C">过滤 Nmap NSE 脚本测试结果</a></li> <li><a href="#%E6%8A%93%E5%8F%96-dns-%E8%AF%B7%E6%B1%82%E5%92%8C%E5%93%8D%E5%BA%94">抓取 DNS 请求和响应</a></li> <li><a href="#%E6%8A%93%E5%8F%96-http-%E6%9C%89%E6%95%88%E6%95%B0%E6%8D%AE%E5%8C%85">抓取 HTTP 有效数据包</a></li> <li><a href="#%E5%B0%86%E8%BE%93%E5%87%BA%E5%86%85%E5%AE%B9%E9%87%8D%E5%AE%9A%E5%90%91%E5%88%B0-wireshark">将输出内容重定向到 Wireshark</a></li> <li><a href="#%E6%89%BE%E5%87%BA%E5%8F%91%E5%8C%85%E6%9C%80%E5%A4%9A%E7%9A%84-ip">找出发包最多的 IP</a></li> <li><a href="#%E6%8A%93%E5%8F%96%E7%94%A8%E6%88%B7%E5%90%8D%E5%92%8C%E5%AF%86%E7%A0%81">抓取用户名和密码</a></li> <li><a href="#%E6%8A%93%E5%8F%96-dhcp-%E6%8A%A5%E6%96%87">抓取 DHCP 报文</a></li></ul></li> <li><a href="#%E6%80%BB%E7%BB%93">总结</a></li> <li><a href="#%E6%96%87%E7%AB%A0%E6%9D%A5%E6%BA%90">文章来源</a></li></ul></li></ul> <h2 id="基本语法和使用方法"><a href="#基本语法和使用方法" class="header-anchor">¶</a> 基本语法和使用方法</h2> <h3 id="常用参数"><a href="#常用参数" class="header-anchor">¶</a> 常用参数</h3> <p>tcpdump 的常用参数如下：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump -i eth0 -nn -s0 -v port <span class="token number">80</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><ul><li>-i : 选择要捕获的接口，通常是以太网卡或无线网卡，也可以是 vlan 或其他特殊接口。如果该系统上只有一个网络接口，则无需指定。</li> <li>-nn : 单个 n 表示不解析域名，直接显示 IP；两个 n 表示不解析域名和端口。这样不仅方便查看 IP 和端口号，而且在抓取大量数据时非常高效，因为域名解析会降低抓取速度。</li> <li>-s0 : tcpdump 默认只会截取前 96 字节的内容，要想截取所有的报文内容，可以使用 <code>-s number</code>， number 就是你要截取的报文字节数，如果是 0 的话，表示截取报文全部内容。</li> <li>-v : 使用 <code>-v</code>，<code>-vv</code> 和 <code>-vvv</code> 来显示更多的详细信息，通常会显示更多与特定协议相关的信息。</li> <li><code>port 80</code> : 这是一个常见的端口过滤器，表示仅抓取 80 端口上的流量，通常是 HTTP。</li></ul> <p>额外再介绍几个常用参数：</p> <ul><li>-p : 不让网络接口进入混杂模式。默认情况下使用 tcpdump 抓包时，会让网络接口进入混杂模式。一般计算机网卡都工作在非混杂模式下，此时网卡只接受来自网络端口的目的地址指向自己的数据。当网卡工作在混杂模式下时，网卡将来自接口的所有数据都捕获并交给相应的驱动程序。如果设备接入的交换机开启了混杂模式，使用 -p 选项可以有效地过滤噪声。</li> <li>-e : 显示数据链路层信息。默认情况下 tcpdump 不会显示数据链路层信息，使用 -e 选项可以显示源和目的 MAC 地址，以及 VLAN tag 信息。例如：</li></ul> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump -n -e -c <span class="token number">5</span> not ip6
+ 
+tcpdump: verbose output suppressed, use -v or -vv <span class="token keyword">for</span> full protocol decode
+listening on br-lan, link-type EN10MB <span class="token punctuation">(</span>Ethernet<span class="token punctuation">)</span>, capture size <span class="token number">262144</span> bytes
+<span class="token number">18</span>:27:53.619865 <span class="token number">24</span>:5e:be:0c:17:af <span class="token operator">&gt;</span> 00:e2:69:23:d3:3b, ethertype IPv4 <span class="token punctuation">(</span>0x0800<span class="token punctuation">)</span>, length <span class="token number">1162</span>: <span class="token number">192.168</span>.100.20.51410 <span class="token operator">&gt;</span> <span class="token number">180.176</span>.26.193.58695: Flags <span class="token punctuation">[</span>.<span class="token punctuation">]</span>, <span class="token function">seq</span> <span class="token number">2045333376</span>:2045334484, ack <span class="token number">3398690514</span>, win <span class="token number">751</span>, length <span class="token number">1108</span>
+<span class="token number">18</span>:27:53.626490 00:e2:69:23:d3:3b <span class="token operator">&gt;</span> <span class="token number">24</span>:5e:be:0c:17:af, ethertype IPv4 <span class="token punctuation">(</span>0x0800<span class="token punctuation">)</span>, length <span class="token number">68</span>: <span class="token number">220.173</span>.179.66.36017 <span class="token operator">&gt;</span> <span class="token number">192.168</span>.100.20.51410: UDP, length <span class="token number">26</span>
+<span class="token number">18</span>:27:53.626893 <span class="token number">24</span>:5e:be:0c:17:af <span class="token operator">&gt;</span> 00:e2:69:23:d3:3b, ethertype IPv4 <span class="token punctuation">(</span>0x0800<span class="token punctuation">)</span>, length <span class="token number">1444</span>: <span class="token number">192.168</span>.100.20.51410 <span class="token operator">&gt;</span> <span class="token number">220.173</span>.179.66.36017: UDP, length <span class="token number">1402</span>
+<span class="token number">18</span>:27:53.628837 00:e2:69:23:d3:3b <span class="token operator">&gt;</span> <span class="token number">24</span>:5e:be:0c:17:af, ethertype IPv4 <span class="token punctuation">(</span>0x0800<span class="token punctuation">)</span>, length <span class="token number">1324</span>: <span class="token number">46.97</span>.169.182.6881 <span class="token operator">&gt;</span> <span class="token number">192.168</span>.100.20.59145: Flags <span class="token punctuation">[</span>P.<span class="token punctuation">]</span>, <span class="token function">seq</span> <span class="token number">3058450381</span>:3058451651, ack <span class="token number">14349180</span>, win <span class="token number">502</span>, length <span class="token number">1270</span>
+<span class="token number">18</span>:27:53.629096 <span class="token number">24</span>:5e:be:0c:17:af <span class="token operator">&gt;</span> 00:e2:69:23:d3:3b, ethertype IPv4 <span class="token punctuation">(</span>0x0800<span class="token punctuation">)</span>, length <span class="token number">54</span>: <span class="token number">192.168</span>.100.20.59145 <span class="token operator">&gt;</span> <span class="token number">192.168</span>.100.1.12345: Flags <span class="token punctuation">[</span>.<span class="token punctuation">]</span>, ack <span class="token number">3058451651</span>, win <span class="token number">6350</span>, length <span class="token number">0</span>
+<span class="token number">5</span> packets captured
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br></div></div><h3 id="显示-ascii-字符串"><a href="#显示-ascii-字符串" class="header-anchor">¶</a> 显示 ASCII 字符串</h3> <p>-A 表示使用 ASCII 字符串打印报文的全部数据，这样可以使读取更加简单，方便使用 grep 等工具解析输出内容。-X 表示同时使用十六进制和 ASCII 字符串打印报文的全部数据。这两个参数不能一起使用。例如：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump -A -s0 port <span class="token number">80</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><h3 id="抓取特定协议的数据"><a href="#抓取特定协议的数据" class="header-anchor">¶</a> 抓取特定协议的数据</h3> <p>后面可以跟上协议名称来过滤特定协议的流量，以 UDP 为例，可以加上参数 udp 或 protocol 17，这两个命令意思相同。</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump -i eth0 udp
+$ tcpdump -i eth0 proto <span class="token number">17</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br></div></div><p>同理，tcp 与 protocol 6 意思相同。</p> <h3 id="抓取特定主机的数据"><a href="#抓取特定主机的数据" class="header-anchor">¶</a> 抓取特定主机的数据</h3> <p>使用过滤器 host 可以抓取特定目的地和源 IP 地址的流量。</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump -i eth0 <span class="token function">host</span> <span class="token number">10.10</span>.1.1
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><p>也可以使用 src 或 dst 只抓取源或目的地：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump -i eth0 dst <span class="token number">10.10</span>.1.20
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><h3 id="将抓取的数据写入文件"><a href="#将抓取的数据写入文件" class="header-anchor">¶</a> 将抓取的数据写入文件</h3> <p>使用 tcpdump 截取数据报文的时候，默认会打印到屏幕的默认输出，你会看到按照顺序和格式，很多的数据一行行快速闪过，根本来不及看清楚所有的内容。不过，tcpdump 提供了把截取的数据保存到文件的功能，以便后面使用其他图形工具（比如 wireshark，Snort）来分析。</p> <p>-w 选项用来把数据报文输出到文件：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump -i eth0 -s0 -w test.pcap
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><h3 id="行缓冲模式"><a href="#行缓冲模式" class="header-anchor">¶</a> 行缓冲模式</h3> <p>如果想实时将抓取到的数据通过管道传递给其他工具来处理，需要使用 -l 选项来开启行缓冲模式（或使用 -c 选项来开启数据包缓冲模式）。使用 -l 选项可以将输出通过立即发送给其他命令，其他命令会立即响应。</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump -i eth0 -s0 -l port <span class="token number">80</span> <span class="token operator">|</span> <span class="token function">grep</span> <span class="token string">'Server:'</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><h3 id="组合过滤器"><a href="#组合过滤器" class="header-anchor">¶</a> 组合过滤器</h3> <p>过滤的真正强大之处在于你可以随意组合它们，而连接它们的逻辑就是常用的 与<code>/AND/&amp;&amp;</code>、 <code>或/OR/||</code> 和 <code>非/not/!</code>。</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>and or <span class="token operator">&amp;&amp;</span>
+or or <span class="token operator">||</span>
+not or <span class="token operator">!</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br></div></div><h2 id="过滤器"><a href="#过滤器" class="header-anchor">¶</a> 过滤器</h2> <blockquote><p>关于 tcpdump 的过滤器，这里有必要单独介绍一下。</p></blockquote> <p>机器上的网络报文数量异常的多，很多时候我们只关系和具体问题有关的数据报（比如访问某个网站的数据，或者 icmp 超时的报文等等），而这些数据只占到很小的一部分。把所有的数据截取下来，从里面找到想要的信息无疑是一件很费时费力的工作。而 tcpdump 提供了灵活的语法可以精确地截取关心的数据报，简化分析的工作量。这些选择数据包的语句就是过滤器（filter）！</p> <h3 id="host-过滤器"><a href="#host-过滤器" class="header-anchor">¶</a> Host 过滤器</h3> <p>Host 过滤器用来过滤某个主机的数据报文。例如：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump <span class="token function">host</span> <span class="token number">1.2</span>.3.4
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><p>该命令会抓取所有发往主机 1.2.3.4 或者从主机 1.2.3.4 发出的流量。如果想只抓取从该主机发出的流量，可以使用下面的命令：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump src <span class="token function">host</span> <span class="token number">1.2</span>.3.4
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><h3 id="network-过滤器"><a href="#network-过滤器" class="header-anchor">¶</a> Network 过滤器</h3> <p>Network 过滤器用来过滤某个网段的数据，使用的是 CIDR 模式。可以使用四元组（x.x.x.x）、三元组（x.x.x）、二元组（x.x）和一元组（x）。四元组就是指定某个主机，三元组表示子网掩码为 255.255.255.0，二元组表示子网掩码为 255.255.0.0，一元组表示子网掩码为 255.0.0.0。例如，</p> <p>抓取所有发往网段 192.168.1.x 或从网段 192.168.1.x 发出的流量：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump net <span class="token number">192.168</span>.1
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><p>抓取所有发往网段 10.x.x.x 或从网段 10.x.x.x 发出的流量：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump net <span class="token number">10</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><p>和 Host 过滤器一样，这里也可以指定源和目的：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump src net <span class="token number">10</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><p>也可以使用 CIDR 格式：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump src net <span class="token number">172.16</span>.0.0/12
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><h3 id="proto-过滤器"><a href="#proto-过滤器" class="header-anchor">¶</a> Proto 过滤器</h3> <p>Proto 过滤器用来过滤某个协议的数据，关键字为 proto，可省略。proto 后面可以跟上协议号或协议名称，支持 icmp, igmp, igrp, pim, ah, esp, carp, vrrp, udp和 tcp。因为通常的协议名称是保留字段，所以在于 proto 指令一起使用时，必须根据 shell 类型使用一个或两个反斜杠（/）来转义。Linux 中的 shell 需要使用两个反斜杠来转义，MacOS 只需要一个。</p> <p>例如，抓取 icmp 协议的报文：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump -n proto <span class="token punctuation">\</span><span class="token punctuation">\</span>icmp
+<span class="token comment"># 或者</span>
+$ tcpdump -n icmp
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br></div></div><h3 id="port-过滤器"><a href="#port-过滤器" class="header-anchor">¶</a> Port 过滤器</h3> <p>Port 过滤器用来过滤通过某个端口的数据报文，关键字为 port。例如：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump port <span class="token number">389</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><h2 id="理解-tcpdump-的输出"><a href="#理解-tcpdump-的输出" class="header-anchor">¶</a> 理解 tcpdump 的输出</h2> <p>截取数据只是第一步，第二步就是理解这些数据，下面就解释一下 tcpdump 命令输出各部分的意义。</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token number">21</span>:27:06.995846 IP <span class="token punctuation">(</span>tos 0x0, ttl <span class="token number">64</span>, <span class="token function">id</span> <span class="token number">45646</span>, offset <span class="token number">0</span>, flags <span class="token punctuation">[</span>DF<span class="token punctuation">]</span>, proto TCP <span class="token punctuation">(</span><span class="token number">6</span><span class="token punctuation">)</span>, length <span class="token number">64</span><span class="token punctuation">)</span>
+    <span class="token number">192.168</span>.1.106.56166 <span class="token operator">&gt;</span> <span class="token number">124.192</span>.132.54.80: Flags <span class="token punctuation">[</span>S<span class="token punctuation">]</span>, <span class="token function">cksum</span> 0xa730 <span class="token punctuation">(</span>correct<span class="token punctuation">)</span>, <span class="token function">seq</span> <span class="token number">992042666</span>, win <span class="token number">65535</span>, options <span class="token punctuation">[</span>mss <span class="token number">1460</span>,nop,wscale <span class="token number">4</span>,nop,nop,TS val <span class="token number">663433143</span> ecr <span class="token number">0</span>,sackOK,eol<span class="token punctuation">]</span>, length <span class="token number">0</span>
+ 
+<span class="token number">21</span>:27:07.030487 IP <span class="token punctuation">(</span>tos 0x0, ttl <span class="token number">51</span>, <span class="token function">id</span> <span class="token number">0</span>, offset <span class="token number">0</span>, flags <span class="token punctuation">[</span>DF<span class="token punctuation">]</span>, proto TCP <span class="token punctuation">(</span><span class="token number">6</span><span class="token punctuation">)</span>, length <span class="token number">44</span><span class="token punctuation">)</span>
+    <span class="token number">124.192</span>.132.54.80 <span class="token operator">&gt;</span> <span class="token number">192.168</span>.1.106.56166: Flags <span class="token punctuation">[</span>S.<span class="token punctuation">]</span>, <span class="token function">cksum</span> 0xedc0 <span class="token punctuation">(</span>correct<span class="token punctuation">)</span>, <span class="token function">seq</span> <span class="token number">2147006684</span>, ack <span class="token number">992042667</span>, win <span class="token number">14600</span>, options <span class="token punctuation">[</span>mss <span class="token number">1440</span><span class="token punctuation">]</span>, length <span class="token number">0</span>
+ 
+<span class="token number">21</span>:27:07.030527 IP <span class="token punctuation">(</span>tos 0x0, ttl <span class="token number">64</span>, <span class="token function">id</span> <span class="token number">59119</span>, offset <span class="token number">0</span>, flags <span class="token punctuation">[</span>DF<span class="token punctuation">]</span>, proto TCP <span class="token punctuation">(</span><span class="token number">6</span><span class="token punctuation">)</span>, length <span class="token number">40</span><span class="token punctuation">)</span>
+    <span class="token number">192.168</span>.1.106.56166 <span class="token operator">&gt;</span> <span class="token number">124.192</span>.132.54.80: Flags <span class="token punctuation">[</span>.<span class="token punctuation">]</span>, <span class="token function">cksum</span> 0x3e72 <span class="token punctuation">(</span>correct<span class="token punctuation">)</span>, ack <span class="token number">2147006685</span>, win <span class="token number">65535</span>, length <span class="token number">0</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br></div></div><p>最基本也是最重要的信息就是数据报的源地址/端口和目的地址/端口，上面的例子第一条数据报中，源地址 ip 是 192.168.1.106，源端口是 56166，目的地址是 124.192.132.54，目的端口是 80。 &gt; 符号代表数据的方向。</p> <p>此外，上面的三条数据还是 tcp 协议的三次握手过程，第一条就是 SYN 报文，这个可以通过 Flags [S] 看出。下面是常见的 TCP 报文的 Flags:</p> <ul><li>[S] : SYN（开始连接）</li> <li>[.] : 没有 Flag</li> <li>[P] : PSH（推送数据）</li> <li>[F] : FIN （结束连接）</li> <li>[R] : RST（重置连接）</li></ul> <p>而第二条数据的 [S.] 表示 SYN-ACK，就是 SYN 报文的应答报文。</p> <h2 id="例子"><a href="#例子" class="header-anchor">¶</a> 例子</h2> <p>下面给出一些具体的例子，每个例子都可以使用多种方法来获得相同的输出，你使用的方法取决于所需的输出和网络上的流量。我们在排障时，通常只想获取自己想要的内容，可以通过过滤器和 ASCII 输出并结合管道与 grep、cut、awk 等工具来实现此目的。</p> <p>例如，在抓取 HTTP 请求和响应数据包时，可以通过删除标志 SYN/ACK/FIN 来过滤噪声，但还有更简单的方法，那就是通过管道传递给 grep。在达到目的的同时，我们要选择最简单最高效的方法。下面来看例子。</p> <h3 id="提取-http-用户代理"><a href="#提取-http-用户代理" class="header-anchor">¶</a> 提取 HTTP 用户代理</h3> <p>从 HTTP 请求头中提取 HTTP 用户代理：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump -nn -A -s1500 -l <span class="token operator">|</span> <span class="token function">grep</span> <span class="token string">&quot;User-Agent:&quot;</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><p>通过 egrep 可以同时提取用户代理和主机名（或其他头文件）：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump -nn -A -s1500 -l <span class="token operator">|</span> <span class="token function">egrep</span> -i <span class="token string">'User-Agent:|Host:'</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><h3 id="只抓取-http-get-和-post-流量"><a href="#只抓取-http-get-和-post-流量" class="header-anchor">¶</a> 只抓取 HTTP GET 和 POST 流量</h3> <p>抓取 HTTP GET 流量：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump -s <span class="token number">0</span> -A -vv <span class="token string">'tcp[((tcp[12:1] &amp; 0xf0) &gt;&gt; 2):4] = 0x47455420'</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><p>也可以抓取 HTTP POST 请求流量：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump -s <span class="token number">0</span> -A -vv <span class="token string">'tcp[((tcp[12:1] &amp; 0xf0) &gt;&gt; 2):4] = 0x504f5354'</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><p>注意：该方法不能保证抓取到 HTTP POST 有效数据流量，因为一个 POST 请求会被分割为多个 TCP 数据包。</p> <p>上述两个表达式中的十六进制将会与 GET 和 POST 请求的 ASCII 字符串匹配。例如，<code>tcp[((tcp[12:1] &amp; 0xf0) &gt;&gt; 2):4]</code> 首先会确定我们感兴趣的字节的位置（在 TCP header 之后），然后选择我们希望匹配的 4 个字节。</p> <h3 id="提取-http-请求的-url"><a href="#提取-http-请求的-url" class="header-anchor">¶</a> 提取 HTTP 请求的 URL</h3> <p>提取 HTTP 请求的主机名和路径：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump -s <span class="token number">0</span> -v -n -l <span class="token operator">|</span> <span class="token function">egrep</span> -i <span class="token string">&quot;POST /|GET /|Host:&quot;</span>
+ 
+tcpdump: listening on enp7s0, link-type EN10MB <span class="token punctuation">(</span>Ethernet<span class="token punctuation">)</span>, capture size <span class="token number">262144</span> bytes
+	POST /wp-login.php HTTP/1.1
+	Host: dev.example.com
+	GET /wp-login.php HTTP/1.1
+	Host: dev.example.com
+	GET /favicon.ico HTTP/1.1
+	Host: dev.example.com
+	GET / HTTP/1.1
+	Host: dev.example.com
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br></div></div><h3 id="提取-http-post-请求中的密码"><a href="#提取-http-post-请求中的密码" class="header-anchor">¶</a> 提取 HTTP POST 请求中的密码</h3> <p>从 HTTP POST 请求中提取密码和主机名：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump -s <span class="token number">0</span> -A -n -l <span class="token operator">|</span> <span class="token function">egrep</span> -i <span class="token string">&quot;POST /|pwd=|passwd=|password=|Host:&quot;</span>
+ 
+tcpdump: verbose output suppressed, use -v or -vv <span class="token keyword">for</span> full protocol decode
+listening on enp7s0, link-type EN10MB <span class="token punctuation">(</span>Ethernet<span class="token punctuation">)</span>, capture size <span class="token number">262144</span> bytes
+<span class="token number">11</span>:25:54.799014 IP <span class="token number">10.10</span>.1.30.39224 <span class="token operator">&gt;</span> <span class="token number">10.10</span>.1.125.80: Flags <span class="token punctuation">[</span>P.<span class="token punctuation">]</span>, <span class="token function">seq</span> <span class="token number">1458768667</span>:1458770008, ack <span class="token number">2440130792</span>, win <span class="token number">704</span>, options <span class="token punctuation">[</span>nop,nop,TS val <span class="token number">461552632</span> ecr <span class="token number">208900561</span><span class="token punctuation">]</span>, length <span class="token number">1341</span>: HTTP: POST /wp-login.php HTTP/1.1
+<span class="token punctuation">..</span><span class="token punctuation">..</span>.s<span class="token punctuation">..</span>POST /wp-login.php HTTP/1.1
+Host: dev.example.com
+<span class="token punctuation">..</span><span class="token punctuation">..</span>.s<span class="token punctuation">..</span>log<span class="token operator">=</span>admin<span class="token operator">&amp;</span><span class="token assign-left variable">pwd</span><span class="token operator">=</span>notmypassword<span class="token operator">&amp;</span>wp-submit<span class="token operator">=</span>Log+In<span class="token operator">&amp;</span><span class="token assign-left variable">redirect_to</span><span class="token operator">=</span>http%3A%2F%2Fdev.example.com%2Fwp-admin%2F<span class="token operator">&amp;</span><span class="token assign-left variable">testcookie</span><span class="token operator">=</span><span class="token number">1</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br></div></div><h3 id="提取-cookies"><a href="#提取-cookies" class="header-anchor">¶</a> 提取 Cookies</h3> <p>提取 Set-Cookie（服务端的 Cookie）和 Cookie（客户端的 Cookie）：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump -nn -A -s0 -l <span class="token operator">|</span> <span class="token function">egrep</span> -i <span class="token string">'Set-Cookie|Host:|Cookie:'</span>
+ 
+tcpdump: verbose output suppressed, use -v or -vv <span class="token keyword">for</span> full protocol decode
+listening on wlp58s0, link-type EN10MB <span class="token punctuation">(</span>Ethernet<span class="token punctuation">)</span>, capture size <span class="token number">262144</span> bytes
+Host: dev.example.com
+Cookie: <span class="token assign-left variable">wordpress_86be02xxxxxxxxxxxxxxxxxxxc43</span><span class="token operator">=</span>admin%7C152xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxfb3e15c744fdd6<span class="token punctuation">;</span> <span class="token assign-left variable">_ga</span><span class="token operator">=</span>GA1.2.21343434343421934<span class="token punctuation">;</span> <span class="token assign-left variable">_gid</span><span class="token operator">=</span>GA1.2.927343434349426<span class="token punctuation">;</span> <span class="token assign-left variable">wordpress_test_cookie</span><span class="token operator">=</span>WP+Cookie+check<span class="token punctuation">;</span> <span class="token assign-left variable">wordpress_logged_in_86be654654645645645654645653fc43</span><span class="token operator">=</span>admin%7C15275102testtesttesttestab7a61e<span class="token punctuation">;</span> wp-settings-time-1<span class="token operator">=</span><span class="token number">1527337439</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br></div></div><h3 id="抓取-icmp-数据包"><a href="#抓取-icmp-数据包" class="header-anchor">¶</a> 抓取 ICMP 数据包</h3> <p>查看网络上的所有 ICMP 数据包：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump -n icmp
+ 
+tcpdump: verbose output suppressed, use -v or -vv <span class="token keyword">for</span> full protocol decode
+listening on enp7s0, link-type EN10MB <span class="token punctuation">(</span>Ethernet<span class="token punctuation">)</span>, capture size <span class="token number">262144</span> bytes
+<span class="token number">11</span>:34:21.590380 IP <span class="token number">10.10</span>.1.217 <span class="token operator">&gt;</span> <span class="token number">10.10</span>.1.30: ICMP <span class="token builtin class-name">echo</span> request, <span class="token function">id</span> <span class="token number">27948</span>, <span class="token function">seq</span> <span class="token number">1</span>, length <span class="token number">64</span>
+<span class="token number">11</span>:34:21.590434 IP <span class="token number">10.10</span>.1.30 <span class="token operator">&gt;</span> <span class="token number">10.10</span>.1.217: ICMP <span class="token builtin class-name">echo</span> reply, <span class="token function">id</span> <span class="token number">27948</span>, <span class="token function">seq</span> <span class="token number">1</span>, length <span class="token number">64</span>
+<span class="token number">11</span>:34:27.680307 IP <span class="token number">10.10</span>.1.159 <span class="token operator">&gt;</span> <span class="token number">10.10</span>.1.1: ICMP <span class="token number">10.10</span>.1.189 udp port <span class="token number">59619</span> unreachable, length <span class="token number">115</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br></div></div><h3 id="抓取非-echoreply-类型的-icmp-数据包"><a href="#抓取非-echoreply-类型的-icmp-数据包" class="header-anchor">¶</a> 抓取非 ECHO/REPLY 类型的 ICMP 数据包</h3> <p>通过排除 echo 和 reply 类型的数据包使抓取到的数据包不包括标准的 ping 包：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump <span class="token string">'icmp[icmptype] != icmp-echo and icmp[icmptype] != icmp-echoreply'</span>
+ 
+tcpdump: verbose output suppressed, use -v or -vv <span class="token keyword">for</span> full protocol decode
+listening on enp7s0, link-type EN10MB <span class="token punctuation">(</span>Ethernet<span class="token punctuation">)</span>, capture size <span class="token number">262144</span> bytes
+<span class="token number">11</span>:37:04.041037 IP <span class="token number">10.10</span>.1.189 <span class="token operator">&gt;</span> <span class="token number">10.10</span>.1.20: ICMP <span class="token number">10.10</span>.1.189 udp port <span class="token number">36078</span> unreachable, length <span class="token number">156</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br></div></div><h3 id="抓取-smtppop3-协议的邮件"><a href="#抓取-smtppop3-协议的邮件" class="header-anchor">¶</a> 抓取 SMTP/POP3 协议的邮件</h3> <p>可以提取电子邮件的正文和其他数据。例如，只提取电子邮件的收件人：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump -nn -l port <span class="token number">25</span> <span class="token operator">|</span> <span class="token function">grep</span> -i <span class="token string">'MAIL FROM\|RCPT TO'</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><h3 id="抓取-ntp-服务的查询和响应"><a href="#抓取-ntp-服务的查询和响应" class="header-anchor">¶</a> 抓取 NTP 服务的查询和响应</h3> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump dst port <span class="token number">123</span>
+ 
+tcpdump: verbose output suppressed, use -v or -vv <span class="token keyword">for</span> full protocol decode
+listening on eth0, link-type EN10MB <span class="token punctuation">(</span>Ethernet<span class="token punctuation">)</span>, capture size <span class="token number">65535</span> bytes
+<span class="token number">21</span>:02:19.112502 IP test33.ntp <span class="token operator">&gt;</span> <span class="token number">199.30</span>.140.74.ntp: NTPv4, Client, length <span class="token number">48</span>
+<span class="token number">21</span>:02:19.113888 IP <span class="token number">216.239</span>.35.0.ntp <span class="token operator">&gt;</span> test33.ntp: NTPv4, Server, length <span class="token number">48</span>
+<span class="token number">21</span>:02:20.150347 IP test33.ntp <span class="token operator">&gt;</span> <span class="token number">216.239</span>.35.0.ntp: NTPv4, Client, length <span class="token number">48</span>
+<span class="token number">21</span>:02:20.150991 IP <span class="token number">216.239</span>.35.0.ntp <span class="token operator">&gt;</span> test33.ntp: NTPv4, Server, length <span class="token number">48</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br></div></div><h3 id="抓取-snmp-服务的查询和响应"><a href="#抓取-snmp-服务的查询和响应" class="header-anchor">¶</a> 抓取 SNMP 服务的查询和响应</h3> <p>通过 SNMP 服务，渗透测试人员可以获取大量的设备和系统信息。在这些信息中，系统信息最为关键，如操作系统版本、内核版本等。使用 SNMP 协议快速扫描程序 onesixtyone，可以看到目标系统的信息：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ onesixtyone <span class="token number">10.10</span>.1.10 public
+ 
+Scanning <span class="token number">1</span> hosts, <span class="token number">1</span> communities
+<span class="token number">10.10</span>.1.10 <span class="token punctuation">[</span>public<span class="token punctuation">]</span> Linux test33 <span class="token number">4.15</span>.0-20-generic <span class="token comment">#21-Ubuntu SMP Tue Apr 24 06:16:15 UTC 2018 x86_64</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br></div></div><p>可以通过 tcpdump 抓取 GetRequest 和 GetResponse：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump -n -s0  port <span class="token number">161</span> and udp
+tcpdump: verbose output suppressed, use -v or -vv <span class="token keyword">for</span> full protocol decode
+listening on wlp58s0, link-type EN10MB <span class="token punctuation">(</span>Ethernet<span class="token punctuation">)</span>, capture size <span class="token number">262144</span> bytes
+<span class="token number">23</span>:39:13.725522 IP <span class="token number">10.10</span>.1.159.36826 <span class="token operator">&gt;</span> <span class="token number">10.10</span>.1.20.161:  GetRequest<span class="token punctuation">(</span><span class="token number">28</span><span class="token punctuation">)</span>  .1.3.6.1.2.1.1.1.0
+<span class="token number">23</span>:39:13.728789 IP <span class="token number">10.10</span>.1.20.161 <span class="token operator">&gt;</span> <span class="token number">10.10</span>.1.159.36826:  GetResponse<span class="token punctuation">(</span><span class="token number">109</span><span class="token punctuation">)</span>  .1.3.6.1.2.1.1.1.0<span class="token operator">=</span><span class="token string">&quot;Linux testmachine 4.15.0-20-generic #21-Ubuntu SMP Tue Apr 24 06:16:15 UTC 2018 x86_64&quot;</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br></div></div><h3 id="切割-pcap-文件"><a href="#切割-pcap-文件" class="header-anchor">¶</a> 切割 pcap 文件</h3> <p>当抓取大量数据并写入文件时，可以自动切割为多个大小相同的文件。例如，下面的命令表示每 3600 秒创建一个新文件 capture-(hour).pcap，每个文件大小不超过 200*1000000 字节：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump  -w /tmp/capture-%H.pcap -G <span class="token number">3600</span> -C <span class="token number">200</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><p>这些文件的命名为 capture-{1-24}.pcap，24 小时之后，之前的文件就会被覆盖。</p> <h3 id="抓取-ipv6-流量"><a href="#抓取-ipv6-流量" class="header-anchor">¶</a> 抓取 IPv6 流量</h3> <p>可以通过过滤器 ip6 来抓取 IPv6 流量，同时可以指定协议如 TCP：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump -nn ip6 proto <span class="token number">6</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><p>从之前保存的文件中读取 IPv6 UDP 数据报文：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump -nr ipv6-test.pcap ip6 proto <span class="token number">17</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><h3 id="检测端口扫描"><a href="#检测端口扫描" class="header-anchor">¶</a> 检测端口扫描</h3> <p>在下面的例子中，你会发现抓取到的报文的源和目的一直不变，且带有标志位 [S] 和 [R]，它们与一系列看似随机的目标端口进行匹配。当发送 SYN 之后，如果目标主机的端口没有打开，就会返回一个 RESET。这是 Nmap 等端口扫描工具的标准做法。</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump -nn
+ 
+<span class="token number">21</span>:46:19.693601 IP <span class="token number">10.10</span>.1.10.60460 <span class="token operator">&gt;</span> <span class="token number">10.10</span>.1.199.5432: Flags <span class="token punctuation">[</span>S<span class="token punctuation">]</span>, <span class="token function">seq</span> <span class="token number">116466344</span>, win <span class="token number">29200</span>, options <span class="token punctuation">[</span>mss <span class="token number">1460</span>,sackOK,TS val <span class="token number">3547090332</span> ecr <span class="token number">0</span>,nop,wscale <span class="token number">7</span><span class="token punctuation">]</span>, length <span class="token number">0</span>
+<span class="token number">21</span>:46:19.693626 IP <span class="token number">10.10</span>.1.10.35470 <span class="token operator">&gt;</span> <span class="token number">10.10</span>.1.199.513: Flags <span class="token punctuation">[</span>S<span class="token punctuation">]</span>, <span class="token function">seq</span> <span class="token number">3400074709</span>, win <span class="token number">29200</span>, options <span class="token punctuation">[</span>mss <span class="token number">1460</span>,sackOK,TS val <span class="token number">3547090332</span> ecr <span class="token number">0</span>,nop,wscale <span class="token number">7</span><span class="token punctuation">]</span>, length <span class="token number">0</span>
+<span class="token number">21</span>:46:19.693762 IP <span class="token number">10.10</span>.1.10.44244 <span class="token operator">&gt;</span> <span class="token number">10.10</span>.1.199.389: Flags <span class="token punctuation">[</span>S<span class="token punctuation">]</span>, <span class="token function">seq</span> <span class="token number">2214070267</span>, win <span class="token number">29200</span>, options <span class="token punctuation">[</span>mss <span class="token number">1460</span>,sackOK,TS val <span class="token number">3547090333</span> ecr <span class="token number">0</span>,nop,wscale <span class="token number">7</span><span class="token punctuation">]</span>, length <span class="token number">0</span>
+<span class="token number">21</span>:46:19.693772 IP <span class="token number">10.10</span>.1.199.389 <span class="token operator">&gt;</span> <span class="token number">10.10</span>.1.10.44244: Flags <span class="token punctuation">[</span>R.<span class="token punctuation">]</span>, <span class="token function">seq</span> <span class="token number">0</span>, ack <span class="token number">2214070268</span>, win <span class="token number">0</span>, length <span class="token number">0</span>
+<span class="token number">21</span>:46:19.693783 IP <span class="token number">10.10</span>.1.10.35172 <span class="token operator">&gt;</span> <span class="token number">10.10</span>.1.199.1433: Flags <span class="token punctuation">[</span>S<span class="token punctuation">]</span>, <span class="token function">seq</span> <span class="token number">2358257571</span>, win <span class="token number">29200</span>, options <span class="token punctuation">[</span>mss <span class="token number">1460</span>,sackOK,TS val <span class="token number">3547090333</span> ecr <span class="token number">0</span>,nop,wscale <span class="token number">7</span><span class="token punctuation">]</span>, length <span class="token number">0</span>
+<span class="token number">21</span>:46:19.693826 IP <span class="token number">10.10</span>.1.10.33022 <span class="token operator">&gt;</span> <span class="token number">10.10</span>.1.199.49153: Flags <span class="token punctuation">[</span>S<span class="token punctuation">]</span>, <span class="token function">seq</span> <span class="token number">2406028551</span>, win <span class="token number">29200</span>, options <span class="token punctuation">[</span>mss <span class="token number">1460</span>,sackOK,TS val <span class="token number">3547090333</span> ecr <span class="token number">0</span>,nop,wscale <span class="token number">7</span><span class="token punctuation">]</span>, length <span class="token number">0</span>
+<span class="token number">21</span>:46:19.695567 IP <span class="token number">10.10</span>.1.10.55130 <span class="token operator">&gt;</span> <span class="token number">10.10</span>.1.199.49154: Flags <span class="token punctuation">[</span>S<span class="token punctuation">]</span>, <span class="token function">seq</span> <span class="token number">3230403372</span>, win <span class="token number">29200</span>, options <span class="token punctuation">[</span>mss <span class="token number">1460</span>,sackOK,TS val <span class="token number">3547090334</span> ecr <span class="token number">0</span>,nop,wscale <span class="token number">7</span><span class="token punctuation">]</span>, length <span class="token number">0</span>
+<span class="token number">21</span>:46:19.695590 IP <span class="token number">10.10</span>.1.199.49154 <span class="token operator">&gt;</span> <span class="token number">10.10</span>.1.10.55130: Flags <span class="token punctuation">[</span>R.<span class="token punctuation">]</span>, <span class="token function">seq</span> <span class="token number">0</span>, ack <span class="token number">3230403373</span>, win <span class="token number">0</span>, length <span class="token number">0</span>
+<span class="token number">21</span>:46:19.695608 IP <span class="token number">10.10</span>.1.10.33460 <span class="token operator">&gt;</span> <span class="token number">10.10</span>.1.199.49152: Flags <span class="token punctuation">[</span>S<span class="token punctuation">]</span>, <span class="token function">seq</span> <span class="token number">3289070068</span>, win <span class="token number">29200</span>, options <span class="token punctuation">[</span>mss <span class="token number">1460</span>,sackOK,TS val <span class="token number">3547090335</span> ecr <span class="token number">0</span>,nop,wscale <span class="token number">7</span><span class="token punctuation">]</span>, length <span class="token number">0</span>
+<span class="token number">21</span>:46:19.695622 IP <span class="token number">10.10</span>.1.199.49152 <span class="token operator">&gt;</span> <span class="token number">10.10</span>.1.10.33460: Flags <span class="token punctuation">[</span>R.<span class="token punctuation">]</span>, <span class="token function">seq</span> <span class="token number">0</span>, ack <span class="token number">3289070069</span>, win <span class="token number">0</span>, length <span class="token number">0</span>
+<span class="token number">21</span>:46:19.695637 IP <span class="token number">10.10</span>.1.10.34940 <span class="token operator">&gt;</span> <span class="token number">10.10</span>.1.199.1029: Flags <span class="token punctuation">[</span>S<span class="token punctuation">]</span>, <span class="token function">seq</span> <span class="token number">140319147</span>, win <span class="token number">29200</span>, options <span class="token punctuation">[</span>mss <span class="token number">1460</span>,sackOK,TS val <span class="token number">3547090335</span> ecr <span class="token number">0</span>,nop,wscale <span class="token number">7</span><span class="token punctuation">]</span>, length <span class="token number">0</span>
+<span class="token number">21</span>:46:19.695650 IP <span class="token number">10.10</span>.1.199.1029 <span class="token operator">&gt;</span> <span class="token number">10.10</span>.1.10.34940: Flags <span class="token punctuation">[</span>R.<span class="token punctuation">]</span>, <span class="token function">seq</span> <span class="token number">0</span>, ack <span class="token number">140319148</span>, win <span class="token number">0</span>, length <span class="token number">0</span>
+<span class="token number">21</span>:46:19.695664 IP <span class="token number">10.10</span>.1.10.45648 <span class="token operator">&gt;</span> <span class="token number">10.10</span>.1.199.5060: Flags <span class="token punctuation">[</span>S<span class="token punctuation">]</span>, <span class="token function">seq</span> <span class="token number">2203629201</span>, win <span class="token number">29200</span>, options <span class="token punctuation">[</span>mss <span class="token number">1460</span>,sackOK,TS val <span class="token number">3547090335</span> ecr <span class="token number">0</span>,nop,wscale <span class="token number">7</span><span class="token punctuation">]</span>, length <span class="token number">0</span>
+<span class="token number">21</span>:46:19.695775 IP <span class="token number">10.10</span>.1.10.49028 <span class="token operator">&gt;</span> <span class="token number">10.10</span>.1.199.2000: Flags <span class="token punctuation">[</span>S<span class="token punctuation">]</span>, <span class="token function">seq</span> <span class="token number">635990431</span>, win <span class="token number">29200</span>, options <span class="token punctuation">[</span>mss <span class="token number">1460</span>,sackOK,TS val <span class="token number">3547090335</span> ecr <span class="token number">0</span>,nop,wscale <span class="token number">7</span><span class="token punctuation">]</span>, length <span class="token number">0</span>
+<span class="token number">21</span>:46:19.695790 IP <span class="token number">10.10</span>.1.199.2000 <span class="token operator">&gt;</span> <span class="token number">10.10</span>.1.10.49028: Flags <span class="token punctuation">[</span>R.<span class="token punctuation">]</span>, <span class="token function">seq</span> <span class="token number">0</span>, ack <span class="token number">635990432</span>, win <span class="token number">0</span>, length <span class="token number">0</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br></div></div><h3 id="过滤-nmap-nse-脚本测试结果"><a href="#过滤-nmap-nse-脚本测试结果" class="header-anchor">¶</a> 过滤 Nmap NSE 脚本测试结果</h3> <p>本例中 Nmap NSE 测试脚本 http-enum.nse 用来检测 HTTP 服务的合法 URL。</p> <p>在执行脚本测试的主机上：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ nmap -p <span class="token number">80</span> --script<span class="token operator">=</span>http-enum.nse targetip
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><p>在目标主机上：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump -nn port <span class="token number">80</span> <span class="token operator">|</span> <span class="token function">grep</span> <span class="token string">&quot;GET /&quot;</span>
+ 
+GET /w3perl/ HTTP/1.1
+GET /w-agora/ HTTP/1.1
+GET /way-board/ HTTP/1.1
+GET /web800fo/ HTTP/1.1
+GET /webaccess/ HTTP/1.1
+GET /webadmin/ HTTP/1.1
+GET /webAdmin/ HTTP/1.1
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br></div></div><h3 id="抓取-dns-请求和响应"><a href="#抓取-dns-请求和响应" class="header-anchor">¶</a> 抓取 DNS 请求和响应</h3> <p>向 Google 公共 DNS 发起的出站 DNS 请求和 A 记录响应可以通过 tcpdump 抓取到：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump -i wlp58s0 -s0 port <span class="token number">53</span>
+ 
+tcpdump: verbose output suppressed, use -v or -vv <span class="token keyword">for</span> full protocol decode
+listening on wlp58s0, link-type EN10MB <span class="token punctuation">(</span>Ethernet<span class="token punctuation">)</span>, capture size <span class="token number">262144</span> bytes
+<span class="token number">14</span>:19:06.879799 IP test.53852 <span class="token operator">&gt;</span> google-public-dns-a.google.com.domain: <span class="token number">26977</span>+ <span class="token punctuation">[</span>1au<span class="token punctuation">]</span> A? play.google.com. <span class="token punctuation">(</span><span class="token number">44</span><span class="token punctuation">)</span>
+<span class="token number">14</span>:19:07.022618 IP google-public-dns-a.google.com.domain <span class="token operator">&gt;</span> test.53852: <span class="token number">26977</span> <span class="token number">1</span>/0/1 A <span class="token number">216.58</span>.203.110 <span class="token punctuation">(</span><span class="token number">60</span><span class="token punctuation">)</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br></div></div><h3 id="抓取-http-有效数据包"><a href="#抓取-http-有效数据包" class="header-anchor">¶</a> 抓取 HTTP 有效数据包</h3> <p>抓取 80 端口的 HTTP 有效数据包，排除 TCP 连接建立过程的数据包（SYN / FIN / ACK）：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump <span class="token string">'tcp port 80 and <span class="token variable"><span class="token punctuation">((</span><span class="token punctuation">(</span>ip[<span class="token number">2</span><span class="token operator">:</span><span class="token number">2</span>] <span class="token operator">-</span> <span class="token punctuation">((</span>ip[<span class="token number">0</span>]<span class="token operator">&amp;</span><span class="token number">0xf</span><span class="token punctuation">)</span><span class="token operator">&lt;&lt;</span><span class="token number">2</span><span class="token punctuation">))</span></span> - <span class="token variable"><span class="token punctuation">((</span>tcp[<span class="token number">12</span>]<span class="token operator">&amp;</span><span class="token number">0xf0</span><span class="token punctuation">)</span><span class="token operator">&gt;&gt;</span><span class="token number">2</span><span class="token punctuation">))</span></span> != 0)'</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><h3 id="将输出内容重定向到-wireshark"><a href="#将输出内容重定向到-wireshark" class="header-anchor">¶</a> 将输出内容重定向到 Wireshark</h3> <p>通常 Wireshark（或 tshark）比 tcpdump 更容易分析应用层协议。一般的做法是在远程服务器上先使用 tcpdump 抓取数据并写入文件，然后再将文件拷贝到本地工作站上用 Wireshark 分析。</p> <p>还有一种更高效的方法，可以通过 ssh 连接将抓取到的数据实时发送给 Wireshark 进行分析。以 MacOS 系统为例，可以通过 <code>brew cask install wireshark</code> 来安装，然后通过下面的命令来分析：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ <span class="token function">ssh</span> root@remotesystem <span class="token string">'tcpdump -s0 -c 1000 -nn -w - not port 22'</span> <span class="token operator">|</span> /Applications/Wireshark.app/Contents/MacOS/Wireshark -k -i -
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><p>例如，如果想分析 DNS 协议，可以使用下面的命令：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ <span class="token function">ssh</span> root@remotesystem <span class="token string">'tcpdump -s0 -c 1000 -nn -w - port 53'</span> <span class="token operator">|</span> /Applications/Wireshark.app/Contents/MacOS/Wireshark -k -i -
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><p>抓取到的数据：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/develop/network/dev-network-tcpdump-1.png" loading="lazy" class="lazy"></p> <p><code>-c</code> 选项用来限制抓取数据的大小。如果不限制大小，就只能通过 ctrl-c 来停止抓取，这样一来不仅关闭了 tcpdump，也关闭了 wireshark。</p> <h3 id="找出发包最多的-ip"><a href="#找出发包最多的-ip" class="header-anchor">¶</a> 找出发包最多的 IP</h3> <p>找出一段时间内发包最多的 IP，或者从一堆报文中找出发包最多的 IP，可以使用下面的命令：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump -nnn -t -c <span class="token number">200</span> <span class="token operator">|</span> <span class="token function">cut</span> -f <span class="token number">1,2</span>,3,4 -d <span class="token string">'.'</span> <span class="token operator">|</span> <span class="token function">sort</span> <span class="token operator">|</span> <span class="token function">uniq</span> -c <span class="token operator">|</span> <span class="token function">sort</span> -nr <span class="token operator">|</span> <span class="token function">head</span> -n <span class="token number">20</span>
+ 
+tcpdump: verbose output suppressed, use -v or -vv <span class="token keyword">for</span> full protocol decode
+listening on enp7s0, link-type EN10MB <span class="token punctuation">(</span>Ethernet<span class="token punctuation">)</span>, capture size <span class="token number">262144</span> bytes
+<span class="token number">200</span> packets captured
+<span class="token number">261</span> packets received by filter
+<span class="token number">0</span> packets dropped by kernel
+    <span class="token number">108</span> IP <span class="token number">10.10</span>.211.181
+     <span class="token number">91</span> IP <span class="token number">10.10</span>.1.30
+      <span class="token number">1</span> IP <span class="token number">10.10</span>.1.50
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br></div></div><ul><li><code>cut -f 1,2,3,4 -d '.'</code>: 以 . 为分隔符，打印出每行的前四列。即 IP 地址。</li> <li><code>sort | uniq -c</code> : 排序并计数</li> <li><code>sort -nr</code> : 按照数值大小逆向排序</li></ul> <h3 id="抓取用户名和密码"><a href="#抓取用户名和密码" class="header-anchor">¶</a> 抓取用户名和密码</h3> <p>本例将重点放在标准纯文本协议上，过滤出于用户名和密码相关的报文：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump port http or port <span class="token function">ftp</span> or port smtp or port imap or port pop3 or port telnet -l -A <span class="token operator">|</span> <span class="token function">egrep</span> -i -B5 <span class="token string">'pass=|pwd=|log=|login=|user=|username=|pw=|passw=|passwd=|password=|pass:|user:|username:|password:|login:|pass |user '</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><h3 id="抓取-dhcp-报文"><a href="#抓取-dhcp-报文" class="header-anchor">¶</a> 抓取 DHCP 报文</h3> <p>最后一个例子，抓取 DHCP 服务的请求和响应报文，67 为 DHCP 端口，68 为客户机端口。</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ tcpdump -v -n port <span class="token number">67</span> or <span class="token number">68</span>
+ 
+tcpdump: listening on enp7s0, link-type EN10MB <span class="token punctuation">(</span>Ethernet<span class="token punctuation">)</span>, capture size <span class="token number">262144</span> bytes
+<span class="token number">14</span>:37:50.059662 IP <span class="token punctuation">(</span>tos 0x10, ttl <span class="token number">128</span>, <span class="token function">id</span> <span class="token number">0</span>, offset <span class="token number">0</span>, flags <span class="token punctuation">[</span>none<span class="token punctuation">]</span>, proto UDP <span class="token punctuation">(</span><span class="token number">17</span><span class="token punctuation">)</span>, length <span class="token number">328</span><span class="token punctuation">)</span>
+    <span class="token number">0.0</span>.0.0.68 <span class="token operator">&gt;</span> <span class="token number">255.255</span>.255.255.67: BOOTP/DHCP, Request from 00:0c:xx:xx:xx:d5, length <span class="token number">300</span>, xid 0xc9779c2a, Flags <span class="token punctuation">[</span>none<span class="token punctuation">]</span>
+	  Client-Ethernet-Address 00:0c:xx:xx:xx:d5
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message Option <span class="token number">53</span>, length <span class="token number">1</span>: Request
+	    Requested-IP Option <span class="token number">50</span>, length <span class="token number">4</span>: <span class="token number">10.10</span>.1.163
+	    Hostname Option <span class="token number">12</span>, length <span class="token number">14</span>: <span class="token string">&quot;test-ubuntu&quot;</span>
+	    Parameter-Request Option <span class="token number">55</span>, length <span class="token number">16</span>: 
+	      Subnet-Mask, BR, Time-Zone, Default-Gateway
+	      Domain-Name, Domain-Name-Server, Option <span class="token number">119</span>, Hostname
+	      Netbios-Name-Server, Netbios-Scope, MTU, Classless-Static-Route
+	      NTP, Classless-Static-Route-Microsoft, Static-Route, Option <span class="token number">252</span>
+<span class="token number">14</span>:37:50.059667 IP <span class="token punctuation">(</span>tos 0x10, ttl <span class="token number">128</span>, <span class="token function">id</span> <span class="token number">0</span>, offset <span class="token number">0</span>, flags <span class="token punctuation">[</span>none<span class="token punctuation">]</span>, proto UDP <span class="token punctuation">(</span><span class="token number">17</span><span class="token punctuation">)</span>, length <span class="token number">328</span><span class="token punctuation">)</span>
+    <span class="token number">0.0</span>.0.0.68 <span class="token operator">&gt;</span> <span class="token number">255.255</span>.255.255.67: BOOTP/DHCP, Request from 00:0c:xx:xx:xx:d5, length <span class="token number">300</span>, xid 0xc9779c2a, Flags <span class="token punctuation">[</span>none<span class="token punctuation">]</span>
+	  Client-Ethernet-Address 00:0c:xx:xx:xx:d5
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message Option <span class="token number">53</span>, length <span class="token number">1</span>: Request
+	    Requested-IP Option <span class="token number">50</span>, length <span class="token number">4</span>: <span class="token number">10.10</span>.1.163
+	    Hostname Option <span class="token number">12</span>, length <span class="token number">14</span>: <span class="token string">&quot;test-ubuntu&quot;</span>
+	    Parameter-Request Option <span class="token number">55</span>, length <span class="token number">16</span>: 
+	      Subnet-Mask, BR, Time-Zone, Default-Gateway
+	      Domain-Name, Domain-Name-Server, Option <span class="token number">119</span>, Hostname
+	      Netbios-Name-Server, Netbios-Scope, MTU, Classless-Static-Route
+	      NTP, Classless-Static-Route-Microsoft, Static-Route, Option <span class="token number">252</span>
+<span class="token number">14</span>:37:50.060780 IP <span class="token punctuation">(</span>tos 0x0, ttl <span class="token number">64</span>, <span class="token function">id</span> <span class="token number">53564</span>, offset <span class="token number">0</span>, flags <span class="token punctuation">[</span>none<span class="token punctuation">]</span>, proto UDP <span class="token punctuation">(</span><span class="token number">17</span><span class="token punctuation">)</span>, length <span class="token number">339</span><span class="token punctuation">)</span>
+    <span class="token number">10.10</span>.1.1.67 <span class="token operator">&gt;</span> <span class="token number">10.10</span>.1.163.68: BOOTP/DHCP, Reply, length <span class="token number">311</span>, xid 0xc9779c2a, Flags <span class="token punctuation">[</span>none<span class="token punctuation">]</span>
+	  Your-IP <span class="token number">10.10</span>.1.163
+	  Server-IP <span class="token number">10.10</span>.1.1
+	  Client-Ethernet-Address 00:0c:xx:xx:xx:d5
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message Option <span class="token number">53</span>, length <span class="token number">1</span>: ACK
+	    Server-ID Option <span class="token number">54</span>, length <span class="token number">4</span>: <span class="token number">10.10</span>.1.1
+	    Lease-Time Option <span class="token number">51</span>, length <span class="token number">4</span>: <span class="token number">86400</span>
+	    RN Option <span class="token number">58</span>, length <span class="token number">4</span>: <span class="token number">43200</span>
+	    RB Option <span class="token number">59</span>, length <span class="token number">4</span>: <span class="token number">75600</span>
+	    Subnet-Mask Option <span class="token number">1</span>, length <span class="token number">4</span>: <span class="token number">255.255</span>.255.0
+	    BR Option <span class="token number">28</span>, length <span class="token number">4</span>: <span class="token number">10.10</span>.1.255
+	    Domain-Name-Server Option <span class="token number">6</span>, length <span class="token number">4</span>: <span class="token number">10.10</span>.1.1
+	    Hostname Option <span class="token number">12</span>, length <span class="token number">14</span>: <span class="token string">&quot;test-ubuntu&quot;</span>
+	    T252 Option <span class="token number">252</span>, length <span class="token number">1</span>: <span class="token number">10</span>
+	    Default-Gateway Option <span class="token number">3</span>, length <span class="token number">4</span>: <span class="token number">10.10</span>.1.1
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br><span class="line-number">35</span><br><span class="line-number">36</span><br><span class="line-number">37</span><br><span class="line-number">38</span><br><span class="line-number">39</span><br><span class="line-number">40</span><br><span class="line-number">41</span><br><span class="line-number">42</span><br><span class="line-number">43</span><br><span class="line-number">44</span><br><span class="line-number">45</span><br><span class="line-number">46</span><br><span class="line-number">47</span><br></div></div><h2 id="总结"><a href="#总结" class="header-anchor">¶</a> 总结</h2> <p>本文主要介绍了 tcpdump 的基本语法和使用方法，并通过一些示例来展示它强大的过滤功能。将 tcpdump 与 wireshark 进行组合可以发挥更强大的功效，本文也展示了如何优雅顺滑地结合 tcpdump 和 wireshark。如果你想了解更多的细节，可以查看 tcpdump 的 man 手册。</p> <h2 id="文章来源"><a href="#文章来源" class="header-anchor">¶</a> 文章来源</h2> <ul><li>本文作者： 米开朗基杨</li> <li>本文链接：https://www.cnblogs.com/ryanyangcs/p/12448499.html</li> <li>版权声明：本作品采用知识共享署名-非商业性使用-禁止演绎 2.5 中国大陆许可协议进行许可。</li></ul> <p>原文主要翻译自 《<a href="https://hackertarget.com/tcpdump-examples/" target="_blank" rel="noopener noreferrer">Tcpdump Examples<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a>》。</p></div> <div class="page-contract"><h2>联系我</h2> <div class="c-content"><span style="font-size:1rem;font-weight:bold;">添加@pdai微信</span><br> <img src="../../../pdai.jpg" height="280px" style="margin:10px;"><br>
+        PS：添加时请备注<b>Java全栈</b>，谢谢！
+      </div></div> <footer class="page-edit"><div class="edit-link"><a href="https://github.com/realpdai/tech-arch-doc/edit/master/md/develop/protocol/dev-protocol-tool-tcpdump.md" target="_blank" rel="noopener noreferrer">在 GitHub 上编辑此页</a> <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></div> <div class="last-updated"><span class="prefix">上次更新: </span> <span class="time">9/27/2021,</span></div></footer> <div class="page-nav"><p class="inner"><span class="prev">
+        ←
+        <a href="dev-protocol-tool-netstat.html" class="prev">
+          工具: netstat查看服务及监听端口详解
+        </a></span> <span class="next"><a href="dev-protocol-tool-wireshark.html">
+          工具: Wireshark介绍及抓包分析
+        </a>
+        →
+      </span></p></div> <div class="google_ad_bottom"><ins data-ad-client="ca-pub-5088193899865249" data-ad-slot="6822031208" data-ad-format="auto" data-full-width-responsive="true" class="adsbygoogle" style="display:block"></ins> <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script></div> </main></div> <aside class="page-sidebar"> <div class="page-side-toolbar"><div class="option-box-toc-fixed"><div class="toc-container-sidebar"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:650px"><div style="font-weight:bold;text-align:center;">工具: 网络抓包神器 tcpdump 使用详解</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="dev-protocol-tool-tcpdump.html#基本语法和使用方法" class="toc-sidebar-link">基本语法和使用方法</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#常用参数" class="toc-sidebar-link">常用参数</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#显示-ascii-字符串" class="toc-sidebar-link">显示 ASCII 字符串</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#抓取特定协议的数据" class="toc-sidebar-link">抓取特定协议的数据</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#抓取特定主机的数据" class="toc-sidebar-link">抓取特定主机的数据</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#将抓取的数据写入文件" class="toc-sidebar-link">将抓取的数据写入文件</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#行缓冲模式" class="toc-sidebar-link">行缓冲模式</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#组合过滤器" class="toc-sidebar-link">组合过滤器</a></li></ul></li><li><a href="dev-protocol-tool-tcpdump.html#过滤器" class="toc-sidebar-link">过滤器</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#host-过滤器" class="toc-sidebar-link">Host 过滤器</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#network-过滤器" class="toc-sidebar-link">Network 过滤器</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#proto-过滤器" class="toc-sidebar-link">Proto 过滤器</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#port-过滤器" class="toc-sidebar-link">Port 过滤器</a></li></ul></li><li><a href="dev-protocol-tool-tcpdump.html#理解-tcpdump-的输出" class="toc-sidebar-link">理解 tcpdump 的输出</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="dev-protocol-tool-tcpdump.html#例子" class="toc-sidebar-link">例子</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#提取-http-用户代理" class="toc-sidebar-link">提取 HTTP 用户代理</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#只抓取-http-get-和-post-流量" class="toc-sidebar-link">只抓取 HTTP GET 和 POST 流量</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#提取-http-请求的-url" class="toc-sidebar-link">提取 HTTP 请求的 URL</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#提取-http-post-请求中的密码" class="toc-sidebar-link">提取 HTTP POST 请求中的密码</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#提取-cookies" class="toc-sidebar-link">提取 Cookies</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#抓取-icmp-数据包" class="toc-sidebar-link">抓取 ICMP 数据包</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#抓取非-echoreply-类型的-icmp-数据包" class="toc-sidebar-link">抓取非 ECHO/REPLY 类型的 ICMP 数据包</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#抓取-smtppop3-协议的邮件" class="toc-sidebar-link">抓取 SMTP/POP3 协议的邮件</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#抓取-ntp-服务的查询和响应" class="toc-sidebar-link">抓取 NTP 服务的查询和响应</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#抓取-snmp-服务的查询和响应" class="toc-sidebar-link">抓取 SNMP 服务的查询和响应</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#切割-pcap-文件" class="toc-sidebar-link">切割 pcap 文件</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#抓取-ipv6-流量" class="toc-sidebar-link">抓取 IPv6 流量</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#检测端口扫描" class="toc-sidebar-link">检测端口扫描</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#过滤-nmap-nse-脚本测试结果" class="toc-sidebar-link">过滤 Nmap NSE 脚本测试结果</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#抓取-dns-请求和响应" class="toc-sidebar-link">抓取 DNS 请求和响应</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#抓取-http-有效数据包" class="toc-sidebar-link">抓取 HTTP 有效数据包</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#将输出内容重定向到-wireshark" class="toc-sidebar-link">将输出内容重定向到 Wireshark</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#找出发包最多的-ip" class="toc-sidebar-link">找出发包最多的 IP</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#抓取用户名和密码" class="toc-sidebar-link">抓取用户名和密码</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#抓取-dhcp-报文" class="toc-sidebar-link">抓取 DHCP 报文</a></li></ul></li><li><a href="dev-protocol-tool-tcpdump.html#总结" class="toc-sidebar-link">总结</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="dev-protocol-tool-tcpdump.html#文章来源" class="toc-sidebar-link">文章来源</a><ul class="toc-sidebar-sub-headers"></ul></li></ul></div></div></div></div></div> <div class="option-box-toc-over"><img src="../../../toc.png" class="nozoom"> <span class="show-txt">目录</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:550px"><div style="font-weight:bold;text-align:center;">工具: 网络抓包神器 tcpdump 使用详解</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="dev-protocol-tool-tcpdump.html#基本语法和使用方法" class="toc-sidebar-link">基本语法和使用方法</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#常用参数" class="toc-sidebar-link">常用参数</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#显示-ascii-字符串" class="toc-sidebar-link">显示 ASCII 字符串</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#抓取特定协议的数据" class="toc-sidebar-link">抓取特定协议的数据</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#抓取特定主机的数据" class="toc-sidebar-link">抓取特定主机的数据</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#将抓取的数据写入文件" class="toc-sidebar-link">将抓取的数据写入文件</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#行缓冲模式" class="toc-sidebar-link">行缓冲模式</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#组合过滤器" class="toc-sidebar-link">组合过滤器</a></li></ul></li><li><a href="dev-protocol-tool-tcpdump.html#过滤器" class="toc-sidebar-link">过滤器</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#host-过滤器" class="toc-sidebar-link">Host 过滤器</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#network-过滤器" class="toc-sidebar-link">Network 过滤器</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#proto-过滤器" class="toc-sidebar-link">Proto 过滤器</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#port-过滤器" class="toc-sidebar-link">Port 过滤器</a></li></ul></li><li><a href="dev-protocol-tool-tcpdump.html#理解-tcpdump-的输出" class="toc-sidebar-link">理解 tcpdump 的输出</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="dev-protocol-tool-tcpdump.html#例子" class="toc-sidebar-link">例子</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#提取-http-用户代理" class="toc-sidebar-link">提取 HTTP 用户代理</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#只抓取-http-get-和-post-流量" class="toc-sidebar-link">只抓取 HTTP GET 和 POST 流量</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#提取-http-请求的-url" class="toc-sidebar-link">提取 HTTP 请求的 URL</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#提取-http-post-请求中的密码" class="toc-sidebar-link">提取 HTTP POST 请求中的密码</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#提取-cookies" class="toc-sidebar-link">提取 Cookies</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#抓取-icmp-数据包" class="toc-sidebar-link">抓取 ICMP 数据包</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#抓取非-echoreply-类型的-icmp-数据包" class="toc-sidebar-link">抓取非 ECHO/REPLY 类型的 ICMP 数据包</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#抓取-smtppop3-协议的邮件" class="toc-sidebar-link">抓取 SMTP/POP3 协议的邮件</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#抓取-ntp-服务的查询和响应" class="toc-sidebar-link">抓取 NTP 服务的查询和响应</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#抓取-snmp-服务的查询和响应" class="toc-sidebar-link">抓取 SNMP 服务的查询和响应</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#切割-pcap-文件" class="toc-sidebar-link">切割 pcap 文件</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#抓取-ipv6-流量" class="toc-sidebar-link">抓取 IPv6 流量</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#检测端口扫描" class="toc-sidebar-link">检测端口扫描</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#过滤-nmap-nse-脚本测试结果" class="toc-sidebar-link">过滤 Nmap NSE 脚本测试结果</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#抓取-dns-请求和响应" class="toc-sidebar-link">抓取 DNS 请求和响应</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#抓取-http-有效数据包" class="toc-sidebar-link">抓取 HTTP 有效数据包</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#将输出内容重定向到-wireshark" class="toc-sidebar-link">将输出内容重定向到 Wireshark</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#找出发包最多的-ip" class="toc-sidebar-link">找出发包最多的 IP</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#抓取用户名和密码" class="toc-sidebar-link">抓取用户名和密码</a></li><li class="toc-sidebar-sub-header"><a href="dev-protocol-tool-tcpdump.html#抓取-dhcp-报文" class="toc-sidebar-link">抓取 DHCP 报文</a></li></ul></li><li><a href="dev-protocol-tool-tcpdump.html#总结" class="toc-sidebar-link">总结</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="dev-protocol-tool-tcpdump.html#文章来源" class="toc-sidebar-link">文章来源</a><ul class="toc-sidebar-sub-headers"></ul></li></ul></div></div></div></div></div> <div class="option-box"><img src="../../../wechat.png" class="nozoom"> <span class="show-txt">手机看</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.9rem">微信扫一扫</span> <img height="180px" src="https://api.qrserver.com/v1/create-qr-code/?data=https://www.pdai.tech/md/develop/protocol/dev-protocol-tool-tcpdump.html" style="margin:10px;">
+              可以<b>手机看</b>或分享至<b>朋友圈</b></div></div></div></div> <div class="option-box"><a title="点击切换全屏" style="text-align:center;padding-left:2px;"><img src="../../../full.png" width="30px" class="nozoom"> <span style="color:gray;font-size:11px;font-weight:400;">全屏看</span></a></div> <div class="option-box"><img src="../../../toggle.png" width="30px" class="nozoom"> <span class="show-txt">左栏</span></div> <div class="option-box"><img src="../../../wexin2.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:yellow">交流圈</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">添加pdai微信进《Java全栈知识体系》学习交流圈「无任何套路」</span> <img src="../../../pdai.jpg" height="180px" style="margin:10px;">
+              PS：添加时请备注<b>Java全栈</b>，谢谢！
+            </div></div></div></div> <div class="option-box"><img src="../../../download.jpg" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:#a6f792">下资料</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">扫描公众号，回复“资料”下载<font style="color:red;">10GB+</font>书籍资料「无任何套路」</span> <img src="../../../pdai_gzh.jpg" height="180px" style="margin:10px;"> <b>公众号:</b> Java全栈知识体系
+            </div></div></div></div> <div class="option-box"><img src="../../../heart.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;background-color:#gray">支持我</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">鼓励/支持/赞赏我</span> <img src="../../../pdai-guli.png" height="180px" width="200px" style="margin:5px;">
+              1. 不靠它生存但仍希望得到你的鼓励；<br> 2. 时刻警醒自己保持技术人的初心，恒心，简单，利他；
+            </div></div></div></div> <div title="工具: netstat查看服务及监听端口详解" class="option-box" style="padding-left:2px;text-align:center;"><a href="dev-protocol-tool-netstat.html"><img src="../../../pre2.png" width="30px" class="nozoom"> <span class="show-txt">上一篇</span></a></div> <div title="工具: Wireshark介绍及抓包分析" class="option-box" style="padding-left:2px;text-align:center;"><a href="dev-protocol-tool-wireshark.html"><img src="../../../next2.png" width="30px" class="nozoom"> <span class="show-txt">下一篇</span></a></div></div>  <div class="page-side-sitemap"><div class="option-box"><img src="../../../sitemap.png" class="nozoom img"> <span class="show-txt">站点图</span> <div class="sitemap-container"><h4>站点导航图
+            <a href="../../about/me/about-me.html" class="sitemap-top-link"> 关于我</a> <a href="../../about/blog/blog-build-vuepress.html" class="sitemap-top-link"> 关于站点</a> <a href="../../about/me/blog-changelist.html" class="sitemap-top-link"> 最近更新记录</a> <a href="../../about/me/blog-question.html" class="sitemap-top-link"><font style="color:red;background-color:yellow;">问题反馈</font></a></h4> <table class="sitemap-table"><tr><td nowrap="nowrap"><div class="sitemap-col-group">常用搜索</div></td> <td><div class="sitemap-col-item"><a href="http://www.baidu.com/" target="_blank" title="百度">  
+            百度
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.google.com/" target="_blank" title="Google">  
+            Google
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.bing.com/" target="_blank" title="Bing">  
+            Bing
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://github.com/" target="_blank" title="Github">  
+            Github
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.programcreek.com/java-api-examples/index.php" target="_blank" title="搜代码">  
+            搜代码
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">技术社区</div></td> <td><div class="sitemap-col-item"><a href="http://www.csdn.net/" target="_blank" title="CDSN">  
+            CDSN
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.cnblogs.com/" target="_blank" title="博客园">  
+            博客园
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.oschina.net/" target="_blank" title="OSChina">  
+            OSChina
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://segmentfault.com/" target="_blank" title="知否">  
+            知否
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://juejin.im/" target="_blank" title="掘金">  
+            掘金
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.linuxidc.com/" target="_blank" title="Linux公社">  
+            Linux公社
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.ibm.com/developerworks/cn/" target="_blank" title="IBM 开发者">  
+            IBM 开发者
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://stackoverflow.com/" target="_blank" title="StackOverflow">  
+            StackOverflow
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">Java相关</div></td> <!----> <td><a href="../../java/basic/java-basic-oop.html" class="sitemap-col-item">
+            面向对象基础
+          </a><a href="../../java/basic/java-basic-lan-basic.html" class="sitemap-col-item">
+            语法基础
+          </a><a href="../../java/collection/java-collection-all.html" class="sitemap-col-item">
+            集合框架
+          </a><a href="../../java/thread/java-thread-x-overview.html" class="sitemap-col-item">
+            并发基础
+          </a><a href="../../java/thread/java-thread-x-key-synchronized.html" class="sitemap-col-item">
+            并发关键字
+          </a><a href="../../java/thread/java-thread-x-juc-overview.html" class="sitemap-col-item">
+            JUC并发框架
+          </a><a href="../../java/io/java-io-overview.html" class="sitemap-col-item">
+            IO框架
+          </a><a href="../../java/java8/java8.html" class="sitemap-col-item">
+            Java8 特性
+          </a><a href="../../java/jvm/java-jvm-x-overview.html" class="sitemap-col-item">
+            JVM基础
+          </a><a href="../../java/jvm/java-jvm-param.html" class="sitemap-col-item">
+            调试排错
+          </a><a href="../../java/others/java-others-awesome-java.html" class="sitemap-col-item">
+            更多资源
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">算法相关</div></td> <!----> <td><a href="../../algorithm/alg-basic-array.html" class="sitemap-col-item">
+            数组与线性表
+          </a><a href="../../algorithm/alg-basic-tree.html" class="sitemap-col-item">
+            树详解
+          </a><a href="../../algorithm/alg-basic-graph.html" class="sitemap-col-item">
+            图详解
+          </a><a href="../../algorithm/alg-sort-overview.html" class="sitemap-col-item">
+            内部排序
+          </a><a href="../../algorithm/alg-core-divide-and-conquer.html" class="sitemap-col-item">
+            算法思想
+          </a><a href="../../algorithm/alg-domain-security-degist.html" class="sitemap-col-item">
+            安全算法
+          </a><a href="../../algorithm/alg-domain-bigdata-overview.html" class="sitemap-col-item">
+            大数据处理
+          </a><a href="../../algorithm/alg-domain-distribute-overview.html" class="sitemap-col-item">
+            分布式算法
+          </a><a href="../../algorithm/alg-domain-load-balance.html" class="sitemap-col-item">
+            负载均衡算法
+          </a><a href="../../algorithm/alg-domain-suggest.html" class="sitemap-col-item">
+            推荐算法
+          </a><a href="../../algorithm/alg-other-mind.html" class="sitemap-col-item">
+            头脑风暴
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">数据库相关</div></td> <!----> <td><a href="../../db/sql/sql-db-howitworks.html" class="sitemap-col-item">
+            数据库原理
+          </a><a href="../../db/sql-lan/sql-lan.html" class="sitemap-col-item">
+            SQL语言
+          </a><a href="../../db/sql-mysql/sql-mysql-theory.html" class="sitemap-col-item">
+            MySQL相关
+          </a><a href="../../db/nosql-mongo/mongo-performance-improve.html" class="sitemap-col-item">
+            MongoDB
+          </a><a href="../../db/nosql-es/elasticsearch.html" class="sitemap-col-item">
+            ElasticSearch
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">开发基础相关</div></td> <!----> <td><a href="../package/dev-package-x-apache-common.html" class="sitemap-col-item">
+            常用类库
+          </a><a href="../ut/dev-ut-x-junit.html" class="sitemap-col-item">
+            单元测试
+          </a><a href="../regex/dev-regex-all.html" class="sitemap-col-item">
+            正则表达式
+          </a><a href="dev-protocol-overview.html" class="sitemap-col-item">
+            网络协议
+          </a><a href="../security/dev-security-overview.html" class="sitemap-col-item">
+            安全相关
+          </a><a href="../refactor/dev-refactor-if-else.html" class="sitemap-col-item">
+            常见重构技巧
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">架构相关</div></td> <!----> <td><a href="../../arch/arch-x-basic.html" class="sitemap-col-item">
+            架构基础
+          </a><a href="../../arch/arch-x-view.html" class="sitemap-col-item">
+            架构视角
+          </a><a href="../../arch/arch-x-evolution.html" class="sitemap-col-item">
+            架构演进
+          </a><a href="../../arch/arch-x-pattern.html" class="sitemap-col-item">
+            架构模式和要素
+          </a><a href="../../arch/arch-y-cache.html" class="sitemap-col-item">
+            高并发之缓存
+          </a><a href="../../arch/arch-y-ratelimit.html" class="sitemap-col-item">
+            高并发之限流
+          </a><a href="../../arch/arch-y-reduce.html" class="sitemap-col-item">
+            高并发之降级
+          </a><a href="../../arch/arch-y-loadbalance.html" class="sitemap-col-item">
+            负载均衡
+          </a><a href="../../arch/arch-y-backup.html" class="sitemap-col-item">
+            容灾备份
+          </a><a href="../../arch/arch-x-security.html" class="sitemap-col-item">
+            架构安全
+          </a><a href="../../arch/arch-example-seckill.html" class="sitemap-col-item">
+            秒杀系统设计
+          </a><a href="../../arch/arch-example-goods-detail.html" class="sitemap-col-item">
+            架构案例
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">工具和部署</div></td> <!----> <td><a href="../../devops/tool/tool-list-overview.html" class="sitemap-col-item">
+            工具集合
+          </a><a href="../../devops/tool/tool-ide.html" class="sitemap-col-item">
+            IDE相关
+          </a><a href="../../devops/tool/tool-git.html" class="sitemap-col-item">
+            Git
+          </a><a href="../../devops/tool/tool-maven.html" class="sitemap-col-item">
+            Maven
+          </a><a href="../../devops/linux/linux.html" class="sitemap-col-item">
+            Linux
+          </a><a href="../../devops/docker/docker-00-overview.html" class="sitemap-col-item">
+            Docker
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">方法论</div></td> <!----> <td><a href="../../dev-spec/spec/dev-th-solid.html" class="sitemap-col-item">
+            SOLID
+          </a><a href="../../dev-spec/spec/dev-th-cap.html" class="sitemap-col-item">
+            CAP
+          </a><a href="../../dev-spec/spec/dev-th-base.html" class="sitemap-col-item">
+            BASE
+          </a><a href="../../dev-spec/spec/dev-opensource.html" class="sitemap-col-item">
+            开源协议
+          </a><a href="../../dev-spec/code-style/code-style-alibaba.html" class="sitemap-col-item">
+            代码规范
+          </a><a href="../../dev-spec/pattern/1_overview.html" class="sitemap-col-item">
+            设计模式
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">产品和团队</div></td> <!----> <td><a href="../../team/team-z-wechat.html" class="sitemap-col-item">
+            产品相关
+          </a><a href="../../team/team-z-task-emergency.html" class="sitemap-col-item">
+            团队相关
+          </a><a href="../../team/team-z-arch-future.html" class="sitemap-col-item">
+            其它分享
+          </a></td></tr></table></div></div></div> <!----> </aside></div><div class="global-ui"></div></div>
+    <script src="../../../assets/js/app.691e72ae.js" defer></script><script src="../../../assets/js/4.2e3efdf6.js" defer></script><script src="../../../assets/js/3.d77b006c.js" defer></script><script src="../../../assets/js/300.1500f89e.js" defer></script>
+  </body>
+
+<!-- Mirrored from www.pdai.tech/md/develop/protocol/dev-protocol-tool-tcpdump.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:31:25 GMT -->
+</html>

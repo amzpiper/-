@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  
+<!-- Mirrored from www.pdai.tech/md/algorithm/alg-domain-bigdata-bloom-filter.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:30:50 GMT -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>大数据处理 - Bitmap &amp; Bloom Filter | Java 全栈知识体系</title>
+    <meta name="generator" content="VuePress 1.8.2">
+    <link rel="icon" href="../../favicon.ico">
+    <script src="../../../hm.baidu.com/hma448.js?525d4abc4a8675472736969f817ceb47"></script>
+    <script defer="defer" async="async" src="../../../pagead2.googlesyndication.com/pagead/js/f.txt"></script>
+    <meta name="description" content="包含: Java 基础, Java 部分源码, JVM, Spring, Spring Boot, Spring Cloud, 数据库原理, MySQL, ElasticSearch, MongoDB, Docker, k8s, CI&CD, Linux, DevOps, 分布式, 中间件, 开发工具, Git, IDE, 源码阅读，读书笔记, 开源项目...">
+    <meta property="article:modified_time" content="2021-09-27T13:15:21.000Z">
+    <meta property="og:title" content="大数据处理 - Bitmap & Bloom Filter">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="/md/algorithm/alg-domain-bigdata-bloom-filter.html">
+    <meta name="twitter:title" content="大数据处理 - Bitmap & Bloom Filter">
+    <meta name="twitter:url" content="/md/algorithm/alg-domain-bigdata-bloom-filter.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="robots" content="all">
+    <meta name="author" content="pdai">
+    <meta name="keywords" content="Java 全栈知识体系, java体系, java知识体系, java框架,java全栈,java学习路线,java全栈知识, java面试, 知识体系, java技术体系, java编程, java编程指南,java开发体系, java开发,java教程,java,java数据结构, 算法, 开发基础">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <link rel="preload" href="../../assets/css/0.styles.d4bb5489.css" as="style"><link rel="preload" href="../../assets/js/app.691e72ae.js" as="script"><link rel="preload" href="../../assets/js/4.2e3efdf6.js" as="script"><link rel="preload" href="../../assets/js/3.d77b006c.js" as="script"><link rel="preload" href="../../assets/js/72.326424f4.js" as="script">
+    <link rel="stylesheet" href="../../assets/css/0.styles.d4bb5489.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="../../index.html" class="home-link router-link-active"><!----> <span class="site-name">Java 全栈知识体系</span></a> <div class="links"><form id="search-form" role="search" class="algolia-search-wrapper search-box"><input id="algolia-search-input" class="search-query"></form> <nav class="nav-links can-hide"><div class="nav-item"><a href="../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav>  <ul class="sidebar-links"><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>数据结构基础</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="alg-basic-overview.html" class="sidebar-link">♥数据结构基础知识体系详解♥</a></li><li><a href="alg-basic-array.html" class="sidebar-link">线性表 - 数组和矩阵</a></li><li><a href="alg-basic-linklist.html" class="sidebar-link">线性表 - 链表</a></li><li><a href="alg-basic-hashtable.html" class="sidebar-link">线性表(散列) - 哈希表</a></li><li><a href="alg-basic-stack_queue.html" class="sidebar-link">线性表 - 栈和队列</a></li><li><a href="alg-basic-tree.html" class="sidebar-link">树 - 基础和Overview</a></li><li><a href="alg-basic-tree-search.html" class="sidebar-link">树 - 二叉搜索树(BST)</a></li><li><a href="alg-basic-tree-balance.html" class="sidebar-link">树 - 平衡二叉树(AVL)</a></li><li><a href="alg-basic-tree-redblack.html" class="sidebar-link">树 - 红黑树(R-B Tree)</a></li><li><a href="alg-basic-tree-hafman.html" class="sidebar-link">树 - 哈夫曼树(Huffman Tree)</a></li><li><a href="alg-basic-tree-trie.html" class="sidebar-link">树 - 前缀树(Trie Tree)</a></li><li><a href="alg-basic-graph.html" class="sidebar-link">图 - 基础和Overview</a></li><li><a href="alg-basic-graph-bfs-dfs.html" class="sidebar-link">图 - 遍历(BFS &amp; DFS)</a></li><li><a href="alg-basic-graph-min-tree.html" class="sidebar-link">图 - 最小生成树(Prim &amp; Kruskal)</a></li><li><a href="alg-basic-graph-min-distance.html" class="sidebar-link">图 - 最短路径(Dijkstra &amp; Frolyd)</a></li><li><a href="alg-basic-graph-topo-sort.html" class="sidebar-link">图 - 拓扑排序(Topological sort)</a></li><li><a href="alg-basic-graph-aoe.html" class="sidebar-link">图 - AOE &amp; 关键路径</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>常见排序算法</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="alg-sort-overview.html" class="sidebar-link">♥常见排序算法知识体系详解♥</a></li><li><a href="alg-sort-x-bubble.html" class="sidebar-link">排序 - 冒泡排序(Bubble Sort)</a></li><li><a href="alg-sort-x-fast.html" class="sidebar-link">排序 - 快速排序(Quick Sort)</a></li><li><a href="alg-sort-x-insert.html" class="sidebar-link">排序 - 插入排序(Insertion Sort)</a></li><li><a href="alg-sort-x-shell.html" class="sidebar-link">排序 - Shell排序(Shell Sort)</a></li><li><a href="alg-sort-x-select.html" class="sidebar-link">排序 - 选择排序(Selection sort)</a></li><li><a href="alg-sort-x-heap.html" class="sidebar-link">排序 - 堆排序(Heap Sort)</a></li><li><a href="alg-sort-x-merge.html" class="sidebar-link">排序 - 归并排序(Merge Sort)</a></li><li><a href="alg-sort-x-bucket.html" class="sidebar-link">排序 - 桶排序(Bucket Sort)</a></li><li><a href="alg-sort-x-radix.html" class="sidebar-link">排序 - 基数排序(Radix Sort)</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>算法思想</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="alg-core-overview.html" class="sidebar-link">♥算法思想知识体系详解♥</a></li><li><a href="alg-core-divide-and-conquer.html" class="sidebar-link">算法思想 - 分治算法</a></li><li><a href="alg-core-dynamic.html" class="sidebar-link">算法思想 - 动态规划算法</a></li><li><a href="alg-core-greedy.html" class="sidebar-link">算法思想 - 贪心算法</a></li><li><a href="alg-core-devide-two.html" class="sidebar-link">算法思想 - 二分法</a></li><li><a href="alg-core-search.html" class="sidebar-link">算法思想 - 搜索算法</a></li><li><a href="alg-core-backtracking.html" class="sidebar-link">算法思想 - 回溯算法</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading open"><span>一些领域算法</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="alg-domain-overview.html" class="sidebar-link">♥一些领域算法知识体系♥</a></li><li><a href="alg-domain-security-degist.html" class="sidebar-link">安全算法 - 摘要算法</a></li><li><a href="alg-domain-security-secure.html" class="sidebar-link">安全算法 - 加密算法</a></li><li><a href="alg-domain-security-sm.html" class="sidebar-link">安全算法 - 国密算法</a></li><li><a href="alg-domain-char-match.html" class="sidebar-link">字符串匹配 - Overview</a></li><li><a href="alg-domain-char-match-bf.html" class="sidebar-link">字符串匹配 - 模式预处理：朴素算法（Naive)(暴力破解)</a></li><li><a href="alg-domain-char-match-kmp.html" class="sidebar-link">字符串匹配 - 模式预处理：KMP 算法（Knuth-Morris-Pratt）</a></li><li><a href="alg-domain-char-match-bm.html" class="sidebar-link">字符串匹配 - 模式预处理：BM 算法 (Boyer-Moore)</a></li><li><a href="alg-domain-char-match-st.html" class="sidebar-link">字符串匹配 - 文本预处理：后缀树（Suffix Tree）</a></li><li><a href="alg-domain-bigdata-overview.html" class="sidebar-link">大数据处理 - Overview</a></li><li><a href="alg-domain-bigdata-devide-and-hash.html" class="sidebar-link">大数据处理 - 分治/hash/排序</a></li><li><a href="alg-domain-bigdata-bloom-filter.html" aria-current="page" class="active sidebar-link">大数据处理 - Bitmap &amp; Bloom Filter</a></li><li><a href="alg-domain-bigdata-bucket.html" class="sidebar-link">大数据处理 - 双层桶划分</a></li><li><a href="alg-domain-bigdata-db-index.html" class="sidebar-link">大数据处理 - Trie树/数据库/倒排索引</a></li><li><a href="alg-domain-bigdata-outsort.html" class="sidebar-link">大数据处理 - 外（磁盘文件）排序</a></li><li><a href="alg-domain-bigdata-map-reduce.html" class="sidebar-link">大数据处理 - Map &amp; Reduce</a></li><li><a href="alg-domain-distribute-overview.html" class="sidebar-link">分布式算法 - Overview</a></li><li><a href="alg-domain-distribute-x-consistency-hash.html" class="sidebar-link">分布式算法 - 一致性Hash算法</a></li><li><a href="alg-domain-distribute-x-paxos.html" class="sidebar-link">分布式算法 - Paxos算法</a></li><li><a href="alg-domain-distribute-x-raft.html" class="sidebar-link">分布式算法 - Raft算法</a></li><li><a href="alg-domain-distribute-x-zab.html" class="sidebar-link">分布式算法 - ZAB算法</a></li><li><a href="alg-domain-id-snowflake.html" class="sidebar-link">分布式算法 - Snowflake算法</a></li><li><a href="alg-domain-load-balance.html" class="sidebar-link">负载均衡算法 - 汇总</a></li><li><a href="alg-domain-suggest.html" class="sidebar-link">推荐算法 - 汇总</a></li><li><a href="alg-domain-machine.html" class="sidebar-link">数据挖掘 - 10大算法汇总</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>其它算法相关</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="alg-other-mind.html" class="sidebar-link">头脑风暴题目</a></li></ul></section></li></ul> </aside> <div><main class="page"> <div class="theme-default-content content__default"><h1 id="大数据处理---bitmap-amp-bloom-filter"><a href="#大数据处理---bitmap-amp-bloom-filter" class="header-anchor">¶</a> 大数据处理 - Bitmap &amp; Bloom Filter</h1> <blockquote><p>布隆过滤器有着广泛的应用，对于大量数据的“存不存在”的问题在空间上有明显优势，但是在判断存不存在是有一定的错误率(false positive)，也就是说，有可能把不属于这个集合的元素误认为属于这个集合(False Positive)，但不会把属于这个集合的元素误认为不属于这个集合(False Negative)。@pdai</p></blockquote> <ul><li><a href="#%e5%a4%a7%e6%95%b0%e6%8d%ae%e5%a4%84%e7%90%86---bitmap--bloom-filter">大数据处理 - Bitmap &amp; Bloom Filter</a> <ul><li><a href="#%e5%b8%83%e9%9a%86%e8%bf%87%e6%bb%a4%e5%99%a8%e7%94%b1%e6%9d%a5">布隆过滤器由来</a> <ul><li><a href="#%e7%89%b9%e7%82%b9">特点</a></li> <li><a href="#%e5%87%a0%e4%b8%aa%e4%b8%93%e4%b8%9a%e6%9c%af%e8%af%ad">几个专业术语</a></li></ul></li> <li><a href="#%e5%b8%83%e9%9a%86%e8%bf%87%e6%bb%a4%e5%99%a8%e5%ba%94%e7%94%a8%e5%9c%ba%e6%99%af">布隆过滤器应用场景</a></li> <li><a href="#%e5%b8%83%e9%9a%86%e8%bf%87%e6%bb%a4%e5%99%a8%e5%ae%9e%e7%8e%b0">布隆过滤器实现</a> <ul><li><a href="#%e4%bb%a5bitset-%e5%ae%9e%e7%8e%b0%e6%96%b9%e5%bc%8f%e4%b8%ba%e4%be%8b">以BitSet 实现方式为例</a></li> <li><a href="#%e4%bb%a5bitset-%e5%ae%9e%e7%8e%b0%e4%bb%a3%e7%a0%81">以BitSet 实现代码</a></li></ul></li> <li><a href="#%e8%af%af%e6%8a%a5%e7%8e%87---false-positive-rate">误报率 - False Positive Rate</a> <ul><li><a href="#%e8%af%af%e6%8a%a5%e7%8e%87%e7%9a%84%e4%ba%a7%e7%94%9f">误报率的产生</a></li> <li><a href="#%e8%af%af%e6%8a%a5%e7%8e%87%e7%9a%84%e8%ae%a1%e7%ae%97">误报率的计算</a></li> <li><a href="#%e5%87%8f%e5%b0%91%e8%af%af%e6%8a%a5%e7%8e%87%e6%9c%80%e4%bc%98%e7%9a%84%e5%93%88%e5%b8%8c%e5%87%bd%e6%95%b0%e4%b8%aa%e6%95%b0">减少误报率: 最优的哈希函数个数</a></li> <li><a href="#%e5%87%8f%e5%b0%91%e8%af%af%e6%8a%a5%e7%8e%87%e4%bd%8d%e6%95%b0%e7%bb%84%e7%9a%84%e5%a4%a7%e5%b0%8f">减少误报率: 位数组的大小</a></li></ul></li> <li><a href="#%e6%8b%93%e5%b1%95counting-bloom-filter">拓展: Counting Bloom Filter</a></li> <li><a href="#%e6%8b%93%e5%b1%95%e5%85%b6%e5%ae%83">拓展: 其它</a> <ul><li><a href="#data-synchronization">Data synchronization</a></li> <li><a href="#bloomier-filters">Bloomier filters</a></li> <li><a href="#compact-approximators">Compact approximators</a></li> <li><a href="#stable-bloom-filters">Stable Bloom filters</a></li> <li><a href="#scalable-bloom-filters">Scalable Bloom filters</a></li> <li><a href="#attenuated-bloom-filters">Attenuated Bloom filters</a></li></ul></li> <li><a href="#%e7%9b%b8%e5%85%b3%e9%a2%98%e7%9b%ae">相关题目</a> <ul><li><a href="#%e7%bb%99%e4%bd%a0ab%e4%b8%a4%e4%b8%aa%e6%96%87%e4%bb%b6%e5%90%84%e5%ad%98%e6%94%be50%e4%ba%bf%e6%9d%a1url%e6%af%8f%e6%9d%a1url%e5%8d%a0%e7%94%a864%e5%ad%97%e8%8a%82%e5%86%85%e5%ad%98%e9%99%90%e5%88%b6%e6%98%af4g%e8%ae%a9%e4%bd%a0%e6%89%be%e5%87%baab%e6%96%87%e4%bb%b6%e5%85%b1%e5%90%8c%e7%9a%84url%e5%a6%82%e6%9e%9c%e6%98%af%e4%b8%89%e4%b8%aa%e4%b9%83%e8%87%b3n%e4%b8%aa%e6%96%87%e4%bb%b6%e5%91%a2">给你A,B两个文件，各存放50亿条URL，每条URL占用64字节，内存限制是4G，让你找出A,B文件共同的URL。如果是三个乃至n个文件呢? </a></li> <li><a href="#%e7%bb%99%e5%ae%9aab%e4%b8%a4%e4%b8%aa%e6%96%87%e4%bb%b6%e5%90%84%e5%ad%98%e6%94%be50%e4%ba%bf%e4%b8%aaurl%e6%af%8f%e4%b8%aaurl%e5%90%84%e5%8d%a064%e5%ad%97%e8%8a%82%e5%86%85%e5%ad%98%e9%99%90%e5%88%b6%e6%98%af4g%e8%ae%a9%e4%bd%a0%e6%89%be%e5%87%baab%e6%96%87%e4%bb%b6%e5%85%b1%e5%90%8c%e7%9a%84url">给定a、b两个文件，各存放50亿个url，每个url各占64字节，内存限制是4G，让你找出a、b文件共同的url? </a></li> <li><a href="#%e5%9c%a825%e4%ba%bf%e4%b8%aa%e6%95%b4%e6%95%b0%e4%b8%ad%e6%89%be%e5%87%ba%e4%b8%8d%e9%87%8d%e5%a4%8d%e7%9a%84%e6%95%b4%e6%95%b0%e6%b3%a8%e5%86%85%e5%ad%98%e4%b8%8d%e8%b6%b3%e4%bb%a5%e5%ae%b9%e7%ba%b3%e8%bf%9925%e4%ba%bf%e4%b8%aa%e6%95%b4%e6%95%b0">在2.5亿个整数中找出不重复的整数，注，内存不足以容纳这2.5亿个整数。</a></li> <li><a href="#%e7%bb%9940%e4%ba%bf%e4%b8%aa%e4%b8%8d%e9%87%8d%e5%a4%8d%e7%9a%84unsigned-int%e7%9a%84%e6%95%b4%e6%95%b0%e6%b2%a1%e6%8e%92%e8%bf%87%e5%ba%8f%e7%9a%84%e7%84%b6%e5%90%8e%e5%86%8d%e7%bb%99%e4%b8%80%e4%b8%aa%e6%95%b0%e5%a6%82%e4%bd%95%e5%bf%ab%e9%80%9f%e5%88%a4%e6%96%ad%e8%bf%99%e4%b8%aa%e6%95%b0%e6%98%af%e5%90%a6%e5%9c%a8%e9%82%a340%e4%ba%bf%e4%b8%aa%e6%95%b0%e5%bd%93%e4%b8%ad">给40亿个不重复的unsigned int的整数，没排过序的，然后再给一个数，如何快速判断这个数是否在那40亿个数当中? </a></li></ul></li> <li><a href="#%e5%8f%82%e8%80%83%e6%96%87%e7%ab%a0">参考文章</a></li></ul></li></ul> <h2 id="布隆过滤器由来"><a href="#布隆过滤器由来" class="header-anchor">¶</a> 布隆过滤器由来</h2> <p>布隆在1970年提出了布隆过滤器(Bloom Filter)，是一个很长的二进制向量(可以想象成一个序列)和一系列随机映射函数(hash function)。可用于判断一个元素是否在一个集合中，查询效率很高(1-N，最优能逼近于1)。通常应用在一些需要快速判断某个元素是否属于集合，但是并不严格要求100%正确的场合。</p> <h3 id="特点"><a href="#特点" class="header-anchor">¶</a> 特点</h3> <ul><li><code>优点</code>: 占用空间小，查询快</li> <li><code>缺点</code>: 有误判，删除困难</li></ul> <h3 id="几个专业术语"><a href="#几个专业术语" class="header-anchor">¶</a> 几个专业术语</h3> <p>这里有必要介绍一下<code>False Positive</code>和<code>False Negative</code>的概念:</p> <ul><li><code>False Positive</code>: 中文可以理解为“假阳性”，在这里表示，有可能把不属于这个集合的元素误认为属于这个集合</li> <li><code>False Negative</code>: 中文可以理解为“假阴性”，Bloom Filter是不存在false negatived的， 即不会把属于这个集合的元素误认为不属于这个集合(False Negative)。</li></ul> <h2 id="布隆过滤器应用场景"><a href="#布隆过滤器应用场景" class="header-anchor">¶</a> 布隆过滤器应用场景</h2> <ul><li><p><code>网页爬虫对URL的去重</code>: 避免爬取相同的URL地址；</p></li> <li><p><code>反垃圾邮件</code>: 假设邮件服务器通过发送方的邮件域或者IP地址对垃圾邮件进行过滤，那么就需要判断当前的邮件域或者IP地址是否处于黑名单之中。如果邮件服务器的通信邮件数量非常大(也可以认为数据量级上亿)，那么也可以使用Bloom Filter算法；</p></li> <li><p><code>缓存击穿</code>: 将已存在的缓存放到布隆中，当黑客访问不存在的缓存时迅速返回避免缓存及DB挂掉；</p></li> <li><p><code>HTTP缓存服务器</code>: 当本地局域网中的PC发起一条HTTP请求时，缓存服务器会先查看一下这个URL是否已经存在于缓存之中，如果存在的话就没有必要去原始的服务器拉取数据了(为了简单起见，我们假设数据没有发生变化)，这样既能节省流量，还能加快访问速度，以提高用户体验。</p></li> <li><p><code>黑/白名单</code>: 类似反垃圾邮件。</p></li> <li><p><code>Bigtable</code>: Google 著名的分布式数据库 Bigtable 使用了布隆过滤器来查找不存在的行或列，以减少磁盘查找的IO次数。</p></li> <li><p><code>Squid</code>: 网页代理缓存服务器在 cachedigests 中使用了也布隆过滤器。</p></li> <li><p><code>Venti 文档存储系统</code>: 也采用布隆过滤器来检测先前存储的数据。</p></li> <li><p><code>SPIN 模型检测器</code>: 也使用布隆过滤器在大规模验证问题时跟踪可达状态空间。</p></li> <li><p><code>Chrome加速安全浏览</code>: Google Chrome浏览器使用了布隆过滤器加速安全浏览服务。</p></li> <li><p><code>Key-Value系统</code>: 在很多Key-Value系统中也使用了布隆过滤器来加快查询过程，如 Hbase，Accumulo，Leveldb，一般而言，Value 保存在磁盘中，访问磁盘需要花费大量时间，然而使用布隆过滤器可以快速判断某个Key对应的Value是否存在，因此可以避免很多不必要的磁盘IO操作，只是引入布隆过滤器会带来一定的内存消耗。</p></li> <li><p><code>HTTP Proxy-Cache</code>: 在Internet Cache Protocol中的Proxy-Cache很多都是使用Bloom Filter存储URLs，除了高效的查询外，还能很方便得传输交换Cache信息。</p></li> <li><p><code>网络应用</code>: P2P网络中查找资源操作，可以对每条网络通路保存Bloom Filter，当命中时，则选择该通路访问。广播消息时，可以检测某个IP是否已发包。检测广播消息包的环路，将Bloom Filter保存在包里，每个节点将自己添加入Bloom Filter。信息队列管理，使用Counter Bloom Filter管理信息流量。</p></li></ul> <h2 id="布隆过滤器实现"><a href="#布隆过滤器实现" class="header-anchor">¶</a> 布隆过滤器实现</h2> <p>Bloom Filter在很多开源框架都有实现，例如:</p> <ul><li><p><code>Elasticsearch</code>: org.elasticsearch.common.util.BloomFilter</p></li> <li><p><code>guava</code>: com.google.common.hash.BloomFilter</p></li> <li><p><code>Hadoop</code>: org.apache.hadoop.util.bloom.BloomFilter(基于BitSet实现)</p></li></ul> <h3 id="以bitset-实现方式为例"><a href="#以bitset-实现方式为例" class="header-anchor">¶</a> 以BitSet 实现方式为例</h3> <p>创建一个m位BitSet，先将所有位初始化为0，然后选择k个不同的哈希函数。第i个哈希函数对字符串str哈希的结果记为h(i，str)，且h(i，str)的范围是0到m-1 。</p> <ul><li>加入字符串过程</li></ul> <p>下面是每个字符串处理的过程，首先是将字符串str“记录”到BitSet中的过程:
+对于字符串str，分别计算h(1，str)，h(2，str)…… h(k，str)。然后将BitSet的第h(1，str)、h(2，str)…… h(k，str)位设为1。</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/alg/alg-dst-bloomfilter-0.png" loading="lazy" class="lazy"></p> <p>这样就将字符串str映射到BitSet中的k个二进制位了。</p> <ul><li>检查字符串是否存在的过程</li></ul> <p>下面是检查字符串str是否被BitSet记录过的过程:
+对于字符串str，分别计算h(1，str)，h(2，str)…… h(k，str)。然后检查BitSet的第h(1，str)、h(2，str)…… h(k，str)位是否为1，若其中任何一位不为1则可以判定str一定没有被记录过。若全部位都是1，则“认为”字符串str存在。
+若一个字符串对应的Bit不全为1，则可以肯定该字符串一定没有被Bloom Filter记录过。(这是显然的，因为字符串被记录过，其对应的二进制位肯定全部被设为1了)</p> <h3 id="以bitset-实现代码"><a href="#以bitset-实现代码" class="header-anchor">¶</a> 以BitSet 实现代码</h3> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token keyword">package</span> <span class="token namespace">algorithm</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">BitSet</span><span class="token punctuation">;</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">BloomFilter</span>
+<span class="token punctuation">{</span>
+    <span class="token comment">/* BitSet初始分配2^24个bit */</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">int</span> DEFAULT_SIZE <span class="token operator">=</span> <span class="token number">1</span> <span class="token operator">&lt;&lt;</span> <span class="token number">25</span><span class="token punctuation">;</span>
+    <span class="token comment">/* 不同哈希函数的种子，一般应取质数 */</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">int</span><span class="token punctuation">[</span><span class="token punctuation">]</span> seeds <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token keyword">int</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">{</span> <span class="token number">5</span><span class="token punctuation">,</span> <span class="token number">7</span><span class="token punctuation">,</span> <span class="token number">11</span><span class="token punctuation">,</span> <span class="token number">13</span><span class="token punctuation">,</span> <span class="token number">31</span><span class="token punctuation">,</span> <span class="token number">37</span><span class="token punctuation">,</span> <span class="token number">61</span> <span class="token punctuation">}</span><span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token class-name">BitSet</span> bits <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">BitSet</span><span class="token punctuation">(</span>DEFAULT_SIZE<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">/* 哈希函数对象 */</span>
+    <span class="token keyword">private</span> <span class="token class-name">SimpleHash</span><span class="token punctuation">[</span><span class="token punctuation">]</span> func <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">SimpleHash</span><span class="token punctuation">[</span>seeds<span class="token punctuation">.</span>length<span class="token punctuation">]</span><span class="token punctuation">;</span>
+ 
+    <span class="token keyword">public</span> <span class="token class-name">BloomFilter</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token punctuation">{</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> seeds<span class="token punctuation">.</span>length<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span>
+        <span class="token punctuation">{</span>
+            func<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">SimpleHash</span><span class="token punctuation">(</span>DEFAULT_SIZE<span class="token punctuation">,</span> seeds<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+ 
+    <span class="token comment">// 将字符串标记到bits中</span>
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">add</span><span class="token punctuation">(</span><span class="token class-name">String</span> value<span class="token punctuation">)</span>
+    <span class="token punctuation">{</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token class-name">SimpleHash</span> f <span class="token operator">:</span> func<span class="token punctuation">)</span>
+        <span class="token punctuation">{</span>
+            bits<span class="token punctuation">.</span><span class="token function">set</span><span class="token punctuation">(</span>f<span class="token punctuation">.</span><span class="token function">hash</span><span class="token punctuation">(</span>value<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+ 
+    <span class="token comment">// 判断字符串是否已经被bits标记</span>
+    <span class="token keyword">public</span> <span class="token keyword">boolean</span> <span class="token function">contains</span><span class="token punctuation">(</span><span class="token class-name">String</span> value<span class="token punctuation">)</span>
+    <span class="token punctuation">{</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>value <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span>
+        <span class="token punctuation">{</span>
+            <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword">boolean</span> ret <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token class-name">SimpleHash</span> f <span class="token operator">:</span> func<span class="token punctuation">)</span>
+        <span class="token punctuation">{</span>
+            ret <span class="token operator">=</span> ret <span class="token operator">&amp;&amp;</span> bits<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>f<span class="token punctuation">.</span><span class="token function">hash</span><span class="token punctuation">(</span>value<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword">return</span> ret<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+ 
+    <span class="token comment">/* 哈希函数类 */</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">class</span> <span class="token class-name">SimpleHash</span>
+    <span class="token punctuation">{</span>
+        <span class="token keyword">private</span> <span class="token keyword">int</span> cap<span class="token punctuation">;</span>
+        <span class="token keyword">private</span> <span class="token keyword">int</span> seed<span class="token punctuation">;</span>
+ 
+        <span class="token keyword">public</span> <span class="token class-name">SimpleHash</span><span class="token punctuation">(</span><span class="token keyword">int</span> cap<span class="token punctuation">,</span> <span class="token keyword">int</span> seed<span class="token punctuation">)</span>
+        <span class="token punctuation">{</span>
+            <span class="token keyword">this</span><span class="token punctuation">.</span>cap <span class="token operator">=</span> cap<span class="token punctuation">;</span>
+            <span class="token keyword">this</span><span class="token punctuation">.</span>seed <span class="token operator">=</span> seed<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+ 
+        <span class="token comment">// hash函数，采用简单的加权和hash</span>
+        <span class="token keyword">public</span> <span class="token keyword">int</span> <span class="token function">hash</span><span class="token punctuation">(</span><span class="token class-name">String</span> value<span class="token punctuation">)</span>
+        <span class="token punctuation">{</span>
+            <span class="token keyword">int</span> result <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+            <span class="token keyword">int</span> len <span class="token operator">=</span> value<span class="token punctuation">.</span><span class="token function">length</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> len<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span>
+            <span class="token punctuation">{</span>
+                result <span class="token operator">=</span> seed <span class="token operator">*</span> result <span class="token operator">+</span> value<span class="token punctuation">.</span><span class="token function">charAt</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+            <span class="token keyword">return</span> <span class="token punctuation">(</span>cap <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">&amp;</span> result<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br><span class="line-number">35</span><br><span class="line-number">36</span><br><span class="line-number">37</span><br><span class="line-number">38</span><br><span class="line-number">39</span><br><span class="line-number">40</span><br><span class="line-number">41</span><br><span class="line-number">42</span><br><span class="line-number">43</span><br><span class="line-number">44</span><br><span class="line-number">45</span><br><span class="line-number">46</span><br><span class="line-number">47</span><br><span class="line-number">48</span><br><span class="line-number">49</span><br><span class="line-number">50</span><br><span class="line-number">51</span><br><span class="line-number">52</span><br><span class="line-number">53</span><br><span class="line-number">54</span><br><span class="line-number">55</span><br><span class="line-number">56</span><br><span class="line-number">57</span><br><span class="line-number">58</span><br><span class="line-number">59</span><br><span class="line-number">60</span><br><span class="line-number">61</span><br><span class="line-number">62</span><br><span class="line-number">63</span><br><span class="line-number">64</span><br><span class="line-number">65</span><br><span class="line-number">66</span><br><span class="line-number">67</span><br><span class="line-number">68</span><br><span class="line-number">69</span><br></div></div><h2 id="误报率---false-positive-rate"><a href="#误报率---false-positive-rate" class="header-anchor">¶</a> 误报率 - False Positive Rate</h2> <h3 id="误报率的产生"><a href="#误报率的产生" class="header-anchor">¶</a> 误报率的产生</h3> <p>初始状态下，Bloom Filter是一个m位的位数组，且数组被0所填充。同时，我们需要定义k个不同的hash函数，每一个hash函数都随机的将每一个输入元素映射到位数组中的一个位上。那么对于一个确定的输入，我们会得到k个索引。</p> <p>插入元素: 经过k个hash函数的映射，我们会得到k个索引，我们把位数组中这k个位置全部置1(不管其中的位之前是0还是1)</p> <p>查询元素: 输入元素经过k个hash函数的映射会得到k个索引，如果位数组中这k个索引任意一处是0，那么就说明这个元素不在集合之中；如果元素处于集合之中，那么当插入元素的时候这k个位都是1。但如果这k个索引处的位都是1，被查询的元素就一定在集合之中吗? 答案是不一定，也就是说出现了False Positive的情况(但Bloom Filter不会出现False Negative的情况)</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/alg/alg-dst-bloomfilter-1.png" loading="lazy" class="lazy"></p> <p>在上图中，当插入x、y、z这三个元素之后，再来查询w，会发现w不在集合之中，而如果w经过三个hash函数计算得出的结果所得索引处的位全是1，那么Bloom Filter就会告诉你，w在集合之中，实际上这里是误报，w并不在集合之中。</p> <h3 id="误报率的计算"><a href="#误报率的计算" class="header-anchor">¶</a> 误报率的计算</h3> <p>Bloom Filter的误报率到底有多大? 下面在数学上进行一番推敲。假设HASH函数输出的索引值落在m位的数组上的每一位上都是等可能的。那么，对于一个给定的HASH函数，在进行某一个运算的时候，一个特定的位没有被设置为1的概率是</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/alg/alg-dst-bloomfilter-a-1.png" loading="lazy" class="lazy"></p> <p>那么，对于所有的k个HASH函数，都没有把这个位设置为1的概率是</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/alg/alg-dst-bloomfilter-a-2.png" loading="lazy" class="lazy"></p> <p>如果我们已经插入了n个元素，那么对于一个给定的位，这个位仍然是0的概率是</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/alg/alg-dst-bloomfilter-a-3.png" loading="lazy" class="lazy"></p> <p>那么，如果插入n个元素之后，这个位是1的概率是</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/alg/alg-dst-bloomfilter-a-4.png" loading="lazy" class="lazy"></p> <p>如果对一个特定的元素存在误报，那么这个元素的经过HASH函数所得到的k个索引全部都是1，概率也就是</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/alg/alg-dst-bloomfilter-a-5.png" loading="lazy" class="lazy"></p> <p>根据常数e的定义，可以近似的表示为:</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/alg/alg-dst-bloomfilter-a-6.png" loading="lazy" class="lazy"></p> <h3 id="减少误报率-最优的哈希函数个数"><a href="#减少误报率-最优的哈希函数个数" class="header-anchor">¶</a> 减少误报率: 最优的哈希函数个数</h3> <p>既然Bloom Filter要靠多个哈希函数将集合映射到位数组中，那么应该选择几个哈希函数才能使元素查询时的错误率降到最低呢? 这里有两个互斥的理由: 如果哈希函数的个数多，那么在对一个不属于集合的元素进行查询时得到0的概率就大；但另一方面，如果哈希函数的个数少，那么位数组中的0就多。为了得到最优的哈希函数个数，我们需要根据上一小节中的错误率公式进行计算。</p> <p>先用p和f进行计算。注意到f = exp(k ln(1 − e−kn/m))，我们令g = k ln(1 − e−kn/m)，只要让g取到最小，f自然也取到最小。由于p = e-kn/m，我们可以将g写成</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/alg/alg-dst-bloomfilter-b-1.png" loading="lazy" class="lazy"></p> <p>根据对称性法则可以很容易看出当p = 1/2，也就是k = ln2· (m/n)时，g取得最小值。在这种情况下，最小错误率f等于(1/2)k ≈ (0.6185)m/n。另外，注意到p是位数组中某一位仍是0的概率，所以p = 1/2对应着位数组中0和1各一半。换句话说，要想保持错误率低，最好让位数组有一半还空着。</p> <p>需要强调的一点是，p = 1/2时错误率最小这个结果并不依赖于近似值p和f。同样对于f’ = exp(k ln(1 − (1 − 1/m)kn))，g’ = k ln(1 − (1 − 1/m)kn)，p’ = (1 − 1/m)kn，我们可以将g’写成</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/alg/alg-dst-bloomfilter-b-2.png" loading="lazy" class="lazy"></p> <p>同样根据对称性法则可以得到当p’ = 1/2时，g’取得最小值。</p> <h3 id="减少误报率-位数组的大小"><a href="#减少误报率-位数组的大小" class="header-anchor">¶</a> 减少误报率: 位数组的大小</h3> <p>在不超过一定错误率的情况下，Bloom Filter至少需要多少位才能表示全集中任意n个元素的集合? 假设全集中共有u个元素，允许的最大错误率为є，下面我们来求位数组的位数m。</p> <p>假设X为全集中任取n个元素的集合，F(X)是表示X的位数组。那么对于集合X中任意一个元素x，在s = F(X)中查询x都能得到肯定的结果，即s能够接受x。显然，由于Bloom Filter引入了错误，s能够接受的不仅仅是X中的元素，它还能够є (u - n)个false positive。因此，对于一个确定的位数组来说，它能够接受总共n + є (u - n)个元素。在n + є (u - n)个元素中，s真正表示的只有其中n个，所以一个确定的位数组可以表示</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/alg/alg-dst-bloomfilter-c-1.png" loading="lazy" class="lazy"></p> <p>个集合。m位的位数组共有2m个不同的组合，进而可以推出，m位的位数组可以表示</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/alg/alg-dst-bloomfilter-c-2.png" loading="lazy" class="lazy"></p> <p>个集合。全集中n个元素的集合总共有</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/alg/alg-dst-bloomfilter-c-3.png" loading="lazy" class="lazy"></p> <p>个，因此要让m位的位数组能够表示所有n个元素的集合，必须有</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/alg/alg-dst-bloomfilter-c-4.png" loading="lazy" class="lazy"></p> <p>即:</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/alg/alg-dst-bloomfilter-c-5.png" loading="lazy" class="lazy"></p> <p>上式中的近似前提是n和єu相比很小，这也是实际情况中常常发生的。根据上式，我们得出结论: 在错误率不大于є的情况下，m至少要等于n log2(1/є)才能表示任意n个元素的集合。</p> <p>上一小节中我们曾算出当k = ln2· (m/n)时错误率f最小，这时f = (1/2)k = (1/2)mln2 / n。现在令f≤є，可以推出</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/alg/alg-dst-bloomfilter-c-6.png" loading="lazy" class="lazy"></p> <p>这个结果比前面我们算得的下界n log2(1/є)大了log2 e ≈ 1.44倍。这说明在哈希函数的个数取到最优时，要让错误率不超过є，m至少需要取到最小值的1.44倍。</p> <h2 id="拓展-counting-bloom-filter"><a href="#拓展-counting-bloom-filter" class="header-anchor">¶</a> 拓展: Counting Bloom Filter</h2> <p>从前面对Bloom Filter的介绍可以看出，标准的Bloom Filter是一种很简单的数据结构，它只支持插入和查找两种操作。在所要表达的集合是静态集合的时候，标准Bloom Filter可以很好地工作，但是如果要表达的集合经常变动，标准Bloom Filter的弊端就显现出来了，因为它不支持删除操作。</p> <p>Counting Bloom Filter的出现解决了这个问题，它将标准Bloom Filter位数组的每一位扩展为一个小的计数器(Counter)，在插入元素时给对应的k(k为哈希函数个数)个Counter的值分别加1，删除元素时给对应的k个Counter的值分别减1。Counting Bloom Filter通过多占用几倍的存储空间的代价，给Bloom Filter增加了删除操作。下一个问题自然就是，到底要多占用几倍呢?</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/alg/alg-dst-bloomfilter-d-1.png" loading="lazy" class="lazy"></p> <p>我们先计算第i个Counter被增加j次的概率，其中n为集合元素个数，k为哈希函数个数，m为Counter个数(对应着原来位数组的大小):</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/alg/alg-dst-bloomfilter-d-2.png" loading="lazy" class="lazy"></p> <p>上面等式右端的表达式中，前一部分表示从nk次哈希中选择j次，中间部分表示j次哈希都选中了第i个Counter，后一部分表示其它nk – j次哈希都没有选中第i个Counter。因此，第i个Counter的值大于j的概率可以限定为:</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/alg/alg-dst-bloomfilter-d-3.png" loading="lazy" class="lazy"></p> <p>上式第二步缩放中应用了估计阶乘的斯特林公式:</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/alg/alg-dst-bloomfilter-d-4.png" loading="lazy" class="lazy"></p> <p>在Bloom Filter概念和原理一文中，我们提到过k的最优值为(ln2)m/n，现在我们限制k ≤ (ln2)m/n，就可以得到如下结论:</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/alg/alg-dst-bloomfilter-d-5.png" loading="lazy" class="lazy"></p> <p>如果每个Counter分配4位，那么当Counter的值达到16时就会溢出。这个概率为:</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/alg/alg-dst-bloomfilter-d-6.png" loading="lazy" class="lazy"></p> <p>这个值足够小，因此对于大多数应用程序来说，4位就足够了。</p> <h2 id="拓展-其它"><a href="#拓展-其它" class="header-anchor">¶</a> 拓展: 其它</h2> <h3 id="data-synchronization"><a href="#data-synchronization" class="header-anchor">¶</a> Data synchronization</h3> <p>Byers等人提出了使用布隆过滤器近似数据同步。</p> <h3 id="bloomier-filters"><a href="#bloomier-filters" class="header-anchor">¶</a> Bloomier filters</h3> <p>Chazelle 等人提出了一个通用的布隆过滤器，该布隆过滤器可以将某一值与每个已经插入的元素关联起来，并实现了一个关联数组Map。与普通的布隆过滤器一样，Chazelle实现的布隆过滤器也可以达到较低的空间消耗，但同时也会产生false positive，不过，在Bloomier filter中，某 key 如果不在 map 中，falsepositive在会返回时会被定义出的。该Map 结构不会返回与 key 相关的在 map 中的错误的值。</p> <h3 id="compact-approximators"><a href="#compact-approximators" class="header-anchor">¶</a> Compact approximators</h3> <h3 id="stable-bloom-filters"><a href="#stable-bloom-filters" class="header-anchor">¶</a> Stable Bloom filters</h3> <h3 id="scalable-bloom-filters"><a href="#scalable-bloom-filters" class="header-anchor">¶</a> Scalable Bloom filters</h3> <h3 id="attenuated-bloom-filters"><a href="#attenuated-bloom-filters" class="header-anchor">¶</a> Attenuated Bloom filters</h3> <h2 id="相关题目"><a href="#相关题目" class="header-anchor">¶</a> 相关题目</h2> <h3 id="给你ab两个文件各存放50亿条url每条url占用64字节内存限制是4g让你找出ab文件共同的url如果是三个乃至n个文件呢"><a href="#给你ab两个文件各存放50亿条url每条url占用64字节内存限制是4g让你找出ab文件共同的url如果是三个乃至n个文件呢" class="header-anchor">¶</a> 给你A,B两个文件，各存放50亿条URL，每条URL占用64字节，内存限制是4G，让你找出A,B文件共同的URL。如果是三个乃至n个文件呢?</h3> <p>根据这个问题我们来计算下内存的占用，4G=2^32大概是40亿*8大概是340亿，n=50亿，如果按出错率0.01算需要的大概是650亿个bit。现在可用的是340亿，相差并不多，这样可能会使出错率上升些。另外如果这些urlip是一一对应的，就可以转换成ip，则大大简单了。</p> <h3 id="给定a、b两个文件各存放50亿个url每个url各占64字节内存限制是4g让你找出a、b文件共同的url"><a href="#给定a、b两个文件各存放50亿个url每个url各占64字节内存限制是4g让你找出a、b文件共同的url" class="header-anchor">¶</a> 给定a、b两个文件，各存放50亿个url，每个url各占64字节，内存限制是4G，让你找出a、b文件共同的url?</h3> <p>如果允许有一定的错误率，可以使用Bloom filter，4G内存大概可以表示340亿bit。将其中一个文件中的url使用Bloom filter映射为这340亿bit，然后挨个读取另外一个文件的url，检查是否与Bloom filter，如果是，那么该url应该是共同的url(注意会有一定的错误率)。”</p> <h3 id="在25亿个整数中找出不重复的整数注内存不足以容纳这25亿个整数"><a href="#在25亿个整数中找出不重复的整数注内存不足以容纳这25亿个整数" class="header-anchor">¶</a> 在2.5亿个整数中找出不重复的整数，注，内存不足以容纳这2.5亿个整数。</h3> <p><code>方案1</code>: 采用2-Bitmap(每个数分配2bit，00表示不存在，01表示出现一次，10表示多次，11无意义)进行，共需内存2^32 * 2 bit=1 GB内存，还可以接受。然后扫描这2.5亿个整数，查看Bitmap中相对应位，如果是00变01，01变10，10保持不变。所描完事后，查看bitmap，把对应位是01的整数输出即可。</p> <p><code>方案2</code>: 也可采用分治，划分小文件的方法。然后在小文件中找出不重复的整数，并排序。然后再进行归并，注意去除重复的元素。</p> <h3 id="给40亿个不重复的unsigned-int的整数没排过序的然后再给一个数如何快速判断这个数是否在那40亿个数当中"><a href="#给40亿个不重复的unsigned-int的整数没排过序的然后再给一个数如何快速判断这个数是否在那40亿个数当中" class="header-anchor">¶</a> 给40亿个不重复的unsigned int的整数，没排过序的，然后再给一个数，如何快速判断这个数是否在那40亿个数当中?</h3> <p>用位图/Bitmap的方法，申请512M的内存，一个bit位代表一个unsigned int值。读入40亿个数，设置相应的bit位，读入要查询的数，查看相应bit位是否为1，为1表示存在，为0表示不存在。</p> <h2 id="参考文章"><a href="#参考文章" class="header-anchor">¶</a> 参考文章</h2> <ul><li>https://my.oschina.net/kiwivip/blog/133498</li> <li>https://blog.csdn.net/h348592532/article/details/45364147</li> <li>https://blog.csdn.net/h348592532/article/details/45362661</li> <li>https://blog.csdn.net/qianshangding0708/article/details/48030057</li> <li>https://blog.csdn.net/xf_87/article/details/51073678</li> <li>https://blog.csdn.net/weixin_34082695/article/details/90331258</li> <li>https://blog.csdn.net/v_JULY_v/article/details/7382693</li></ul></div> <div class="page-contract"><h2>联系我</h2> <div class="c-content"><span style="font-size:1rem;font-weight:bold;">添加@pdai微信</span><br> <img src="../../pdai.jpg" height="280px" style="margin:10px;"><br>
+        PS：添加时请备注<b>Java全栈</b>，谢谢！
+      </div></div> <footer class="page-edit"><div class="edit-link"><a href="https://github.com/realpdai/tech-arch-doc/edit/master/md/algorithm/alg-domain-bigdata-bloom-filter.md" target="_blank" rel="noopener noreferrer">在 GitHub 上编辑此页</a> <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></div> <div class="last-updated"><span class="prefix">上次更新: </span> <span class="time">9/27/2021,</span></div></footer> <div class="page-nav"><p class="inner"><span class="prev">
+        ←
+        <a href="alg-domain-bigdata-devide-and-hash.html" class="prev">
+          大数据处理 - 分治/hash/排序
+        </a></span> <span class="next"><a href="alg-domain-bigdata-bucket.html">
+          大数据处理 - 双层桶划分
+        </a>
+        →
+      </span></p></div> <div class="google_ad_bottom"><ins data-ad-client="ca-pub-5088193899865249" data-ad-slot="6822031208" data-ad-format="auto" data-full-width-responsive="true" class="adsbygoogle" style="display:block"></ins> <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script></div> </main></div> <aside class="page-sidebar"> <div class="page-side-toolbar"><div class="option-box-toc-fixed"><div class="toc-container-sidebar"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:650px"><div style="font-weight:bold;text-align:center;">大数据处理 - Bitmap &amp; Bloom Filter</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="alg-domain-bigdata-bloom-filter.html#布隆过滤器由来" class="toc-sidebar-link">布隆过滤器由来</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#特点" class="toc-sidebar-link">特点</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#几个专业术语" class="toc-sidebar-link">几个专业术语</a></li></ul></li><li><a href="alg-domain-bigdata-bloom-filter.html#布隆过滤器应用场景" class="toc-sidebar-link">布隆过滤器应用场景</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="alg-domain-bigdata-bloom-filter.html#布隆过滤器实现" class="toc-sidebar-link">布隆过滤器实现</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#以bitset-实现方式为例" class="toc-sidebar-link">以BitSet 实现方式为例</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#以bitset-实现代码" class="toc-sidebar-link">以BitSet 实现代码</a></li></ul></li><li><a href="alg-domain-bigdata-bloom-filter.html#误报率---false-positive-rate" class="toc-sidebar-link">误报率 - False Positive Rate</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#误报率的产生" class="toc-sidebar-link">误报率的产生</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#误报率的计算" class="toc-sidebar-link">误报率的计算</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#减少误报率-最优的哈希函数个数" class="toc-sidebar-link">减少误报率: 最优的哈希函数个数</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#减少误报率-位数组的大小" class="toc-sidebar-link">减少误报率: 位数组的大小</a></li></ul></li><li><a href="alg-domain-bigdata-bloom-filter.html#拓展-counting-bloom-filter" class="toc-sidebar-link">拓展: Counting Bloom Filter</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="alg-domain-bigdata-bloom-filter.html#拓展-其它" class="toc-sidebar-link">拓展: 其它</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#data-synchronization" class="toc-sidebar-link">Data synchronization</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#bloomier-filters" class="toc-sidebar-link">Bloomier filters</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#compact-approximators" class="toc-sidebar-link">Compact approximators</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#stable-bloom-filters" class="toc-sidebar-link">Stable Bloom filters</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#scalable-bloom-filters" class="toc-sidebar-link">Scalable Bloom filters</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#attenuated-bloom-filters" class="toc-sidebar-link">Attenuated Bloom filters</a></li></ul></li><li><a href="alg-domain-bigdata-bloom-filter.html#相关题目" class="toc-sidebar-link">相关题目</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#给你ab两个文件各存放50亿条url每条url占用64字节内存限制是4g让你找出ab文件共同的url如果是三个乃至n个文件呢" class="toc-sidebar-link">给你A,B两个文件，各存放50亿条URL，每条URL占用64字节，内存限制是4G，让你找出A,B文件共同的URL。如果是三个乃至n个文件呢?</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#给定a、b两个文件各存放50亿个url每个url各占64字节内存限制是4g让你找出a、b文件共同的url" class="toc-sidebar-link">给定a、b两个文件，各存放50亿个url，每个url各占64字节，内存限制是4G，让你找出a、b文件共同的url?</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#在25亿个整数中找出不重复的整数注内存不足以容纳这25亿个整数" class="toc-sidebar-link">在2.5亿个整数中找出不重复的整数，注，内存不足以容纳这2.5亿个整数。</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#给40亿个不重复的unsigned-int的整数没排过序的然后再给一个数如何快速判断这个数是否在那40亿个数当中" class="toc-sidebar-link">给40亿个不重复的unsigned int的整数，没排过序的，然后再给一个数，如何快速判断这个数是否在那40亿个数当中?</a></li></ul></li><li><a href="alg-domain-bigdata-bloom-filter.html#参考文章" class="toc-sidebar-link">参考文章</a><ul class="toc-sidebar-sub-headers"></ul></li></ul></div></div></div></div></div> <div class="option-box-toc-over"><img src="../../toc.png" class="nozoom"> <span class="show-txt">目录</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:550px"><div style="font-weight:bold;text-align:center;">大数据处理 - Bitmap &amp; Bloom Filter</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="alg-domain-bigdata-bloom-filter.html#布隆过滤器由来" class="toc-sidebar-link">布隆过滤器由来</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#特点" class="toc-sidebar-link">特点</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#几个专业术语" class="toc-sidebar-link">几个专业术语</a></li></ul></li><li><a href="alg-domain-bigdata-bloom-filter.html#布隆过滤器应用场景" class="toc-sidebar-link">布隆过滤器应用场景</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="alg-domain-bigdata-bloom-filter.html#布隆过滤器实现" class="toc-sidebar-link">布隆过滤器实现</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#以bitset-实现方式为例" class="toc-sidebar-link">以BitSet 实现方式为例</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#以bitset-实现代码" class="toc-sidebar-link">以BitSet 实现代码</a></li></ul></li><li><a href="alg-domain-bigdata-bloom-filter.html#误报率---false-positive-rate" class="toc-sidebar-link">误报率 - False Positive Rate</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#误报率的产生" class="toc-sidebar-link">误报率的产生</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#误报率的计算" class="toc-sidebar-link">误报率的计算</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#减少误报率-最优的哈希函数个数" class="toc-sidebar-link">减少误报率: 最优的哈希函数个数</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#减少误报率-位数组的大小" class="toc-sidebar-link">减少误报率: 位数组的大小</a></li></ul></li><li><a href="alg-domain-bigdata-bloom-filter.html#拓展-counting-bloom-filter" class="toc-sidebar-link">拓展: Counting Bloom Filter</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="alg-domain-bigdata-bloom-filter.html#拓展-其它" class="toc-sidebar-link">拓展: 其它</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#data-synchronization" class="toc-sidebar-link">Data synchronization</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#bloomier-filters" class="toc-sidebar-link">Bloomier filters</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#compact-approximators" class="toc-sidebar-link">Compact approximators</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#stable-bloom-filters" class="toc-sidebar-link">Stable Bloom filters</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#scalable-bloom-filters" class="toc-sidebar-link">Scalable Bloom filters</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#attenuated-bloom-filters" class="toc-sidebar-link">Attenuated Bloom filters</a></li></ul></li><li><a href="alg-domain-bigdata-bloom-filter.html#相关题目" class="toc-sidebar-link">相关题目</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#给你ab两个文件各存放50亿条url每条url占用64字节内存限制是4g让你找出ab文件共同的url如果是三个乃至n个文件呢" class="toc-sidebar-link">给你A,B两个文件，各存放50亿条URL，每条URL占用64字节，内存限制是4G，让你找出A,B文件共同的URL。如果是三个乃至n个文件呢?</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#给定a、b两个文件各存放50亿个url每个url各占64字节内存限制是4g让你找出a、b文件共同的url" class="toc-sidebar-link">给定a、b两个文件，各存放50亿个url，每个url各占64字节，内存限制是4G，让你找出a、b文件共同的url?</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#在25亿个整数中找出不重复的整数注内存不足以容纳这25亿个整数" class="toc-sidebar-link">在2.5亿个整数中找出不重复的整数，注，内存不足以容纳这2.5亿个整数。</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-bloom-filter.html#给40亿个不重复的unsigned-int的整数没排过序的然后再给一个数如何快速判断这个数是否在那40亿个数当中" class="toc-sidebar-link">给40亿个不重复的unsigned int的整数，没排过序的，然后再给一个数，如何快速判断这个数是否在那40亿个数当中?</a></li></ul></li><li><a href="alg-domain-bigdata-bloom-filter.html#参考文章" class="toc-sidebar-link">参考文章</a><ul class="toc-sidebar-sub-headers"></ul></li></ul></div></div></div></div></div> <div class="option-box"><img src="../../wechat.png" class="nozoom"> <span class="show-txt">手机看</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.9rem">微信扫一扫</span> <img height="180px" src="https://api.qrserver.com/v1/create-qr-code/?data=https://www.pdai.tech/md/algorithm/alg-domain-bigdata-bloom-filter.html" style="margin:10px;">
+              可以<b>手机看</b>或分享至<b>朋友圈</b></div></div></div></div> <div class="option-box"><a title="点击切换全屏" style="text-align:center;padding-left:2px;"><img src="../../full.png" width="30px" class="nozoom"> <span style="color:gray;font-size:11px;font-weight:400;">全屏看</span></a></div> <div class="option-box"><img src="../../toggle.png" width="30px" class="nozoom"> <span class="show-txt">左栏</span></div> <div class="option-box"><img src="../../wexin2.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:yellow">交流圈</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">添加pdai微信进《Java全栈知识体系》学习交流圈「无任何套路」</span> <img src="../../pdai.jpg" height="180px" style="margin:10px;">
+              PS：添加时请备注<b>Java全栈</b>，谢谢！
+            </div></div></div></div> <div class="option-box"><img src="../../download.jpg" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:#a6f792">下资料</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">扫描公众号，回复“资料”下载<font style="color:red;">10GB+</font>书籍资料「无任何套路」</span> <img src="../../pdai_gzh.jpg" height="180px" style="margin:10px;"> <b>公众号:</b> Java全栈知识体系
+            </div></div></div></div> <div class="option-box"><img src="../../heart.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;background-color:#gray">支持我</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">鼓励/支持/赞赏我</span> <img src="../../pdai-guli.png" height="180px" width="200px" style="margin:5px;">
+              1. 不靠它生存但仍希望得到你的鼓励；<br> 2. 时刻警醒自己保持技术人的初心，恒心，简单，利他；
+            </div></div></div></div> <div title="大数据处理 - 分治/hash/排序" class="option-box" style="padding-left:2px;text-align:center;"><a href="alg-domain-bigdata-devide-and-hash.html"><img src="../../pre2.png" width="30px" class="nozoom"> <span class="show-txt">上一篇</span></a></div> <div title="大数据处理 - 双层桶划分" class="option-box" style="padding-left:2px;text-align:center;"><a href="alg-domain-bigdata-bucket.html"><img src="../../next2.png" width="30px" class="nozoom"> <span class="show-txt">下一篇</span></a></div></div>  <div class="page-side-sitemap"><div class="option-box"><img src="../../sitemap.png" class="nozoom img"> <span class="show-txt">站点图</span> <div class="sitemap-container"><h4>站点导航图
+            <a href="../about/me/about-me.html" class="sitemap-top-link"> 关于我</a> <a href="../about/blog/blog-build-vuepress.html" class="sitemap-top-link"> 关于站点</a> <a href="../about/me/blog-changelist.html" class="sitemap-top-link"> 最近更新记录</a> <a href="../about/me/blog-question.html" class="sitemap-top-link"><font style="color:red;background-color:yellow;">问题反馈</font></a></h4> <table class="sitemap-table"><tr><td nowrap="nowrap"><div class="sitemap-col-group">常用搜索</div></td> <td><div class="sitemap-col-item"><a href="http://www.baidu.com/" target="_blank" title="百度">  
+            百度
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.google.com/" target="_blank" title="Google">  
+            Google
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.bing.com/" target="_blank" title="Bing">  
+            Bing
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://github.com/" target="_blank" title="Github">  
+            Github
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.programcreek.com/java-api-examples/index.php" target="_blank" title="搜代码">  
+            搜代码
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">技术社区</div></td> <td><div class="sitemap-col-item"><a href="http://www.csdn.net/" target="_blank" title="CDSN">  
+            CDSN
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.cnblogs.com/" target="_blank" title="博客园">  
+            博客园
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.oschina.net/" target="_blank" title="OSChina">  
+            OSChina
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://segmentfault.com/" target="_blank" title="知否">  
+            知否
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://juejin.im/" target="_blank" title="掘金">  
+            掘金
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.linuxidc.com/" target="_blank" title="Linux公社">  
+            Linux公社
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.ibm.com/developerworks/cn/" target="_blank" title="IBM 开发者">  
+            IBM 开发者
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://stackoverflow.com/" target="_blank" title="StackOverflow">  
+            StackOverflow
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">Java相关</div></td> <!----> <td><a href="../java/basic/java-basic-oop.html" class="sitemap-col-item">
+            面向对象基础
+          </a><a href="../java/basic/java-basic-lan-basic.html" class="sitemap-col-item">
+            语法基础
+          </a><a href="../java/collection/java-collection-all.html" class="sitemap-col-item">
+            集合框架
+          </a><a href="../java/thread/java-thread-x-overview.html" class="sitemap-col-item">
+            并发基础
+          </a><a href="../java/thread/java-thread-x-key-synchronized.html" class="sitemap-col-item">
+            并发关键字
+          </a><a href="../java/thread/java-thread-x-juc-overview.html" class="sitemap-col-item">
+            JUC并发框架
+          </a><a href="../java/io/java-io-overview.html" class="sitemap-col-item">
+            IO框架
+          </a><a href="../java/java8/java8.html" class="sitemap-col-item">
+            Java8 特性
+          </a><a href="../java/jvm/java-jvm-x-overview.html" class="sitemap-col-item">
+            JVM基础
+          </a><a href="../java/jvm/java-jvm-param.html" class="sitemap-col-item">
+            调试排错
+          </a><a href="../java/others/java-others-awesome-java.html" class="sitemap-col-item">
+            更多资源
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">算法相关</div></td> <!----> <td><a href="alg-basic-array.html" class="sitemap-col-item">
+            数组与线性表
+          </a><a href="alg-basic-tree.html" class="sitemap-col-item">
+            树详解
+          </a><a href="alg-basic-graph.html" class="sitemap-col-item">
+            图详解
+          </a><a href="alg-sort-overview.html" class="sitemap-col-item">
+            内部排序
+          </a><a href="alg-core-divide-and-conquer.html" class="sitemap-col-item">
+            算法思想
+          </a><a href="alg-domain-security-degist.html" class="sitemap-col-item">
+            安全算法
+          </a><a href="alg-domain-bigdata-overview.html" class="sitemap-col-item">
+            大数据处理
+          </a><a href="alg-domain-distribute-overview.html" class="sitemap-col-item">
+            分布式算法
+          </a><a href="alg-domain-load-balance.html" class="sitemap-col-item">
+            负载均衡算法
+          </a><a href="alg-domain-suggest.html" class="sitemap-col-item">
+            推荐算法
+          </a><a href="alg-other-mind.html" class="sitemap-col-item">
+            头脑风暴
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">数据库相关</div></td> <!----> <td><a href="../db/sql/sql-db-howitworks.html" class="sitemap-col-item">
+            数据库原理
+          </a><a href="../db/sql-lan/sql-lan.html" class="sitemap-col-item">
+            SQL语言
+          </a><a href="../db/sql-mysql/sql-mysql-theory.html" class="sitemap-col-item">
+            MySQL相关
+          </a><a href="../db/nosql-mongo/mongo-performance-improve.html" class="sitemap-col-item">
+            MongoDB
+          </a><a href="../db/nosql-es/elasticsearch.html" class="sitemap-col-item">
+            ElasticSearch
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">开发基础相关</div></td> <!----> <td><a href="../develop/package/dev-package-x-apache-common.html" class="sitemap-col-item">
+            常用类库
+          </a><a href="../develop/ut/dev-ut-x-junit.html" class="sitemap-col-item">
+            单元测试
+          </a><a href="../develop/regex/dev-regex-all.html" class="sitemap-col-item">
+            正则表达式
+          </a><a href="../develop/protocol/dev-protocol-overview.html" class="sitemap-col-item">
+            网络协议
+          </a><a href="../develop/security/dev-security-overview.html" class="sitemap-col-item">
+            安全相关
+          </a><a href="../develop/refactor/dev-refactor-if-else.html" class="sitemap-col-item">
+            常见重构技巧
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">架构相关</div></td> <!----> <td><a href="../arch/arch-x-basic.html" class="sitemap-col-item">
+            架构基础
+          </a><a href="../arch/arch-x-view.html" class="sitemap-col-item">
+            架构视角
+          </a><a href="../arch/arch-x-evolution.html" class="sitemap-col-item">
+            架构演进
+          </a><a href="../arch/arch-x-pattern.html" class="sitemap-col-item">
+            架构模式和要素
+          </a><a href="../arch/arch-y-cache.html" class="sitemap-col-item">
+            高并发之缓存
+          </a><a href="../arch/arch-y-ratelimit.html" class="sitemap-col-item">
+            高并发之限流
+          </a><a href="../arch/arch-y-reduce.html" class="sitemap-col-item">
+            高并发之降级
+          </a><a href="../arch/arch-y-loadbalance.html" class="sitemap-col-item">
+            负载均衡
+          </a><a href="../arch/arch-y-backup.html" class="sitemap-col-item">
+            容灾备份
+          </a><a href="../arch/arch-x-security.html" class="sitemap-col-item">
+            架构安全
+          </a><a href="../arch/arch-example-seckill.html" class="sitemap-col-item">
+            秒杀系统设计
+          </a><a href="../arch/arch-example-goods-detail.html" class="sitemap-col-item">
+            架构案例
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">工具和部署</div></td> <!----> <td><a href="../devops/tool/tool-list-overview.html" class="sitemap-col-item">
+            工具集合
+          </a><a href="../devops/tool/tool-ide.html" class="sitemap-col-item">
+            IDE相关
+          </a><a href="../devops/tool/tool-git.html" class="sitemap-col-item">
+            Git
+          </a><a href="../devops/tool/tool-maven.html" class="sitemap-col-item">
+            Maven
+          </a><a href="../devops/linux/linux.html" class="sitemap-col-item">
+            Linux
+          </a><a href="../devops/docker/docker-00-overview.html" class="sitemap-col-item">
+            Docker
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">方法论</div></td> <!----> <td><a href="../dev-spec/spec/dev-th-solid.html" class="sitemap-col-item">
+            SOLID
+          </a><a href="../dev-spec/spec/dev-th-cap.html" class="sitemap-col-item">
+            CAP
+          </a><a href="../dev-spec/spec/dev-th-base.html" class="sitemap-col-item">
+            BASE
+          </a><a href="../dev-spec/spec/dev-opensource.html" class="sitemap-col-item">
+            开源协议
+          </a><a href="../dev-spec/code-style/code-style-alibaba.html" class="sitemap-col-item">
+            代码规范
+          </a><a href="../dev-spec/pattern/1_overview.html" class="sitemap-col-item">
+            设计模式
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">产品和团队</div></td> <!----> <td><a href="../team/team-z-wechat.html" class="sitemap-col-item">
+            产品相关
+          </a><a href="../team/team-z-task-emergency.html" class="sitemap-col-item">
+            团队相关
+          </a><a href="../team/team-z-arch-future.html" class="sitemap-col-item">
+            其它分享
+          </a></td></tr></table></div></div></div> <!----> </aside></div><div class="global-ui"></div></div>
+    <script src="../../assets/js/app.691e72ae.js" defer></script><script src="../../assets/js/4.2e3efdf6.js" defer></script><script src="../../assets/js/3.d77b006c.js" defer></script><script src="../../assets/js/72.326424f4.js" defer></script>
+  </body>
+
+<!-- Mirrored from www.pdai.tech/md/algorithm/alg-domain-bigdata-bloom-filter.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:30:50 GMT -->
+</html>

@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  
+<!-- Mirrored from www.pdai.tech/md/spring/spring-x-framework-ioc-source-1.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:33:02 GMT -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Spring进阶- Spring IOC实现原理详解之IOC体系结构设计 | Java 全栈知识体系</title>
+    <meta name="generator" content="VuePress 1.8.2">
+    <link rel="icon" href="../../favicon.ico">
+    <script src="../../../hm.baidu.com/hma448.js?525d4abc4a8675472736969f817ceb47"></script>
+    <script defer="defer" async="async" src="../../../pagead2.googlesyndication.com/pagead/js/f.txt"></script>
+    <meta name="description" content="包含: Java 基础, Java 部分源码, JVM, Spring, Spring Boot, Spring Cloud, 数据库原理, MySQL, ElasticSearch, MongoDB, Docker, k8s, CI&CD, Linux, DevOps, 分布式, 中间件, 开发工具, Git, IDE, 源码阅读，读书笔记, 开源项目...">
+    <meta property="article:modified_time" content="2021-09-27T13:15:21.000Z">
+    <meta property="og:title" content="Spring进阶- Spring IOC实现原理详解之IOC体系结构设计">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="/md/spring/spring-x-framework-ioc-source-1.html">
+    <meta name="twitter:title" content="Spring进阶- Spring IOC实现原理详解之IOC体系结构设计">
+    <meta name="twitter:url" content="/md/spring/spring-x-framework-ioc-source-1.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="robots" content="all">
+    <meta name="author" content="pdai">
+    <meta name="keywords" content="Java 全栈知识体系, java体系, java知识体系, java框架,java全栈,java学习路线,java全栈知识, java面试, 知识体系, java技术体系, java编程, java编程指南,java开发体系, java开发,java教程,java,java数据结构, 算法, 开发基础">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <link rel="preload" href="../../assets/css/0.styles.d4bb5489.css" as="style"><link rel="preload" href="../../assets/js/app.691e72ae.js" as="script"><link rel="preload" href="../../assets/js/4.2e3efdf6.js" as="script"><link rel="preload" href="../../assets/js/3.d77b006c.js" as="script"><link rel="preload" href="../../assets/js/557.fa3106ea.js" as="script">
+    <link rel="stylesheet" href="../../assets/css/0.styles.d4bb5489.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="../../index.html" class="home-link router-link-active"><!----> <span class="site-name">Java 全栈知识体系</span></a> <div class="links"><form id="search-form" role="search" class="algolia-search-wrapper search-box"><input id="algolia-search-input" class="search-query"></form> <nav class="nav-links can-hide"><div class="nav-item"><a href="../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav>  <ul class="sidebar-links"><li><section class="sidebar-group depth-0"><p class="sidebar-heading open"><span>Spring Framework 5基础</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="spring.html" class="sidebar-link">♥Spring框架知识体系详解♥</a></li><li><a href="spring-x-framework-introduce.html" class="sidebar-link">Spring基础 - Spring和Spring框架组成</a></li><li><a href="spring-x-framework-helloworld.html" class="sidebar-link">Spring基础 - Spring简单例子引入Spring要点</a></li><li><a href="spring-x-framework-ioc.html" class="sidebar-link">Spring基础 - Spring核心之控制反转(IOC)</a></li><li><a href="spring-x-framework-aop.html" class="sidebar-link">Spring基础 - Spring核心之面向切面编程(AOP)</a></li><li><a href="spring-x-framework-springmvc.html" class="sidebar-link">Spring基础 - SpringMVC案例和机制</a></li><li><a href="spring-x-framework-annotation.html" class="sidebar-link">Spring基础 - Spring基于注解的配置</a></li><li><a href="spring-x-framework-spring5.html" class="sidebar-link">Spring基础 - 从Spring 5特性看框架发展方向</a></li><li><a href="spring-x-framework-ioc-source-1.html" aria-current="page" class="active sidebar-link">Spring进阶- Spring IOC实现原理详解之IOC体系结构设计</a></li><li><a href="spring-x-framework-ioc-source-2.html" class="sidebar-link">Spring进阶- Spring IOC实现原理详解之IOC初始化流程</a></li><li><a href="spring-x-framework-ioc-source-3.html" class="sidebar-link">Spring进阶- Spring IOC实现原理详解之Bean实例化(生命周期,循环依赖等)</a></li><li><a href="spring-x-framework-aop-source-1.html" class="sidebar-link">Spring进阶 - Spring AOP实现原理详解之切面实现</a></li><li><a href="spring-x-framework-aop-source-2.html" class="sidebar-link">Spring进阶 - Spring AOP实现原理详解之AOP代理</a></li><li><a href="spring-x-framework-springmvc-source-1.html" class="sidebar-link">Spring进阶 - SpringMVC实现原理</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>SpringBoot 2.5.x系列</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="springboot/springboot.html" class="sidebar-link">♥SpringBoot 知识体系详解♥</a></li><li><a href="springboot/springboot-x-overview.html" class="sidebar-link">SpringBoot入门 - SpringBoot简介</a></li><li><a href="springboot/springboot-x-hello-world.html" class="sidebar-link">SpringBoot入门 - SpringBoot HelloWorld</a></li><li><a href="springboot/springboot-x-hello-world-mvc.html" class="sidebar-link">SpringBoot入门 - 对Hello world进行MVC分层</a></li><li><a href="springboot/springboot-x-hello-h2-jpa.html" class="sidebar-link">SpringBoot入门 - 添加内存数据库H2</a></li><li><a href="springboot/springboot-x-hello-banner.html" class="sidebar-link">SpringBoot入门 - 定制自己的Banner</a></li><li><a href="springboot/springboot-x-hello-logback.html" class="sidebar-link">SpringBoot入门 - 添加Logback日志</a></li><li><a href="springboot/springboot-x-hello-devtool.html" class="sidebar-link">SpringBoot入门 - 配置热部署devtools工具</a></li><li><a href="springboot/springboot-x-hello-anno.html" class="sidebar-link">SpringBoot入门 - 开发中还有哪些常用注解</a></li><li><a href="springboot/springboot-x-interface-response.html" class="sidebar-link">SpringBoot接口 - 如何统一接口封装</a></li><li><a href="springboot/springboot-x-interface-param.html" class="sidebar-link">SpringBoot接口 - 如何对参数进行校验</a></li><li><a href="springboot/springboot-x-interface-param-i18n.html" class="sidebar-link">SpringBoot接口 - 如何参数校验国际化</a></li><li><a href="springboot/springboot-x-interface-exception.html" class="sidebar-link">SpringBoot接口 - 如何统一异常处理</a></li><li><a href="springboot/springboot-x-interface-version.html" class="sidebar-link">SpringBoot接口 - 如何提供多个版本接口</a></li><li><a href="springboot/springboot-x-interface-doc.html" class="sidebar-link">SpringBoot接口 - 如何生成接口文档之Swagger技术栈</a></li><li><a href="springboot/springboot-x-interface-doc-smart.html" class="sidebar-link">SpringBoot接口 - 如何生成接口文档之集成Smart-Doc</a></li><li><a href="springboot/springboot-x-interface-doc-tool.html" class="sidebar-link">SpringBoot接口 - 如何生成接口文档之常用接口管理工具</a></li><li><a href="springboot/springboot-x-interface-3rd.html" class="sidebar-link">SpringBoot接口 - 如何访问外部接口</a></li><li><a href="springboot/springboot-x-interface-mideng.html" class="sidebar-link">SpringBoot接口 - 如何保证接口幂等</a></li><li><a href="springboot/springboot-x-interface-jiami.html" class="sidebar-link">SpringBoot接口 - 如何对接口进行签名</a></li><li><a href="springboot/springboot-x-interface-xianliu.html" class="sidebar-link">SpringBoot接口 - 如何实现接口限流之单实例</a></li><li><a href="springboot/springboot-x-interface-xianliu-dist.html" class="sidebar-link">SpringBoot接口 - 如何实现接口限流之分布式</a></li><li><a href="springboot/springboot-x-mysql-jpa.html" class="sidebar-link">SpringBoot集成MySQL - 基于JPA的封装</a></li><li><a href="springboot/springboot-x-mysql-mybatis-xml.html" class="sidebar-link">SpringBoot集成MySQL - MyBatis XML方式</a></li><li><a href="springboot/springboot-x-mysql-mybatis-anno.html" class="sidebar-link">SpringBoot集成MySQL - MyBatis 注解方式</a></li><li><a href="springboot/springboot-x-mysql-mybatis-page.html" class="sidebar-link">SpringBoot集成MySQL - MyBatis PageHelper分页</a></li><li><a href="springboot/springboot-x-mysql-mybatis-multi-ds.html" class="sidebar-link">SpringBoot集成MySQL - MyBatis 多个数据源</a></li><li><a href="springboot/springboot-x-mysql-mybatis-plus.html" class="sidebar-link">SpringBoot集成MySQL - MyBatis-Plus方式</a></li><li><a href="springboot/springboot-x-mysql-mybatis-plus-gen.html" class="sidebar-link">SpringBoot集成MySQL - MyBatis-Plus代码自动生成</a></li><li><a href="springboot/springboot-x-mysql-mybatis-plus-multi-tenant.html" class="sidebar-link">SpringBoot集成MySQL - MyBatis-Plus基于字段隔离的多租户</a></li><li><a href="springboot/springboot-x-mysql-shardingjdbc.html" class="sidebar-link">SpringBoot集成MySQL - 分库分表ShardingJDBC</a></li><li><a href="springboot/springboot-x-mysql-HikariCP.html" class="sidebar-link">SpringBoot集成连接池 - 数据库连接池和默认连接池HikariCP</a></li><li><a href="springboot/springboot-x-mysql-druid.html" class="sidebar-link">SpringBoot集成连接池 - 集成数据库Druid连接池</a></li><li><a href="springboot/springboot-x-mysql-liquibase.html" class="sidebar-link">SpringBoot数据库管理 - 用Liquibase对数据库管理和迁移</a></li><li><a href="springboot/springboot-x-mysql-flyway.html" class="sidebar-link">SpringBoot数据库管理 - 用flyway对数据库管理和迁移</a></li><li><a href="springboot/springboot-x-redis-jedis.html" class="sidebar-link">SpringBoot集成Redis - 基于RedisTemplate+Jedis的数据操作</a></li><li><a href="springboot/springboot-x-postgre-jpa.html" class="sidebar-link">SpringBoot集成Postgre - 基于JPA封装基础数据操作</a></li><li><a href="springboot/springboot-x-postgre-jpa-jsonb.html" class="sidebar-link">SpringBoot集成Postgre - NoSQL特性JSONB的封装</a></li><li><a href="springboot/springboot-x-mongodb-template.html" class="sidebar-link">SpringBoot集成MongoDB - 基于MongoTemplate的数据操作</a></li><li><a href="springboot/springboot-x-elastic-template.html" class="sidebar-link">SpringBoot集成ElasticSearch - 基于ElasticSearchTemplate的数据操作</a></li><li><a href="springboot/springboot-x-socket-websocket.html" class="sidebar-link">SpringBoot集成Socket - 基础的Websocket实现</a></li><li><a href="springboot/springboot-x-socket-netty.html" class="sidebar-link">SpringBoot集成Socket - 用Netty实现socket</a></li><li><a href="springboot/springboot-x-task-timer.html" class="sidebar-link">SpringBoot定时任务 - Timer实现方式</a></li><li><a href="springboot/springboot-x-task-executor-timer.html" class="sidebar-link">SpringBoot定时任务 - ScheduleExecutorService实现方式</a></li><li><a href="springboot/springboot-x-task-spring-task-timer.html" class="sidebar-link">SpringBoot定时任务 - Spring Schedule实现方式</a></li><li><a href="springboot/springboot-x-task-hashwheeltimer-timer.html" class="sidebar-link">SpringBoot定时任务 - Netty HashedWheelTimer方式</a></li><li><a href="springboot/springboot-x-task-quartz-timer.html" class="sidebar-link">SpringBoot定时任务 - 基础quartz实现方式</a></li><li><a href="springboot/springboot-x-task-quartz-cluster-timer.html" class="sidebar-link">SpringBoot定时任务 - 分布式quartz cluster方式</a></li><li><a href="springboot/springboot-x-task-elastic-job-timer.html" class="sidebar-link">SpringBoot定时任务 - 分布式elastic-job方式</a></li><li><a href="springboot/springboot-x-task-xxl-job-timer.html" class="sidebar-link">SpringBoot定时任务 - 分布式xxl-job方式</a></li><li><a href="springboot/springboot-x-view-thymeleaf.html" class="sidebar-link">SpringBoot后端视图 - 基于Thymeleaf视图解析</a></li><li><a href="springboot/springboot-x-monitor-actuartor.html" class="sidebar-link">SpringBoot监控 - 集成acturator监控工具</a></li><li><a href="springboot/springboot-x-monitor-boot-admin.html" class="sidebar-link">SpringBoot监控 - 集成springboot admin监控工具</a></li><li><a href="springboot/springboot-y-auo-config.html" class="sidebar-link">SpringBoot进阶 - 实现自动装配原理</a></li><li><a href="springboot/springboot-y-starter.html" class="sidebar-link">SpringBoot进阶 - 自定义starter</a></li><li><a href="springboot/springboot-y-wrap-tomcat.html" class="sidebar-link">SpringBoot进阶 - 嵌入web容器Tomcat原理</a></li><li><a href="springboot/springboot-y-th-actuartor.html" class="sidebar-link">SpringBoot进阶 - 健康检查Acturator原理</a></li></ul></section></li></ul> </aside> <div><main class="page"> <div class="theme-default-content content__default"><h1 id="spring进阶--spring-ioc实现原理详解之ioc体系结构设计"><a href="#spring进阶--spring-ioc实现原理详解之ioc体系结构设计" class="header-anchor">¶</a> Spring进阶- Spring IOC实现原理详解之IOC体系结构设计</h1> <blockquote><p>在对IoC有了初步的认知后，我们开始对IOC的实现原理进行深入理解。本文将帮助你站在设计者的角度去看IOC最顶层的结构设计。@pdai</p></blockquote> <ul><li><a href="#spring%E8%BF%9B%E9%98%B6--spring-ioc%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3%E4%B9%8Bioc%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1">Spring进阶- Spring IOC实现原理详解之IOC体系结构设计</a> <ul><li><a href="#%E7%AB%99%E5%9C%A8%E8%AE%BE%E8%AE%A1%E8%80%85%E7%9A%84%E8%A7%92%E5%BA%A6%E8%80%83%E8%99%91%E8%AE%BE%E8%AE%A1ioc%E5%AE%B9%E5%99%A8">站在设计者的角度考虑设计IOC容器</a></li> <li><a href="#spring-ioc%E7%9A%84%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1">Spring IoC的体系结构设计</a> <ul><li><a href="#beanfactory%E5%92%8Cbeanregistryioc%E5%AE%B9%E5%99%A8%E5%8A%9F%E8%83%BD%E8%A7%84%E8%8C%83%E5%92%8Cbean%E7%9A%84%E6%B3%A8%E5%86%8C">BeanFactory和BeanRegistry：IOC容器功能规范和Bean的注册</a> <ul><li><a href="#beanfactory%E5%AE%9A%E4%B9%89%E4%BA%86ioc-%E5%AE%B9%E5%99%A8%E5%9F%BA%E6%9C%AC%E5%8A%9F%E8%83%BD%E8%A7%84%E8%8C%83">BeanFactory定义了IOC 容器基本功能规范？</a></li> <li><a href="#beanfactory%E4%B8%BA%E4%BD%95%E8%A6%81%E5%AE%9A%E4%B9%89%E8%BF%99%E4%B9%88%E5%A4%9A%E5%B1%82%E6%AC%A1%E7%9A%84%E6%8E%A5%E5%8F%A3%E5%AE%9A%E4%B9%89%E4%BA%86%E5%93%AA%E4%BA%9B%E6%8E%A5%E5%8F%A3">BeanFactory为何要定义这么多层次的接口？定义了哪些接口？</a></li> <li><a href="#%E5%A6%82%E4%BD%95%E5%B0%86bean%E6%B3%A8%E5%86%8C%E5%88%B0beanfactory%E4%B8%ADbeanregistry">如何将Bean注册到BeanFactory中？BeanRegistry</a></li></ul></li> <li><a href="#beandefinition%E5%90%84%E7%A7%8Dbean%E5%AF%B9%E8%B1%A1%E5%8F%8A%E5%85%B6%E7%9B%B8%E4%BA%92%E7%9A%84%E5%85%B3%E7%B3%BB">BeanDefinition：各种Bean对象及其相互的关系</a></li> <li><a href="#applicationcontextioc%E6%8E%A5%E5%8F%A3%E8%AE%BE%E8%AE%A1%E5%92%8C%E5%AE%9E%E7%8E%B0">ApplicationContext：IOC接口设计和实现</a> <ul><li><a href="#applicationcontext%E6%8E%A5%E5%8F%A3%E7%9A%84%E8%AE%BE%E8%AE%A1">ApplicationContext接口的设计</a></li> <li><a href="#applicationcontext%E6%8E%A5%E5%8F%A3%E7%9A%84%E5%AE%9E%E7%8E%B0">ApplicationContext接口的实现</a></li></ul></li></ul></li> <li><a href="#%E5%8F%82%E8%80%83%E6%96%87%E7%AB%A0">参考文章</a></li></ul></li></ul> <h2 id="站在设计者的角度考虑设计ioc容器"><a href="#站在设计者的角度考虑设计ioc容器" class="header-anchor">¶</a> 站在设计者的角度考虑设计IOC容器</h2> <blockquote><p>如果让你来设计一个IoC容器，你会怎么设计？我们初步的通过这个问题，来帮助我们更好的理解IOC的设计。</p></blockquote> <p>在设计时，首先需要考虑的是IOC容器的功能（输入和输出), 承接前面的文章，我们初步的画出IOC容器的整体功能。</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/spring/springframework/spring-framework-ioc-source-7.png" loading="lazy" class="lazy"></p> <p>在此基础上，我们初步的去思考，如果作为一个IOC容器的设计者，主体上应该包含哪几个部分：</p> <ul><li>加载Bean的配置（比如xml配置）
+<ul><li>比如不同类型资源的加载，解析成生成统一Bean的定义</li></ul></li> <li>根据Bean的定义加载生成Bean的实例，并放置在Bean容器中
+<ul><li>比如Bean的依赖注入，Bean的嵌套，Bean存放（缓存）等</li></ul></li> <li>除了基础Bean外，还有常规针对企业级业务的特别Bean
+<ul><li>比如国际化Message，事件Event等生成特殊的类结构去支撑</li></ul></li> <li>对容器中的Bean提供统一的管理和调用
+<ul><li>比如用工厂模式管理，提供方法根据名字/类的类型等从容器中获取Bean</li></ul></li> <li>...</li></ul> <p>(pdai：这种思考的过程才是建设性的，知识体系的构建才是高效的)</p> <h2 id="spring-ioc的体系结构设计"><a href="#spring-ioc的体系结构设计" class="header-anchor">¶</a> Spring IoC的体系结构设计</h2> <blockquote><p>那么我们来看下Spring设计者是如何设计IoC并解决这些问题的。</p></blockquote> <h3 id="beanfactory和beanregistry：ioc容器功能规范和bean的注册"><a href="#beanfactory和beanregistry：ioc容器功能规范和bean的注册" class="header-anchor">¶</a> BeanFactory和BeanRegistry：IOC容器功能规范和Bean的注册</h3> <blockquote><p>Spring Bean的创建是典型的工厂模式，这一系列的Bean工厂，也即IOC容器为开发者管理对象间的依赖关系提供了很多便利和基础服务，在Spring中有许多的IOC容器的实现供用户选择和使用，这是IOC容器的基础；在顶层的结构设计主要围绕着BeanFactory和xxxRegistry进行：</p> <ul><li><strong>BeanFactory： 工厂模式定义了IOC容器的基本功能规范</strong></li> <li><strong>BeanRegistry： 向IOC容器手工注册 BeanDefinition 对象的方法</strong></li></ul></blockquote> <p>其相互关系如下：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/spring/springframework/spring-framework-ioc-source-2.png" loading="lazy" class="lazy"></p> <p>我们再通过几个问题来辅助理解。</p> <h4 id="beanfactory定义了ioc-容器基本功能规范"><a href="#beanfactory定义了ioc-容器基本功能规范" class="header-anchor">¶</a> BeanFactory定义了IOC 容器基本功能规范？</h4> <p><strong>BeanFactory作为最顶层的一个接口类，它定义了IOC容器的基本功能规范</strong>，BeanFactory 有三个子类：ListableBeanFactory、HierarchicalBeanFactory 和AutowireCapableBeanFactory。我们看下BeanFactory接口：</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token keyword">public</span> <span class="token keyword">interface</span> <span class="token class-name">BeanFactory</span> <span class="token punctuation">{</span>    
+      
+    <span class="token comment">//用于取消引用实例并将其与FactoryBean创建的bean区分开来。例如，如果命名的bean是FactoryBean，则获取将返回Factory，而不是Factory返回的实例。</span>
+    <span class="token class-name">String</span> FACTORY_BEAN_PREFIX <span class="token operator">=</span> <span class="token string">&quot;&amp;&quot;</span><span class="token punctuation">;</span> 
+        
+    <span class="token comment">//根据bean的名字和Class类型等来得到bean实例    </span>
+    <span class="token class-name">Object</span> <span class="token function">getBean</span><span class="token punctuation">(</span><span class="token class-name">String</span> name<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">BeansException</span><span class="token punctuation">;</span>    
+    <span class="token class-name">Object</span> <span class="token function">getBean</span><span class="token punctuation">(</span><span class="token class-name">String</span> name<span class="token punctuation">,</span> <span class="token class-name">Class</span> requiredType<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">BeansException</span><span class="token punctuation">;</span>    
+    <span class="token class-name">Object</span> <span class="token function">getBean</span><span class="token punctuation">(</span><span class="token class-name">String</span> name<span class="token punctuation">,</span> <span class="token class-name">Object</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">BeansException</span><span class="token punctuation">;</span>
+    <span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">T</span><span class="token punctuation">&gt;</span></span> <span class="token class-name">T</span> <span class="token function">getBean</span><span class="token punctuation">(</span><span class="token class-name">Class</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">T</span><span class="token punctuation">&gt;</span></span> requiredType<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">BeansException</span><span class="token punctuation">;</span>
+    <span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">T</span><span class="token punctuation">&gt;</span></span> <span class="token class-name">T</span> <span class="token function">getBean</span><span class="token punctuation">(</span><span class="token class-name">Class</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">T</span><span class="token punctuation">&gt;</span></span> requiredType<span class="token punctuation">,</span> <span class="token class-name">Object</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">BeansException</span><span class="token punctuation">;</span>
+
+    <span class="token comment">//返回指定bean的Provider</span>
+    <span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">T</span><span class="token punctuation">&gt;</span></span> <span class="token class-name">ObjectProvider</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">T</span><span class="token punctuation">&gt;</span></span> <span class="token function">getBeanProvider</span><span class="token punctuation">(</span><span class="token class-name">Class</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">T</span><span class="token punctuation">&gt;</span></span> requiredType<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">T</span><span class="token punctuation">&gt;</span></span> <span class="token class-name">ObjectProvider</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">T</span><span class="token punctuation">&gt;</span></span> <span class="token function">getBeanProvider</span><span class="token punctuation">(</span><span class="token class-name">ResolvableType</span> requiredType<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">//检查工厂中是否包含给定name的bean，或者外部注册的bean</span>
+    <span class="token keyword">boolean</span> <span class="token function">containsBean</span><span class="token punctuation">(</span><span class="token class-name">String</span> name<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">//检查所给定name的bean是否为单例/原型</span>
+    <span class="token keyword">boolean</span> <span class="token function">isSingleton</span><span class="token punctuation">(</span><span class="token class-name">String</span> name<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">NoSuchBeanDefinitionException</span><span class="token punctuation">;</span>
+    <span class="token keyword">boolean</span> <span class="token function">isPrototype</span><span class="token punctuation">(</span><span class="token class-name">String</span> name<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">NoSuchBeanDefinitionException</span><span class="token punctuation">;</span>
+
+    <span class="token comment">//判断所给name的类型与type是否匹配</span>
+    <span class="token keyword">boolean</span> <span class="token function">isTypeMatch</span><span class="token punctuation">(</span><span class="token class-name">String</span> name<span class="token punctuation">,</span> <span class="token class-name">ResolvableType</span> typeToMatch<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">NoSuchBeanDefinitionException</span><span class="token punctuation">;</span>
+    <span class="token keyword">boolean</span> <span class="token function">isTypeMatch</span><span class="token punctuation">(</span><span class="token class-name">String</span> name<span class="token punctuation">,</span> <span class="token class-name">Class</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token operator">?</span><span class="token punctuation">&gt;</span></span> typeToMatch<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">NoSuchBeanDefinitionException</span><span class="token punctuation">;</span>
+
+    <span class="token comment">//获取给定name的bean的类型</span>
+    <span class="token annotation punctuation">@Nullable</span>
+    <span class="token class-name">Class</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token operator">?</span><span class="token punctuation">&gt;</span></span> <span class="token function">getType</span><span class="token punctuation">(</span><span class="token class-name">String</span> name<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">NoSuchBeanDefinitionException</span><span class="token punctuation">;</span>
+
+    <span class="token comment">//返回给定name的bean的别名</span>
+    <span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> <span class="token function">getAliases</span><span class="token punctuation">(</span><span class="token class-name">String</span> name<span class="token punctuation">)</span><span class="token punctuation">;</span>
+     
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br><span class="line-number">35</span><br></div></div><h4 id="beanfactory为何要定义这么多层次的接口定义了哪些接口"><a href="#beanfactory为何要定义这么多层次的接口定义了哪些接口" class="header-anchor">¶</a> BeanFactory为何要定义这么多层次的接口？定义了哪些接口？</h4> <p>主要是为了<strong>区分在 Spring 内部在操作过程中对象的传递和转化过程中，对对象的数据访问所做的限制</strong>。</p> <p>有哪些接口呢？</p> <ul><li><strong>ListableBeanFactory</strong>：该接口定义了访问容器中 Bean 基本信息的若干方法，如查看Bean 的个数、获取某一类型 Bean 的配置名、查看容器中是否包括某一 Bean 等方法；</li> <li><strong>HierarchicalBeanFactory</strong>：父子级联 IoC 容器的接口，子容器可以通过接口方法访问父容器； 通过 HierarchicalBeanFactory 接口， Spring 的 IoC 容器可以建立父子层级关联的容器体系，子容器可以访问父容器中的 Bean，但父容器不能访问子容器的 Bean。Spring 使用父子容器实现了很多功能，比如在 Spring MVC 中，展现层 Bean 位于一个子容器中，而业务层和持久层的 Bean 位于父容器中。这样，展现层 Bean 就可以引用业务层和持久层的 Bean，而业务层和持久层的 Bean 则看不到展现层的 Bean。</li> <li><strong>ConfigurableBeanFactory</strong>：是一个重要的接口，增强了 IoC 容器的可定制性，它定义了设置类装载器、属性编辑器、容器初始化后置处理器等方法；</li> <li><strong>ConfigurableListableBeanFactory</strong>: ListableBeanFactory 和 ConfigurableBeanFactory的融合；</li> <li><strong>AutowireCapableBeanFactory</strong>：定义了将容器中的 Bean 按某种规则（如按名字匹配、按类型匹配等）进行自动装配的方法；</li></ul> <h4 id="如何将bean注册到beanfactory中beanregistry"><a href="#如何将bean注册到beanfactory中beanregistry" class="header-anchor">¶</a> 如何将Bean注册到BeanFactory中？BeanRegistry</h4> <p>Spring 配置文件中每一个<code>&lt;bean&gt;</code>节点元素在 Spring 容器里都通过一个 BeanDefinition 对象表示，它描述了 Bean 的配置信息。而 BeanDefinitionRegistry 接口提供了向容器手工注册 BeanDefinition 对象的方法。</p> <h3 id="beandefinition：各种bean对象及其相互的关系"><a href="#beandefinition：各种bean对象及其相互的关系" class="header-anchor">¶</a> BeanDefinition：各种Bean对象及其相互的关系</h3> <blockquote><p>Bean对象存在依赖嵌套等关系，所以设计者设计了BeanDefinition，它用来对Bean对象及关系定义；我们在理解时只需要抓住如下三个要点：</p> <ul><li><strong>BeanDefinition 定义了各种Bean对象及其相互的关系</strong></li> <li><strong>BeanDefinitionReader 这是BeanDefinition的解析器</strong></li> <li><strong>BeanDefinitionHolder 这是BeanDefination的包装类，用来存储BeanDefinition，name以及aliases等。</strong></li></ul></blockquote> <ul><li><strong>BeanDefinition</strong></li></ul> <p>SpringIOC容器管理了我们定义的各种Bean对象及其相互的关系，Bean对象在Spring实现中是以BeanDefinition来描述的，其继承体系如下</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/spring/springframework/spring-framework-ioc-source-3.png" loading="lazy" class="lazy"></p> <ul><li><strong>BeanDefinitionReader</strong></li></ul> <p>Bean 的解析过程非常复杂，功能被分的很细，因为这里需要被扩展的地方很多，必须保证有足够的灵活性，以应对可能的变化。Bean 的解析主要就是对 Spring 配置文件的解析。这个解析过程主要通过下图中的类完成：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/spring/springframework/spring-framework-ioc-source-5.png" loading="lazy" class="lazy"></p> <ul><li><strong>BeanDefinitionHolder</strong></li></ul> <p>BeanDefinitionHolder 这是BeanDefination的包装类，用来存储BeanDefinition，name以及aliases等</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/spring/springframework/spring-framework-ioc-source-4.png" loading="lazy" class="lazy"></p> <h3 id="applicationcontext：ioc接口设计和实现"><a href="#applicationcontext：ioc接口设计和实现" class="header-anchor">¶</a> ApplicationContext：IOC接口设计和实现</h3> <blockquote><p>IoC容器的接口类是ApplicationContext，很显然它必然继承BeanFactory对Bean规范（最基本的ioc容器的实现）进行定义。而ApplicationContext表示的是应用的上下文，除了对Bean的管理外，还至少应该包含了</p> <ul><li><strong>访问资源</strong>： 对不同方式的Bean配置（即资源）进行加载。(实现ResourcePatternResolver接口)</li> <li><strong>国际化</strong>: 支持信息源，可以实现国际化。（实现MessageSource接口）</li> <li><strong>应用事件</strong>: 支持应用事件。(实现ApplicationEventPublisher接口)</li></ul></blockquote> <h4 id="applicationcontext接口的设计"><a href="#applicationcontext接口的设计" class="header-anchor">¶</a> ApplicationContext接口的设计</h4> <p>我们来看下ApplicationContext整体结构</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/spring/springframework/spring-framework-ioc-source-51.png" loading="lazy" class="lazy"></p> <ul><li><strong>HierarchicalBeanFactory 和 ListableBeanFactory</strong>： ApplicationContext 继承了 HierarchicalBeanFactory 和 ListableBeanFactory 接口，在此基础上，还通过多个其他的接口扩展了 BeanFactory 的功能：</li> <li><strong>ApplicationEventPublisher</strong>：让容器拥有发布应用上下文事件的功能，包括容器启动事件、关闭事件等。实现了 ApplicationListener 事件监听接口的 Bean 可以接收到容器事件 ， 并对事件进行响应处理 。 在 ApplicationContext 抽象实现类AbstractApplicationContext 中，我们可以发现存在一个 ApplicationEventMulticaster，它负责保存所有监听器，以便在容器产生上下文事件时通知这些事件监听者。</li> <li><strong>MessageSource</strong>：为应用提供 i18n 国际化消息访问的功能；</li> <li><strong>ResourcePatternResolver</strong> ： 所 有 ApplicationContext 实现类都实现了类似于PathMatchingResourcePatternResolver 的功能，可以通过带前缀的 Ant 风格的资源文件路径装载 Spring 的配置文件。</li> <li><strong>LifeCycle</strong>：该接口是 Spring 2.0 加入的，该接口提供了 start()和 stop()两个方法，主要用于控制异步处理过程。在具体使用时，该接口同时被 ApplicationContext 实现及具体 Bean 实现， ApplicationContext 会将 start/stop 的信息传递给容器中所有实现了该接口的 Bean，以达到管理和控制 JMX、任务调度等目的。</li></ul> <h4 id="applicationcontext接口的实现"><a href="#applicationcontext接口的实现" class="header-anchor">¶</a> ApplicationContext接口的实现</h4> <p>在考虑ApplicationContext接口的实现时，关键的点在于，不同Bean的配置方式（比如xml,groovy,annotation等）有着不同的资源加载方式，这便衍生除了众多ApplicationContext的实现类。</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/spring/springframework/spring-framework-ioc-source-61.png" loading="lazy" class="lazy"></p> <p><strong>第一，从类结构设计上看， 围绕着是否需要Refresh容器衍生出两个抽象类</strong>：</p> <ul><li><p><strong>GenericApplicationContext</strong>： 是初始化的时候就创建容器，往后的每次refresh都不会更改</p></li> <li><p><strong>AbstractRefreshableApplicationContext</strong>： AbstractRefreshableApplicationContext及子类的每次refresh都是先清除已有(如果不存在就创建)的容器，然后再重新创建；AbstractRefreshableApplicationContext及子类无法做到GenericApplicationContext<strong>混合搭配从不同源头获取bean的定义信息</strong></p></li></ul> <p><strong>第二， 从加载的源来看（比如xml,groovy,annotation等）， 衍生出众多类型的ApplicationContext, 典型比如</strong>:</p> <ul><li><strong>FileSystemXmlApplicationContext</strong>：	从文件系统下的一个或多个xml配置文件中加载上下文定义，也就是说系统盘符中加载xml配置文件。</li> <li><strong>ClassPathXmlApplicationContext</strong>：	从类路径下的一个或多个xml配置文件中加载上下文定义，适用于xml配置的方式。</li> <li><strong>AnnotationConfigApplicationContext</strong>：	从一个或多个基于java的配置类中加载上下文定义，适用于java注解的方式。</li> <li><strong>ConfigurableApplicationContext</strong>： 扩展于 ApplicationContext，它新增加了两个主要的方法： refresh()和 close()，让 ApplicationContext 具有启动、刷新和关闭应用上下文的能力。在应用上下文关闭的情况下调用 refresh()即可启动应用上下文，在已经启动的状态下，调用 refresh()则清除缓存并重新装载配置信息，而调用close()则可关闭应用上下文。这些接口方法为容器的控制管理带来了便利，但作为开发者，我们并不需要过多关心这些方法。</li></ul> <p><strong>第三， 更进一步理解</strong>：</p> <p><em><strong>设计者在设计时AnnotationConfigApplicationContext为什么是继承GenericApplicationContext</strong></em>？ 因为基于注解的配置，是不太会被运行时修改的，这意味着不需要进行动态Bean配置和刷新容器，所以只需要GenericApplicationContext。</p> <p>而基于XML这种配置文件，这种文件是容易修改的，需要动态性刷新Bean的支持，所以XML相关的配置必然继承AbstractRefreshableApplicationContext； 且存在多种xml的加载方式（位置不同的设计），所以必然会设计出AbstractXmlApplicationContext, 其中包含对XML配置解析成BeanDefination的过程。</p> <p>那么细心的你从上图可以发现AnnotationWebConfigApplicationContext却是继承了AbstractRefreshableApplicationContext而不是GenericApplicationContext， <em><strong>为什么AnnotationWebConfigApplicationContext继承自AbstractRefreshableApplicationContext呢</strong></em> ？ 因为用户可以通过ApplicationContextInitializer来设置contextInitializerClasses（context-param / init-param）， 在这种情况下用户倾向于刷新Bean的，所以设计者选择让AnnotationWebConfigApplicationContext继承了AbstractRefreshableApplicationContext。（如下是源码中Spring设计者对它的解释）</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code> <span class="token operator">*</span> <span class="token generics"><span class="token punctuation">&lt;</span>p<span class="token punctuation">&gt;</span></span><span class="token class-name">As</span> an alternative <span class="token keyword">to</span> <span class="token namespace">setting</span> the <span class="token string">&quot;contextConfigLocation&quot;</span> parameter<span class="token punctuation">,</span> users may
+ <span class="token operator">*</span> implement an <span class="token punctuation">{</span><span class="token annotation punctuation">@link</span> <span class="token class-name"><span class="token namespace">org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>context<span class="token punctuation">.</span></span>ApplicationContextInitializer</span>
+ <span class="token operator">*</span> <span class="token class-name">ApplicationContextInitializer</span><span class="token punctuation">}</span> and set the
+ <span class="token operator">*</span> <span class="token punctuation">{</span><span class="token annotation punctuation">@linkplain</span> <span class="token class-name">ContextLoader</span>#CONTEXT_INITIALIZER_CLASSES_PARAM <span class="token string">&quot;contextInitializerClasses&quot;</span><span class="token punctuation">}</span>
+ <span class="token operator">*</span> context<span class="token operator">-</span>param <span class="token operator">/</span> init<span class="token operator">-</span><span class="token class-name"><span class="token namespace">param<span class="token punctuation">.</span></span> In</span> such cases<span class="token punctuation">,</span> users should favor the <span class="token punctuation">{</span><span class="token annotation punctuation">@link</span> #<span class="token function">refresh</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">}</span>
+ <span class="token operator">*</span> and <span class="token punctuation">{</span><span class="token annotation punctuation">@link</span> #<span class="token function">scan</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span><span class="token punctuation">}</span> methods over the <span class="token punctuation">{</span><span class="token annotation punctuation">@link</span> #<span class="token function">setConfigLocation</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">)</span><span class="token punctuation">}</span>
+ <span class="token operator">*</span> method<span class="token punctuation">,</span> which is primarily <span class="token keyword">for</span> use by <span class="token punctuation">{</span><span class="token annotation punctuation">@code</span> <span class="token class-name">ContextLoader</span><span class="token punctuation">}</span><span class="token punctuation">.</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br></div></div><p>我们把之前的设计要点和设计结构结合起来看：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/spring/springframework/spring-framework-ioc-source-71.png" loading="lazy" class="lazy"></p> <p>到此，基本可以<mark>帮助你从顶层构建对IoC容器的设计理解，而不是过早沉溺于代码的细节</mark>; 所以《Java全栈知识体系》最大的目标是帮助你构筑体系化的认知，如果你自己去看源码而不站在顶层设计角度出发， 你多半会捡了芝麻丢了西瓜，时间一长啥印象没有。@pdai</p> <h2 id="参考文章"><a href="#参考文章" class="header-anchor">¶</a> 参考文章</h2> <p>https://www.cnblogs.com/ITtangtang/p/3978349.html</p></div> <div class="page-contract"><h2>联系我</h2> <div class="c-content"><span style="font-size:1rem;font-weight:bold;">添加@pdai微信</span><br> <img src="../../pdai.jpg" height="280px" style="margin:10px;"><br>
+        PS：添加时请备注<b>Java全栈</b>，谢谢！
+      </div></div> <footer class="page-edit"><div class="edit-link"><a href="https://github.com/realpdai/tech-arch-doc/edit/master/md/spring/spring-x-framework-ioc-source-1.md" target="_blank" rel="noopener noreferrer">在 GitHub 上编辑此页</a> <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></div> <div class="last-updated"><span class="prefix">上次更新: </span> <span class="time">9/27/2021,</span></div></footer> <div class="page-nav"><p class="inner"><span class="prev">
+        ←
+        <a href="spring-x-framework-spring5.html" class="prev">
+          Spring基础 - 从Spring 5特性看框架发展方向
+        </a></span> <span class="next"><a href="spring-x-framework-ioc-source-2.html">
+          Spring进阶- Spring IOC实现原理详解之IOC初始化流程
+        </a>
+        →
+      </span></p></div> <div class="google_ad_bottom"><ins data-ad-client="ca-pub-5088193899865249" data-ad-slot="6822031208" data-ad-format="auto" data-full-width-responsive="true" class="adsbygoogle" style="display:block"></ins> <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script></div> </main></div> <aside class="page-sidebar"> <div class="page-side-toolbar"><div class="option-box-toc-fixed"><div class="toc-container-sidebar"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:650px"><div style="font-weight:bold;text-align:center;">Spring进阶- Spring IOC实现原理详解之IOC体系结构设计</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="spring-x-framework-ioc-source-1.html#站在设计者的角度考虑设计ioc容器" class="toc-sidebar-link">站在设计者的角度考虑设计IOC容器</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="spring-x-framework-ioc-source-1.html#spring-ioc的体系结构设计" class="toc-sidebar-link">Spring IoC的体系结构设计</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="spring-x-framework-ioc-source-1.html#beanfactory和beanregistry：ioc容器功能规范和bean的注册" class="toc-sidebar-link">BeanFactory和BeanRegistry：IOC容器功能规范和Bean的注册</a></li><li class="toc-sidebar-sub-header"><a href="spring-x-framework-ioc-source-1.html#beandefinition：各种bean对象及其相互的关系" class="toc-sidebar-link">BeanDefinition：各种Bean对象及其相互的关系</a></li><li class="toc-sidebar-sub-header"><a href="spring-x-framework-ioc-source-1.html#applicationcontext：ioc接口设计和实现" class="toc-sidebar-link">ApplicationContext：IOC接口设计和实现</a></li></ul></li><li><a href="spring-x-framework-ioc-source-1.html#参考文章" class="toc-sidebar-link">参考文章</a><ul class="toc-sidebar-sub-headers"></ul></li></ul></div></div></div></div></div> <div class="option-box-toc-over"><img src="../../toc.png" class="nozoom"> <span class="show-txt">目录</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:550px"><div style="font-weight:bold;text-align:center;">Spring进阶- Spring IOC实现原理详解之IOC体系结构设计</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="spring-x-framework-ioc-source-1.html#站在设计者的角度考虑设计ioc容器" class="toc-sidebar-link">站在设计者的角度考虑设计IOC容器</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="spring-x-framework-ioc-source-1.html#spring-ioc的体系结构设计" class="toc-sidebar-link">Spring IoC的体系结构设计</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="spring-x-framework-ioc-source-1.html#beanfactory和beanregistry：ioc容器功能规范和bean的注册" class="toc-sidebar-link">BeanFactory和BeanRegistry：IOC容器功能规范和Bean的注册</a></li><li class="toc-sidebar-sub-header"><a href="spring-x-framework-ioc-source-1.html#beandefinition：各种bean对象及其相互的关系" class="toc-sidebar-link">BeanDefinition：各种Bean对象及其相互的关系</a></li><li class="toc-sidebar-sub-header"><a href="spring-x-framework-ioc-source-1.html#applicationcontext：ioc接口设计和实现" class="toc-sidebar-link">ApplicationContext：IOC接口设计和实现</a></li></ul></li><li><a href="spring-x-framework-ioc-source-1.html#参考文章" class="toc-sidebar-link">参考文章</a><ul class="toc-sidebar-sub-headers"></ul></li></ul></div></div></div></div></div> <div class="option-box"><img src="../../wechat.png" class="nozoom"> <span class="show-txt">手机看</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.9rem">微信扫一扫</span> <img height="180px" src="https://api.qrserver.com/v1/create-qr-code/?data=https://www.pdai.tech/md/spring/spring-x-framework-ioc-source-1.html" style="margin:10px;">
+              可以<b>手机看</b>或分享至<b>朋友圈</b></div></div></div></div> <div class="option-box"><a title="点击切换全屏" style="text-align:center;padding-left:2px;"><img src="../../full.png" width="30px" class="nozoom"> <span style="color:gray;font-size:11px;font-weight:400;">全屏看</span></a></div> <div class="option-box"><img src="../../toggle.png" width="30px" class="nozoom"> <span class="show-txt">左栏</span></div> <div class="option-box"><img src="../../wexin2.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:yellow">交流圈</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">添加pdai微信进《Java全栈知识体系》学习交流圈「无任何套路」</span> <img src="../../pdai.jpg" height="180px" style="margin:10px;">
+              PS：添加时请备注<b>Java全栈</b>，谢谢！
+            </div></div></div></div> <div class="option-box"><img src="../../download.jpg" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:#a6f792">下资料</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">扫描公众号，回复“资料”下载<font style="color:red;">10GB+</font>书籍资料「无任何套路」</span> <img src="../../pdai_gzh.jpg" height="180px" style="margin:10px;"> <b>公众号:</b> Java全栈知识体系
+            </div></div></div></div> <div class="option-box"><img src="../../heart.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;background-color:#gray">支持我</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">鼓励/支持/赞赏我</span> <img src="../../pdai-guli.png" height="180px" width="200px" style="margin:5px;">
+              1. 不靠它生存但仍希望得到你的鼓励；<br> 2. 时刻警醒自己保持技术人的初心，恒心，简单，利他；
+            </div></div></div></div> <div title="Spring基础 - 从Spring 5特性看框架发展方向" class="option-box" style="padding-left:2px;text-align:center;"><a href="spring-x-framework-spring5.html"><img src="../../pre2.png" width="30px" class="nozoom"> <span class="show-txt">上一篇</span></a></div> <div title="Spring进阶- Spring IOC实现原理详解之IOC初始化流程" class="option-box" style="padding-left:2px;text-align:center;"><a href="spring-x-framework-ioc-source-2.html"><img src="../../next2.png" width="30px" class="nozoom"> <span class="show-txt">下一篇</span></a></div></div>  <div class="page-side-sitemap"><div class="option-box"><img src="../../sitemap.png" class="nozoom img"> <span class="show-txt">站点图</span> <div class="sitemap-container"><h4>站点导航图
+            <a href="../about/me/about-me.html" class="sitemap-top-link"> 关于我</a> <a href="../about/blog/blog-build-vuepress.html" class="sitemap-top-link"> 关于站点</a> <a href="../about/me/blog-changelist.html" class="sitemap-top-link"> 最近更新记录</a> <a href="../about/me/blog-question.html" class="sitemap-top-link"><font style="color:red;background-color:yellow;">问题反馈</font></a></h4> <table class="sitemap-table"><tr><td nowrap="nowrap"><div class="sitemap-col-group">常用搜索</div></td> <td><div class="sitemap-col-item"><a href="http://www.baidu.com/" target="_blank" title="百度">  
+            百度
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.google.com/" target="_blank" title="Google">  
+            Google
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.bing.com/" target="_blank" title="Bing">  
+            Bing
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://github.com/" target="_blank" title="Github">  
+            Github
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.programcreek.com/java-api-examples/index.php" target="_blank" title="搜代码">  
+            搜代码
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">技术社区</div></td> <td><div class="sitemap-col-item"><a href="http://www.csdn.net/" target="_blank" title="CDSN">  
+            CDSN
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.cnblogs.com/" target="_blank" title="博客园">  
+            博客园
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.oschina.net/" target="_blank" title="OSChina">  
+            OSChina
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://segmentfault.com/" target="_blank" title="知否">  
+            知否
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://juejin.im/" target="_blank" title="掘金">  
+            掘金
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.linuxidc.com/" target="_blank" title="Linux公社">  
+            Linux公社
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.ibm.com/developerworks/cn/" target="_blank" title="IBM 开发者">  
+            IBM 开发者
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://stackoverflow.com/" target="_blank" title="StackOverflow">  
+            StackOverflow
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">Java相关</div></td> <!----> <td><a href="../java/basic/java-basic-oop.html" class="sitemap-col-item">
+            面向对象基础
+          </a><a href="../java/basic/java-basic-lan-basic.html" class="sitemap-col-item">
+            语法基础
+          </a><a href="../java/collection/java-collection-all.html" class="sitemap-col-item">
+            集合框架
+          </a><a href="../java/thread/java-thread-x-overview.html" class="sitemap-col-item">
+            并发基础
+          </a><a href="../java/thread/java-thread-x-key-synchronized.html" class="sitemap-col-item">
+            并发关键字
+          </a><a href="../java/thread/java-thread-x-juc-overview.html" class="sitemap-col-item">
+            JUC并发框架
+          </a><a href="../java/io/java-io-overview.html" class="sitemap-col-item">
+            IO框架
+          </a><a href="../java/java8/java8.html" class="sitemap-col-item">
+            Java8 特性
+          </a><a href="../java/jvm/java-jvm-x-overview.html" class="sitemap-col-item">
+            JVM基础
+          </a><a href="../java/jvm/java-jvm-param.html" class="sitemap-col-item">
+            调试排错
+          </a><a href="../java/others/java-others-awesome-java.html" class="sitemap-col-item">
+            更多资源
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">算法相关</div></td> <!----> <td><a href="../algorithm/alg-basic-array.html" class="sitemap-col-item">
+            数组与线性表
+          </a><a href="../algorithm/alg-basic-tree.html" class="sitemap-col-item">
+            树详解
+          </a><a href="../algorithm/alg-basic-graph.html" class="sitemap-col-item">
+            图详解
+          </a><a href="../algorithm/alg-sort-overview.html" class="sitemap-col-item">
+            内部排序
+          </a><a href="../algorithm/alg-core-divide-and-conquer.html" class="sitemap-col-item">
+            算法思想
+          </a><a href="../algorithm/alg-domain-security-degist.html" class="sitemap-col-item">
+            安全算法
+          </a><a href="../algorithm/alg-domain-bigdata-overview.html" class="sitemap-col-item">
+            大数据处理
+          </a><a href="../algorithm/alg-domain-distribute-overview.html" class="sitemap-col-item">
+            分布式算法
+          </a><a href="../algorithm/alg-domain-load-balance.html" class="sitemap-col-item">
+            负载均衡算法
+          </a><a href="../algorithm/alg-domain-suggest.html" class="sitemap-col-item">
+            推荐算法
+          </a><a href="../algorithm/alg-other-mind.html" class="sitemap-col-item">
+            头脑风暴
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">数据库相关</div></td> <!----> <td><a href="../db/sql/sql-db-howitworks.html" class="sitemap-col-item">
+            数据库原理
+          </a><a href="../db/sql-lan/sql-lan.html" class="sitemap-col-item">
+            SQL语言
+          </a><a href="../db/sql-mysql/sql-mysql-theory.html" class="sitemap-col-item">
+            MySQL相关
+          </a><a href="../db/nosql-mongo/mongo-performance-improve.html" class="sitemap-col-item">
+            MongoDB
+          </a><a href="../db/nosql-es/elasticsearch.html" class="sitemap-col-item">
+            ElasticSearch
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">开发基础相关</div></td> <!----> <td><a href="../develop/package/dev-package-x-apache-common.html" class="sitemap-col-item">
+            常用类库
+          </a><a href="../develop/ut/dev-ut-x-junit.html" class="sitemap-col-item">
+            单元测试
+          </a><a href="../develop/regex/dev-regex-all.html" class="sitemap-col-item">
+            正则表达式
+          </a><a href="../develop/protocol/dev-protocol-overview.html" class="sitemap-col-item">
+            网络协议
+          </a><a href="../develop/security/dev-security-overview.html" class="sitemap-col-item">
+            安全相关
+          </a><a href="../develop/refactor/dev-refactor-if-else.html" class="sitemap-col-item">
+            常见重构技巧
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">架构相关</div></td> <!----> <td><a href="../arch/arch-x-basic.html" class="sitemap-col-item">
+            架构基础
+          </a><a href="../arch/arch-x-view.html" class="sitemap-col-item">
+            架构视角
+          </a><a href="../arch/arch-x-evolution.html" class="sitemap-col-item">
+            架构演进
+          </a><a href="../arch/arch-x-pattern.html" class="sitemap-col-item">
+            架构模式和要素
+          </a><a href="../arch/arch-y-cache.html" class="sitemap-col-item">
+            高并发之缓存
+          </a><a href="../arch/arch-y-ratelimit.html" class="sitemap-col-item">
+            高并发之限流
+          </a><a href="../arch/arch-y-reduce.html" class="sitemap-col-item">
+            高并发之降级
+          </a><a href="../arch/arch-y-loadbalance.html" class="sitemap-col-item">
+            负载均衡
+          </a><a href="../arch/arch-y-backup.html" class="sitemap-col-item">
+            容灾备份
+          </a><a href="../arch/arch-x-security.html" class="sitemap-col-item">
+            架构安全
+          </a><a href="../arch/arch-example-seckill.html" class="sitemap-col-item">
+            秒杀系统设计
+          </a><a href="../arch/arch-example-goods-detail.html" class="sitemap-col-item">
+            架构案例
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">工具和部署</div></td> <!----> <td><a href="../devops/tool/tool-list-overview.html" class="sitemap-col-item">
+            工具集合
+          </a><a href="../devops/tool/tool-ide.html" class="sitemap-col-item">
+            IDE相关
+          </a><a href="../devops/tool/tool-git.html" class="sitemap-col-item">
+            Git
+          </a><a href="../devops/tool/tool-maven.html" class="sitemap-col-item">
+            Maven
+          </a><a href="../devops/linux/linux.html" class="sitemap-col-item">
+            Linux
+          </a><a href="../devops/docker/docker-00-overview.html" class="sitemap-col-item">
+            Docker
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">方法论</div></td> <!----> <td><a href="../dev-spec/spec/dev-th-solid.html" class="sitemap-col-item">
+            SOLID
+          </a><a href="../dev-spec/spec/dev-th-cap.html" class="sitemap-col-item">
+            CAP
+          </a><a href="../dev-spec/spec/dev-th-base.html" class="sitemap-col-item">
+            BASE
+          </a><a href="../dev-spec/spec/dev-opensource.html" class="sitemap-col-item">
+            开源协议
+          </a><a href="../dev-spec/code-style/code-style-alibaba.html" class="sitemap-col-item">
+            代码规范
+          </a><a href="../dev-spec/pattern/1_overview.html" class="sitemap-col-item">
+            设计模式
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">产品和团队</div></td> <!----> <td><a href="../team/team-z-wechat.html" class="sitemap-col-item">
+            产品相关
+          </a><a href="../team/team-z-task-emergency.html" class="sitemap-col-item">
+            团队相关
+          </a><a href="../team/team-z-arch-future.html" class="sitemap-col-item">
+            其它分享
+          </a></td></tr></table></div></div></div> <!----> </aside></div><div class="global-ui"></div></div>
+    <script src="../../assets/js/app.691e72ae.js" defer></script><script src="../../assets/js/4.2e3efdf6.js" defer></script><script src="../../assets/js/3.d77b006c.js" defer></script><script src="../../assets/js/557.fa3106ea.js" defer></script>
+  </body>
+
+<!-- Mirrored from www.pdai.tech/md/spring/spring-x-framework-ioc-source-1.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:33:03 GMT -->
+</html>

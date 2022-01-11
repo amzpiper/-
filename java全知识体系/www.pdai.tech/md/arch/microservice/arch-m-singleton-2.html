@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  
+<!-- Mirrored from www.pdai.tech/md/arch/microservice/arch-m-singleton-2.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:33:33 GMT -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>走出微服务误区：避免从单体到分布式单体 | Java 全栈知识体系</title>
+    <meta name="generator" content="VuePress 1.8.2">
+    <link rel="icon" href="../../../favicon.ico">
+    <script src="../../../../hm.baidu.com/hma448.js?525d4abc4a8675472736969f817ceb47"></script>
+    <script defer="defer" async="async" src="../../../../pagead2.googlesyndication.com/pagead/js/f.txt"></script>
+    <meta name="description" content="包含: Java 基础, Java 部分源码, JVM, Spring, Spring Boot, Spring Cloud, 数据库原理, MySQL, ElasticSearch, MongoDB, Docker, k8s, CI&CD, Linux, DevOps, 分布式, 中间件, 开发工具, Git, IDE, 源码阅读，读书笔记, 开源项目...">
+    <meta property="article:modified_time" content="2021-09-27T13:15:21.000Z">
+    <meta property="og:title" content="走出微服务误区：避免从单体到分布式单体">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="/md/arch/microservice/arch-m-singleton-2.html">
+    <meta name="twitter:title" content="走出微服务误区：避免从单体到分布式单体">
+    <meta name="twitter:url" content="/md/arch/microservice/arch-m-singleton-2.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="robots" content="all">
+    <meta name="author" content="pdai">
+    <meta name="keywords" content="Java 全栈知识体系, java体系, java知识体系, java框架,java全栈,java学习路线,java全栈知识, java面试, 知识体系, java技术体系, java编程, java编程指南,java开发体系, java开发,java教程,java,java数据结构, 算法, 开发基础">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <link rel="preload" href="../../../assets/css/0.styles.d4bb5489.css" as="style"><link rel="preload" href="../../../assets/js/app.691e72ae.js" as="script"><link rel="preload" href="../../../assets/js/4.2e3efdf6.js" as="script"><link rel="preload" href="../../../assets/js/3.d77b006c.js" as="script"><link rel="preload" href="../../../assets/js/148.7bc863bb.js" as="script">
+    <link rel="stylesheet" href="../../../assets/css/0.styles.d4bb5489.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="../../../index.html" class="home-link router-link-active"><!----> <span class="site-name">Java 全栈知识体系</span></a> <div class="links"><form id="search-form" role="search" class="algolia-search-wrapper search-box"><input id="algolia-search-input" class="search-query"></form> <nav class="nav-links can-hide"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav>  <ul class="sidebar-links"><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>架构基础</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../arch-x-overview.html" class="sidebar-link">架构 - 知识体系</a></li><li><a href="../arch-x-basic.html" class="sidebar-link">架构 - 架构基础: 特点,本质...</a></li><li><a href="../arch-x-view.html" class="sidebar-link">架构 - 理解构架的视角</a></li><li><a href="../arch-x-evolution.html" class="sidebar-link">架构 - 理解架构的演进</a></li><li><a href="../arch-x-service.html" class="sidebar-link">架构 - 理解架构的服务演化</a></li><li><a href="../arch-x-pattern.html" class="sidebar-link">架构 - 理解架构的模式1</a></li><li><a href="../arch-x-pattern-2.html" class="sidebar-link">架构 - 理解架构的模式2</a></li><li><a href="../arch-x-core-metrics.html" class="sidebar-link">架构 - 理解架构的核心要素</a></li><li><a href="../arch-y-cache.html" class="sidebar-link">架构之高并发：缓存</a></li><li><a href="../arch-y-ratelimit.html" class="sidebar-link">架构之高并发：限流</a></li><li><a href="../arch-y-reduce.html" class="sidebar-link">架构之高并发：降级和熔断</a></li><li><a href="../arch-y-loadbalance.html" class="sidebar-link">架构之高可用：负载均衡</a></li><li><a href="../arch-y-backup.html" class="sidebar-link">架构之高可用：容灾备份,故障转移</a></li><li><a href="../arch-x-security.html" class="sidebar-link">架构 - 保障架构安全</a></li><li><a href="../arch-x-books.html" class="sidebar-link">架构 - 学习资料</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>分布式系统</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../arch-z-overview.html" class="sidebar-link">分布式系统 - 知识体系</a></li><li><a href="../arch-z-theory.html" class="sidebar-link">分布式系统 - 理论基础及一致性算法</a></li><li><a href="../arch-z-id.html" class="sidebar-link">分布式系统 - 全局唯一ID实现方案</a></li><li><a href="../arch-z-lock.html" class="sidebar-link">分布式系统 - 分布式锁及实现方案</a></li><li><a href="../arch-z-transection.html" class="sidebar-link">分布式系统 - 分布式事务及实现方案</a></li><li><a href="../arch-z-cache.html" class="sidebar-link">分布式系统 - 分布式缓存及方案实现</a></li><li><a href="../arch-z-job.html" class="sidebar-link">分布式系统 - 分布式任务及实现方案</a></li><li><a href="../arch-z-session.html" class="sidebar-link">分布式系统 - 分布式会话及实现方案</a></li><li><a href="../arch-z-trace.html" class="sidebar-link">分布式系统 - 分布式服务链路追踪</a></li><li><a href="../arch-z-file.html" class="sidebar-link">分布式系统 - 分布式文件系统</a></li><li><a href="../arch-z-store.html" class="sidebar-link">分布式系统 - 分布式存储系统</a></li><li><a href="../arch-z-calculate.html" class="sidebar-link">分布式系统 - 分布式计算详解</a></li><li><a href="../arch-z-wrong.html" class="sidebar-link">分布式系统 - 分布式系统的8个谬误</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading open"><span>微服务系统与设计</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="arch-m-singleton-2.html" aria-current="page" class="active sidebar-link">走出微服务误区：避免从单体到分布式单体</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>系统设计和架构案例</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../arch-example-seckill.html" class="sidebar-link">架构案例 - 秒杀系统设计</a></li><li><a href="../arch-example-goods-detail.html" class="sidebar-link">京东: 亿级商品详情页设计</a></li><li><a href="../arch-example-xianyu-goods.html" class="sidebar-link">闲鱼: 亿级商品结构化背后的思考和演进</a></li><li><a href="../arch-example-xianyu-jiaoyi.html" class="sidebar-link">闲鱼: 多状态多操作的交易链路架构演进</a></li><li><a href="../arch-example-xianyu-laxintoufang.html" class="sidebar-link">闲鱼: 拉新投放系统如何设计</a></li><li><a href="../arch-example-xianyu-search.html" class="sidebar-link">闲鱼: 复杂搜索系统的可靠性优化之路</a></li><li><a href="../arch-example-meituan-peisong.html" class="sidebar-link">美团: 配送系统架构演进实践</a></li><li><a href="../arch-example-meituan-jishiwuliu.html" class="sidebar-link">美团: 即时物流的分布式系统架构设计</a></li><li><a href="../arch-example-meituan-waimai.html" class="sidebar-link">美团: 外卖客户端高可用建设体系</a></li><li><a href="../arch-example-meituan-db-hp.html" class="sidebar-link">美团: 数据库高可用架构的演进与设想</a></li><li><a href="../arch-example-meituan-db-binlog.html" class="sidebar-link">美团: 数据同步到仓库的架构实践</a></li></ul></section></li></ul> </aside> <div><main class="page"> <div class="theme-default-content content__default"><h1 id="走出微服务误区：避免从单体到分布式单体"><a href="#走出微服务误区：避免从单体到分布式单体" class="header-anchor">¶</a> 走出微服务误区：避免从单体到分布式单体</h1> <blockquote><p>最近社区频繁出现的对微服务的各种质疑和反思的声音，甚至放弃微服务回归单体。本文从“分布式单体”问题出发，介绍通过引入非侵入式方案和引入Event/EDA 来走出微服务实践误区：从单体到微服务，却最后沦为分布式单体。</p></blockquote> <ul><li><a href="#%E8%B5%B0%E5%87%BA%E5%BE%AE%E6%9C%8D%E5%8A%A1%E8%AF%AF%E5%8C%BA%E9%81%BF%E5%85%8D%E4%BB%8E%E5%8D%95%E4%BD%93%E5%88%B0%E5%88%86%E5%B8%83%E5%BC%8F%E5%8D%95%E4%BD%93">走出微服务误区：避免从单体到分布式单体</a> <ul><li><a href="#%E5%9B%9E%E9%A1%BE%E4%BB%8E%E5%8D%95%E4%BD%93%E5%88%B0%E5%BE%AE%E6%9C%8D%E5%8A%A1%E5%88%B0-function">回顾：从单体到微服务到 Function</a></li> <li><a href="#%E5%88%86%E5%B8%83%E5%BC%8F%E5%8D%95%E4%BD%93">分布式单体</a> <ul><li><a href="#%E5%88%86%E5%B8%83%E5%BC%8F%E5%8D%95%E4%BD%93%E8%B5%B7%E5%9B%A0%E4%B9%8B%E4%B8%80%E9%80%9A%E8%BF%87%E5%85%B1%E4%BA%AB%E5%BA%93%E5%92%8C%E7%BD%91%E7%BB%9C%E5%AE%A2%E6%88%B7%E7%AB%AF%E8%AE%BF%E9%97%AE%E5%88%86%E5%B8%83%E5%BC%8F%E8%83%BD%E5%8A%9B">分布式单体起因之一：通过共享库和网络客户端访问分布式能力</a></li> <li><a href="#%E5%88%86%E5%B8%83%E5%BC%8F%E5%8D%95%E4%BD%93%E8%B5%B7%E5%9B%A0%E4%B9%8B%E4%BA%8C%E7%AE%80%E5%8D%95%E7%94%A8%E8%BF%9C%E7%A8%8B%E8%B0%83%E7%94%A8%E6%9B%BF%E4%BB%A3%E8%BF%9B%E7%A8%8B%E5%86%85%E6%96%B9%E6%B3%95%E8%B0%83%E7%94%A8">分布式单体起因之二：简单用远程调用替代进程内方法调用</a></li> <li><a href="#%E5%88%86%E5%B8%83%E5%BC%8F%E5%8D%95%E4%BD%93%E8%B5%B7%E5%9B%A0%E5%B0%8F%E7%BB%93">分布式单体起因小结</a></li></ul></li> <li><a href="#%E5%BC%95%E5%85%A5%E9%9D%9E%E4%BE%B5%E5%85%A5%E5%BC%8F%E6%96%B9%E6%A1%88%E7%89%A9%E7%90%86%E9%9A%94%E7%A6%BB%E9%80%BB%E8%BE%91%E6%8A%BD%E8%B1%A1">引入非侵入式方案：物理隔离+逻辑抽象</a></li> <li><a href="#%E5%BC%95%E5%85%A5-event%E8%A7%A3%E9%99%A4%E4%B8%8D%E5%BF%85%E8%A6%81%E7%9A%84%E5%BC%BA%E8%80%A6%E5%90%88">引入 Event：解除不必要的强耦合</a> <ul><li><a href="#%E6%B8%A9%E6%95%85%E8%80%8C%E7%9F%A5%E6%96%B0event-%E5%92%8C-command">温故而知新：Event 和 Command</a> <ul><li><a href="#%E4%BB%80%E4%B9%88%E6%98%AF-event">什么是 Event？</a></li> <li><a href="#%E4%BB%80%E4%B9%88%E6%98%AF-command">什么是 Command？</a></li> <li><a href="#command-%E5%92%8C-event-%E6%80%BB%E7%BB%93">Command 和 Event 总结</a></li></ul></li> <li><a href="#%E4%BB%8E%E4%B8%9A%E5%8A%A1%E8%A7%86%E8%A7%92%E5%87%BA%E5%8F%91%E5%85%B3%E7%B3%BB%E6%A8%A1%E5%9E%8B%E5%86%B3%E5%AE%9A%E9%80%9A%E8%AE%AF%E8%A1%8C%E4%B8%BA">从业务视角出发：关系模型决定通讯行为</a></li> <li><a href="#%E5%85%A8%E7%A8%8B-command-%E5%B8%A6%E6%9D%A5%E7%9A%84%E9%97%AE%E9%A2%98%E4%B8%8D%E5%BF%85%E8%A6%81%E7%9A%84%E5%BC%BA%E8%80%A6%E5%90%88">全程 Command 带来的问题：不必要的强耦合</a> <ul><li><a href="#%E7%BC%96%E6%8E%92%E5%92%8C%E5%8D%8F%E8%B0%83">编排和协调</a></li></ul></li> <li><a href="#%E5%85%A8%E7%A8%8B-event-%E5%B8%A6%E6%9D%A5%E7%9A%84%E9%97%AE%E9%A2%98%E5%BC%80%E5%8F%91%E5%9B%B0%E9%9A%BE%E5%92%8C%E4%B8%9A%E5%8A%A1%E8%BE%B9%E7%95%8C%E4%B8%8D%E6%B8%85%E6%99%B0">全程 Event 带来的问题：开发困难和业务边界不清晰</a></li> <li><a href="#command-%E5%92%8C-event-%E7%9A%84%E9%80%89%E6%8B%A9%E5%AE%9E%E4%BA%8B%E6%B1%82%E6%98%AF%E4%B8%8D%E5%81%8F%E4%B8%8D%E5%80%9A">Command 和 Event 的选择：实事求是不偏不倚</a></li></ul></li> <li><a href="#%E6%80%BB%E7%BB%93%E4%B8%8E%E5%8F%8D%E6%80%9D">总结与反思</a> <ul><li><a href="#%E8%AD%A6%E6%83%95%E4%B8%8D%E8%A6%81%E6%B2%A6%E4%B8%BA%E5%88%86%E5%B8%83%E5%BC%8F%E5%8D%95%E4%BD%93">警惕：不要沦为分布式单体</a></li> <li><a href="#%E5%8F%8D%E6%80%9D%E5%96%A7%E9%97%B9%E5%92%8C%E8%B0%A9%E9%AA%82%E4%B9%8B%E5%A4%96%E7%9A%84%E5%86%B7%E9%9D%99%E6%80%9D%E8%80%83">反思：喧闹和谩骂之外的冷静思考</a></li></ul></li> <li><a href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99%E5%92%8C%E6%8E%A8%E8%8D%90%E9%98%85%E8%AF%BB">参考资料和推荐阅读</a></li> <li><a href="#%E5%8F%82%E8%80%83%E6%96%87%E7%AB%A0">参考文章</a></li></ul></li></ul> <h2 id="回顾：从单体到微服务到-function"><a href="#回顾：从单体到微服务到-function" class="header-anchor">¶</a> 回顾：从单体到微服务到 Function</h2> <p>在过去几年间，微服务架构成为业界主流，很多公司开始采用微服务，并迁移原有的单体应用迁移到微服务架构。从架构上，微服务和单体最大的变化在于微服务架构下应用的粒度被“拆小”：将所有业务逻辑都在一起的单体应用，按照领域模型拆分为多个内聚而自治的“更小”的应用。而 Function 则在拆分上更进一步，拆分粒度变成了“单个操作”，基于 Function 逐渐演进出现 FaaS 形态和 Serverless 架构。</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-1.png" loading="lazy" class="lazy"></p> <p>在微服务和 Serverless 的喧嚣中，也逐渐出现了很多质疑和反对的声音：越来越多的人发现，当他们兴冲冲的迁移单体应用到微服务和 Serverless 架构之后，得到的收益并没有期望中的那么理想。最近，出现了对微服务的各种质疑、反思的声音，甚至放弃微服务回归单体。</p> <p>无论是支持还是反对微服务的声音，大多都是着眼于组织架构（康威定律，对应用和代码的 ownership）、微服务拆分（粒度大小，如何识别领域模型和业务边界）、分布式事务（跨多个微服务调用时维持一致性），工具（自动化构建、部署，可测试性，监控，分布式链路跟踪，CI/CD），数据库分离（避免多个微服务尤其是领域模型外的微服务共享数据库）等方面进行合理性分析和观点阐述，相信大家都对这些问题都有了解。</p> <p>而我今天的文章，将从另外一个角度来看待微服务（也包括 Serverless）实践中存在的误区——辛辛苦苦从单体走到微服务，却最后沦为<strong>分布式单体</strong>。</p> <h2 id="分布式单体"><a href="#分布式单体" class="header-anchor">¶</a> 分布式单体</h2> <p>“Distributed Monolith”，分布式单体，这真是一个悲伤的技术术语。而这偏偏是企业采用微服务后通常最容易踏进去的一个“陷阱”，事实上我看到的很多微服务落地最终都是以&quot;分布式单体&quot;收场，无法获得微服务的完整收益。</p> <p>问题源于微服务实施的方式 —— 按照业务逻辑拆解单体，划分为多个微服务，定义 API 接口，然后通过 REST 或者 RPC 进行远程调用，最终把这些微服务组合起来提供各种业务功能。简单说，就是在业务拆分的基础上，用进程间的<strong>远程调用</strong>简单替代原来<strong>进程内的方法调用</strong>。期间，对于原来使用的各种分布式能力，继续沿用之前的方式，简单说：方式不变，只是粒度变小。</p> <p>从方法论说这样做无可厚非，这也是微服务采用过程中非常标准的做法。但问题在于，止步于此是不够的 —— 至少存在两个有待继续努力改进的地方。</p> <h3 id="分布式单体起因之一：通过共享库和网络客户端访问分布式能力"><a href="#分布式单体起因之一：通过共享库和网络客户端访问分布式能力" class="header-anchor">¶</a> 分布式单体起因之一：通过共享库和网络客户端访问分布式能力</h3> <p>分布式能力的共享库和网络客户端是造成分布式单体问题的原因之一，关于这一点，来自 verizon 的 Mohamad Byan 在他的名为 Avoid the Distributed Monolith!! 的演讲中有详细的阐述，我这里援引他的图片和观点：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-2.png" loading="lazy" class="lazy"></p> <p>上图是微服务体系的逻辑架构，由两部分组成：</p> <ul><li>内层架构（图上浅蓝色部分），是每个微服务的实现架构；</li> <li>外层架构（图上黄色部分），是构建强大微服务架构所需要的各种能力，这里通常有大家熟悉的各种分布式能力；</li></ul> <blockquote><p>特别提示：这里说的“网络客户端”是各种分布式能力的客户端，如服务注册发现/ MQ 中间件/ Redis 等 key-value 存储/数据库/监控日志追踪系统/安全体系等，不是服务间通讯如 RPC 的客户端。</p></blockquote> <p>而内层的微服务是通过 <strong>共享类库</strong> 和 <strong>网络客户端</strong> 来访问外层架构提供的分布式能力：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-3.png" loading="lazy" class="lazy"></p> <p>分布式能力的 <strong>共享类库</strong> 和 <strong>网络客户端</strong> 会迫使内层微服务和外层架构的各种分布式能力之间产生强耦合，增加运维的复杂性（如升级困难造成版本碎片化），多语言受限于类库和网络客户端支持的语言，各种组件（如消息中间件）往往使用自定义数据格式和通讯协议 —— 所有这些迫使内层微服务不得不实质性受限于外层架构的技术选型。</p> <p>对于 Function，这个问题就更加明显了：Function 的粒度更小，更专注业务逻辑。某些简短的 Function 可能只有几百行代码，但是，为了让这几百行代码运转起来而需要引入的共享类库和网络客户端可能相比之下就规模惊人了。援引一张网上图片作为示意：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-4.png" loading="lazy" class="lazy"></p> <h3 id="分布式单体起因之二：简单用远程调用替代进程内方法调用"><a href="#分布式单体起因之二：简单用远程调用替代进程内方法调用" class="header-anchor">¶</a> 分布式单体起因之二：简单用远程调用替代进程内方法调用</h3> <p>在微服务架构改造过程中，熟悉单体系统和架构的开发人员，习惯性的会将这些单体时代的知识和经验重用到新的微服务架构之中。其中最典型的做法就是：在遵循领域模型将现有单体应用按照业务边界拆分为多个微服务时，往往选择用 REST 或者 RPC 等远程调用方式<strong>简单替代</strong>原有的进程内方法调用。</p> <p>当两个逻辑上的业务模块存在协作需求时：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-5.png" loading="lazy" class="lazy"></p> <p>从单体到微服务，直接方法调用被替换为远程调用（REST 或者 RPC），即使采用 Service Mesh 也只是在链路中多增加了 Sidecar 节点，并未改变远程调用的性质：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-6.png" loading="lazy" class="lazy"></p> <p>这导致了前面所说的 “分布式单体”：</p> <ul><li>在微服务之前：应用程序由多个耦合在一起的模块组成，这些模块通过内存空间进行方法调用…..</li> <li>在微服务之后：应用程序由多个耦合在一起的微服务组成，这些微服务通过网络进行远程调用…..</li></ul> <p>抛开调用方式的差异来看采用微服务前后的系统架构，会发现：两者几乎是完全一样的！！</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-7.png" loading="lazy" class="lazy"></p> <p>而微服务版本在某些情况下可能表现的更糟糕：因为调用方式更脆弱，因为网络远比内存不可靠。而我们将网络当成 “胶水” 来使用，试图把分散的业务逻辑模块（已经拆分为微服务）按照单体时代的同样方式简单粘在一起，这当然比单体在同一个进程内直接方法调用更加的不可靠。</p> <blockquote><p>关于这一点，在 &quot;<a href="../arch-z-wrong.html">The Eight Fallacies of Distributed Computing/分布式计算的8个谬论</a>&quot; 一文中有详细阐述。</p></blockquote> <p>类似的，在采用 Function 时，如果依然沿用上面的方式，以单体或微服务架构的思维方式和设计模式来创建 FaaS/Serverless 架构：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-8.png" loading="lazy" class="lazy"></p> <p>其本质不会发生变化 —— 不过是将微服务变成粒度更小的函数，导致系统中的远程调用数量大为增加：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-12.png" loading="lazy" class="lazy"></p> <p>系统内的耦合并没有发生变化，Serverless 并不能改变微服务中存在的这个内部耦合问题：调用在哪里，则耦合就在哪里！只是把将组件的粒度从 “微服务“换成了 “Function/函数”。</p> <p><strong>耦合的存在是源于系统不同组件之间的通讯模式，而不是实现通讯的技术</strong>。</p> <p>如果让两个组件通过“调用”（后面再展开讲何为<strong>调用</strong>）进行远程通信，那么不管调用是如何实现的，这两个组件都是紧密耦合。因此，当系统从单体到微服务到 Serverless，如果止步于简单的用远程调用替代进程内方法调用，那么系统依然是高度耦合的，从这个角度来说：</p> <p><strong>单体应用 ≈ 分布式单体 ≈ Serverless 单体</strong></p> <h3 id="分布式单体起因小结"><a href="#分布式单体起因小结" class="header-anchor">¶</a> 分布式单体起因小结</h3> <p>上面我们列出了微服务和 Serverless 实践中容易形成“分布式单体”的两个主要原因：</p> <ul><li>通过共享库和网络客户端访问分布式能力；</li> <li>简单用远程调用替代进程内方法调用；</li></ul> <p>下面我们针对这两个问题探讨解决的思路和对策。</p> <h2 id="引入非侵入式方案：物理隔离逻辑抽象"><a href="#引入非侵入式方案：物理隔离逻辑抽象" class="header-anchor">¶</a> 引入非侵入式方案：物理隔离+逻辑抽象</h2> <p>前面谈到分布式单体产生的一个原因是“通过共享库和网络客户端访问分布式能力”，造成微服务和 Lambda 函数和分布式能力强耦合。以 Service Mesh 为典型代表的非侵入式方案是解决这一问题的有效手段，其他类似方案有  RSocket / Multiple Runtime Architecture，以及数据库和消息的 Mesh 化产品，其基本思路有两点：</p> <ul><li><strong>委托</strong>：通过 Sidecar 或者 Runtime 来进行对分布式能力的访问，避免应用和提供分布式能力的组件直接通讯造成强绑定 —— <strong>通过物理隔离进行解耦</strong>；</li> <li><strong>抽象</strong>：对内层微服务隐藏实现细节，只暴露网络协议和数据契约，将外围架构的各种分布式能力以 API 的方式暴露出来，而屏蔽提供这些能力的具体实现 —— <strong>通过逻辑抽象进行解耦</strong>；</li></ul> <p>以 Service Mesh 的 Sidecar 为例，在植入 Sidecar 之后，业务应用需要直接对接的分布式能力就大为减少（物理隔离）：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-9.png" loading="lazy" class="lazy"></p> <p>最近出现的 Multiple Runtime / Mecha 架构，以及遵循这一架构思想的微软开源产品 Dapr ，则将这个做法推进到服务间通讯之外更多的分布式能力。</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-10.png" loading="lazy" class="lazy"></p> <p>此外在委托之外，还提供对分布式能力的抽象。比如在 Dapr 中，业务应用只需要使用 Dapr 提供的标准 API，就可以使用这些分布式能力而无法关注提供这些能力的具体产品（逻辑抽象）：</p> <p>以 pub-sub 模型中的发消息为例，这是 Dapr 提供的 Java 客户端 SDK API：</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token keyword">public</span> <span class="token keyword">interface</span> <span class="token class-name">DaprClient</span> <span class="token punctuation">{</span>
+	<span class="token class-name">Mono</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Void</span><span class="token punctuation">&gt;</span></span> <span class="token function">publishEvent</span><span class="token punctuation">(</span><span class="token class-name">String</span> topic<span class="token punctuation">,</span> <span class="token class-name">Object</span> event<span class="token punctuation">)</span><span class="token punctuation">;</span>
+   <span class="token class-name">Mono</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Void</span><span class="token punctuation">&gt;</span></span> <span class="token function">publishEvent</span><span class="token punctuation">(</span><span class="token class-name">String</span> topic<span class="token punctuation">,</span> <span class="token class-name">Object</span> event<span class="token punctuation">,</span> <span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token punctuation">&gt;</span></span> metadata<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br></div></div><p>可见在发送事件时，Dapr 完全屏蔽了底层消息机制的具体实现，通过客户端 SDK 为应用提供发送消息的高层抽象，在 Dapr Runtime 中对接底层 MQ 实现——完全解耦应用和 MQ：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-11.png" loading="lazy" class="lazy"></p> <h2 id="引入-event：解除不必要的强耦合"><a href="#引入-event：解除不必要的强耦合" class="header-anchor">¶</a> 引入 Event：解除不必要的强耦合</h2> <p>在解决了微服务/ Serverless 系统和外部分布式能力之间紧耦合的问题之后，我们继续看微服务/Serverless 系统内部紧耦合的问题。前面讨论到，从单体到微服务到 Function/Serverless，如果只是简单的将直接方法调用替换为远程调用（REST 或者 RPC），那么两个通讯的模块之间会因为这个紧密耦合的调用而形成依赖，而且依赖关系会伴随调用链继续传递，导致形成一个树形的依赖关系网络，表现为系统间的高度耦合：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-13.png" loading="lazy" class="lazy"></p> <p>要解决这个问题，基本思路在于审视两个组件之间通讯行为的业务语义，然后据此决定两者之间究竟是应该采用 Command/命令模式还是 Event/事件模式。</p> <h3 id="温故而知新：event-和-command"><a href="#温故而知新：event-和-command" class="header-anchor">¶</a> 温故而知新：Event 和 Command</h3> <p>首先我们来温习一下 Event 和 Command 的概念和差别，借用一张图片，总结的非常到位：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-14.png" loading="lazy" class="lazy"></p> <h4 id="什么是-event"><a href="#什么是-event" class="header-anchor">¶</a> 什么是 Event？</h4> <p>Event: “A significant change in state” — K. Mani Chandy.</p> <p>Event 代表领域中<strong>已经发生</strong>的事情：通常意味着有行为（Action）已经发生，有状态（Status）已经改变。
+因为是已经发生的事情，因此：</p> <ul><li>Event 可以被理解为是对已经发生的事实的客观陈述；</li> <li>这意味着 Event 通常是不可变的：Event 的信息（代表着客观事实）不能被篡改，Event 的产生不能逆转；</li> <li>命名：Event 通常以动词的完成时态命名，如 UserRegistredEvent；</li></ul> <p>产生 Event 的目标是为了接下来的 Event 传播：</p> <ul><li>将已经发生的 Event 通知给对此感兴趣的观察者；</li> <li>收到 Event 的观察者将根据 Event 的内容进行判断和决策：可能会有接下来的动作（Action），有些动作可能需要和其他模块通讯+ 而触发命令（Command），这些动作执行完毕可能会造成领域状态的改变从而继续触发新的事件（Event）；</li></ul> <p><strong>Event 传播的方式</strong>：</p> <ul><li>Event 有明确的“源/source”，即 Event 产生（或者说状态改变）的发生地；
+但由于生产者并不知道（不愿意/不关心）会有哪些观察者对 Event 感兴趣，因此 Event 中并不包含“目的地/Destination”信息；</li> <li>Event 通常是通过 MessageQueue 机制，以 pub-sub 的方式传播；</li> <li>Event 通常不需要回复（ reply）或者应答（response）；</li> <li>Event 通常用发布（publish）；</li></ul> <h4 id="什么是-command"><a href="#什么是-command" class="header-anchor">¶</a> 什么是 Command？</h4> <p>Command 用于传递一个要求执行某个动作（Action）的请求。</p> <p>Command 代表<strong>将要发生</strong>的事情：</p> <ul><li>通常意味着行为（Action）还未发生但即将发生（如果请求被接受和执行）；</li> <li>存在被拒绝的可能：不愿意执行（参数校验失败，权限不足），不能执行（接收者故障或者资源无法访问）；</li> <li>命名：Command 通常以动词的普通形态命名，如 UserRegisterCommand；</li></ul> <p>产生 Command 的目标是为了接下来的 Command 执行：</p> <ul><li>将 Command 发送给期望的执行者；</li> <li>收到 Command 的执行者将根据 Command 的要求进行执行：在执行的过程中内部可能有多个动作（Action），有些动作可能需要和其他模块通讯而触发命令（Command），这些动作执行完毕可能会造成领域状态的改变从而继续触发新的事件（Event）；</li></ul> <p>Command 的传播方式：</p> <ul><li>Command 有明确的源（Source），即 Command 的发起者；</li> <li>Command 也有非常明确的执行者（而且通常是一个），因此命名通常包含“目的地/Destination”信息；</li> <li>Command 通常是通过 HTTP / RPC 这样的点对点远程通讯机制，通常是同步；</li> <li>Command 通常需要应答（Response）：回应 Command 是否被执行（因为可能被拒绝），执行结果（因为可能执行失败）；</li> <li>Command 通常用发送（Send）；</li></ul> <h4 id="command-和-event-总结"><a href="#command-和-event-总结" class="header-anchor">¶</a> Command 和 Event 总结</h4> <p>总结 —— Command 和 Event 的本质区别在于他们的意图：</p> <ul><li>Command 的意图是 <strong>告知希望发生的事情</strong>；</li> <li>Event 的意图是 <strong>告知已经发生的事情</strong>；</li></ul> <p>意图上的差异最终会在服务间依赖关系上有特别的体现：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-15.png" loading="lazy" class="lazy"></p> <ul><li>Command 的发起者必须明确知晓 Command 的接收者并明确指示需要做什么（所谓的命令、指示、操纵、编排），尤其当发起者连续发出多个 Command 时，通常这些 Command 会有非常明确的顺序和逻辑关系，以组合为特定的业务逻辑；</li></ul> <p>Command 的依赖关系简单明确: 发起者 “<strong>显式依赖</strong>” 接收者；</p> <ul><li>Event 的发起者只需负责发布 Event，而无需关注 Event 的接收者，包括接收者是谁（一个还是多个）以及会做什么（所谓的通知、驱动、协调）。即使 Event 实际有多个接收者，这些接受者之间往往没有明确的顺序关系，其处理过程中的业务逻辑也往往是彼此独立的。</li></ul> <p>Event 的依赖关系稍微复杂一些：发起者明确<strong>不依赖</strong>接收者，接收者则存在对发起者 “<strong>隐式的反向依赖</strong>” ——反向是指和 Command 的依赖关系相比方向调转，是接受者反过来依赖发起者；隐式则是指这种依赖只体现于 “接受者依赖 Event，而 Event 是由发起者发布” 的间接关系中，接受者和发起者之间并不存在直接依赖关系。</p> <h3 id="从业务视角出发：关系模型决定通讯行为"><a href="#从业务视角出发：关系模型决定通讯行为" class="header-anchor">¶</a> 从业务视角出发：关系模型决定通讯行为</h3> <p>在温习完 Command 和 Event 之后，我们再来看我们前面的问题：为什么简单的将直接方法调用替换为远程调用（REST 或者 RPC）会出问题？主要原因是在这个替换过程中，所谓简单是指不假思索直接选择远程调用，也就是选择全程 Command 方式：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-16.png" loading="lazy" class="lazy"></p> <p>真实业务场景下各个组件（微服务或者 Function）的业务逻辑关系，通常不会像上图这么夸张，不应该全是  Command （后面会谈到也不应该全是 Event） ，而应该是类似下图描述的两者结合，以微服务为例（Function 类推）：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-17.png" loading="lazy" class="lazy"></p> <ol><li>业务输入：图上微服务A接收到业务请求的输入（可能是 Command 方式，也可能是 Event 方式）</li> <li>业务逻辑 “实现” 的执行过程：</li></ol> <ul><li>微服务 A 在执行 Command（或者被 Event 触发）的过程中，会有很多动作（Action）；</li> <li>有些是微服务 A 内部的动作，比如操作数据库，操作 key-value 存储，内存中的业务逻辑处理等；</li> <li>有些是和外部微服务进行通讯，如执行查询或要求对方进行某些操作，这些通讯方式是以 Command 的形式，如图上和微服务 B 的通讯；</li> <li>在这些内部和外部动作完成之后，执行过程完成；</li> <li>如果是 Command，则需要以应答的形式给回 Command 操作的结果；</li></ul> <ol start="3"><li>业务状态变更 触发 的后续行为：
+<ul><li>在上面的执行过程完成后，如果涉及到业务状态的变更，则需要为此发布事件；</li> <li>事件通过 event bus 分发给对该事件感兴趣的其他微服务：注意这个过程是解耦的，微服务A不清楚也不关心哪些微服务对此事件感兴趣，事件也不需要应答；</li></ul></li></ol> <p>上面微服务 A 的业务逻辑执行处理过程中，需要以 Command 或者 Event 方式和其他微服务通讯，如图中的微服务 B/C/D/E。而对于这些微服务 B/C/D/E（视为微服务 A 的下游服务），他们在接受到业务请求后的处理流程和微服务A的处理流程是类似的。</p> <p>因此我们可以简单推导一下，当业务处理逻辑从微服务 A 延展到微服务 A 的下游服务（图中的微服务 B/C/D/E）时的场景：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-18.png" loading="lazy" class="lazy"></p> <p>将图中涉及的微服务 A/B/C/D/E 在处理业务逻辑的行为总结下来，通讯行为大体是一样的：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-19.png" loading="lazy" class="lazy"></p> <p>抽象起来，一个典型的微服务在业务处理流程中的通讯行为可以概括为以下四点：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-20.png" loading="lazy" class="lazy"></p> <ul><li><strong>输入</strong>：以一个 Command 请求或者一个 Event 通知为输入，这是业务处理流程的起点；</li> <li><strong>内部 Action</strong>：微服务的内部逻辑，典型如数据库操作，访问 redis 等 key-value 存储（对应于 Multiple Runtime/Mecha 架构中的各种分布式能力）。可选，通常为 0-N 个；</li> <li><strong>外部访问</strong>：以 Command 形式访问外部的其他微服务。可选，通常为 0-N 个；</li> <li><strong>通告变更</strong>：以 Event 形式对外发布事件，通告上述操作产生的业务状态的变更。可选，通常为 0-1 个；</li></ul> <p>在这个行为模式中，2 和 3 是没有顺序的，而且可能交错执行，而 4 通常都是在流程的最后：只有当各种内部 Action 和外部 Command 都完成，业务逻辑实现结束，状态变更完成，“木已成舟”才能以 Event 的方式对外发布：“操作已完成，状态已变更，望周知”。</p> <p>这里我们回顾一下前面的总结 —— Event 和 Command 的本质区别在于他们的意图：</p> <ul><li>Event 的意图是告知已经发生的事情；</li> <li>Command 的意图是告知希望发生的事情；</li></ul> <p>从业务逻辑处理的角度来看，外部访问的 Command 和内部操作的 Action 是业务逻辑的 “实现” 部分：这些操作组成了完整的业务逻辑——如果这些操作失败，则业务处理将会直接影响（失败或者部分失败）。而发布事件则是业务逻辑完成之后的后续 “通知” 部分：当业务逻辑处理完毕，状态变更完成后，以事件的方式驱动后续的进一步处理。注意是驱动，而不是直接操纵。
+从时间线的角度来看整个业务处理流程如下图所示：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-21.png" loading="lazy" class="lazy"></p> <h3 id="全程-command-带来的问题：不必要的强耦合"><a href="#全程-command-带来的问题：不必要的强耦合" class="header-anchor">¶</a> 全程 Command 带来的问题：不必要的强耦合</h3> <p>全程 Command 的微服务系统，存在的问题就是在上述最后阶段的“状态变更通知”环节，没有采用 Event 和 pub-sub 模型，而是继续使用 Command 逐个调用下游相关的其他微服务：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-22.png" loading="lazy" class="lazy"></p> <p>Event 可以解耦生产者和消费者，因此图中的微服务 A 和微服务 C/D/E 之间没有强烈的依赖关系，彼此无需锁定对方的存在。但是 Command 不同，在采用 Command 方式后微服务 A 和下游相关微服务 C/D/E 会形成强依赖，而且这种依赖关系会蔓延，最终导致形成一颗巨大而深层次的依赖树，而 Function 由于粒度更细，问题往往更严重：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-23.png" loading="lazy" class="lazy"></p> <p>而如果在“状态变更通知”环节引入 Event，则可以解耦微服务和下游被通知的微服务，从而将依赖关系解除，避免无限制的蔓延。如下图所示，左边图形是使用 Event 代替 Command 来进行状态变更通知之后的依赖关系，考虑到 Event 对生产者和消费者的解耦作用，我们“斩断”绿色的 Event 箭头，这样就得到了右边这样一个被分解为多个小范围依赖树的系统依赖关系图：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-24.png" loading="lazy" class="lazy"></p> <p>对 Event 和 Command 使用的建议：</p> <ul><li>在单体应用拆分为微服务时，不应该简单的将原有的方法调用替换为 Command；</li> <li>应该审视每个调用在业务逻辑上的语义：是业务逻辑执行的组成部分？还是执行完成之后的状态通知？</li> <li>然后据此决定采用 Command 还是 Event；</li></ul> <h4 id="编排和协调"><a href="#编排和协调" class="header-anchor">¶</a> 编排和协调</h4> <p>在 Command 和 Event 的使用上，还有两个概念：编排和协调。</p> <p>这里强烈推荐一篇博客文章， <a href="https://solace.com/blog/microservices-choreography-vs-orchestration/" target="_blank" rel="noopener noreferrer">Microservices Choreography vs Orchestration: The Benefits of Choreography<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a>，作者 Jonathan Schabowsky ，Solace 的 CTO。他在这边博客中总结了让微服务协同工作的两种模式，并做了一个生动的比喻：</p> <ul><li><strong>编排（Orchestration）</strong>：需要主动控制所有的元素和交互，就像指挥家指挥乐团的乐手一样——对应 Command；</li> <li><strong>协调（Choreography）</strong>：需要建立一个模式，微服务会跟随音乐起舞，不需要监督和指令——对应 Event；</li></ul> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-25.png" loading="lazy" class="lazy"></p> <p>也曾看到很多持类似观点的文章，其中有一张图片印象深刻，我摘录过来：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-26.png" loading="lazy" class="lazy"></p> <p>左边是期望通过编排（Orchestration）方式得到的整齐划一的理想目标，右边是实际得到的大型翻车现场。</p> <h3 id="全程-event-带来的问题：开发困难和业务边界不清晰"><a href="#全程-event-带来的问题：开发困难和业务边界不清晰" class="header-anchor">¶</a> 全程 Event 带来的问题：开发困难和业务边界不清晰</h3> <p>在 Command 和 Event 的使用上，除了全程使用 Command 之外，还有一个极端是全程使用 Event，这一点在 Lambda（FaaS）中更常见一些：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-27.png" loading="lazy" class="lazy"></p> <p>这个方式首当其冲的问题就是在适用 Command 语义的地方采用了 Event 来替代，而由于 Command 和 Event 在使用语义上的差异，这个替代会显得别扭：</p> <ul><li><p>Command 是一对一的，替代他的 Event 也不得不从 “1:N” 退化为 “1:1”，pub-sub 模型不再存在；</p></li> <li><p>Command 是需要返回结果的，尤其是 Query 类的 Command 必须要有查询结果，使用 Event 替代之后，就不得不实现 “支持 Response 的 Event”，典型如在消息机制中实现 Request-Reply 模型的；</p></li> <li><p>或者引入另外一个 Event 来反向通知结果，即用两个异步 Event 来替代一个同步的 Command —— 这需要让发起者进行额外的订阅和处理，开发复杂性远远超过使用简单的 Command；</p></li> <li><p>而且还引入了一个非常麻烦的状态问题：即服务间通讯的上下文中通常是有状态的，Reply Event 必须准确的发送给 Request Event 的发起者的实例，而不能任意选择一个。这使得 Reply Event 不仅仅要 1:1 的绑定订阅者服务，还必须绑定这个服务的特定实例 —— 这样的 Reply Event 已经没法称为 Event 了；</p> <ul><li><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-28.png" loading="lazy" class="lazy"></li></ul></li> <li><p>绕开这个状态问题的常见方案是选择无状态的场景，如果处理 Reply Event 时无需考虑状态，那么 Event Reply 才能简单的发送给任意的实例；</p></li></ul> <p>对于粒度较大的微服务系统，通常很难实现无状态，所以在微服务中全程采用 Event 通常会比较别扭的，事实上也很少有人这样做。而在粒度非常小的 Function/FaaS 系统中，全程采用 Event 方式比较常见。</p> <p>关于全程使用 Event，我个人持保留态度，我倾向于即使是在 FaaS 中，也适当保留 Command 的用法：如果某个操作是“业务逻辑”执行中不可或缺的一部分，那么 Command 方式的紧耦合反而更能体现出这个“业务逻辑”的存在：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-29.png" loading="lazy" class="lazy"></p> <p>如果完全采用 Event 方式，“彻底”解耦，则产生新的问题（且不论在编码方面额外带来的复杂度） —— 在海量细粒度的 Event 调用下，业务逻辑已经很难体现，领域模型（Domain Modeling）和有界上下文（Bounded Context）则淹没在这些 Event 调用下，难于识别：</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-30.png" loading="lazy" class="lazy"></p> <blockquote><p>备注：这个问题被称为“Lambda Pinball”，这里不深入展开，后续计划会有一篇文章单独详细探讨“Lambda Pinball”的由来和解决的思路。</p></blockquote> <h3 id="command-和-event-的选择：实事求是不偏不倚"><a href="#command-和-event-的选择：实事求是不偏不倚" class="header-anchor">¶</a> Command 和 Event 的选择：实事求是不偏不倚</h3> <p>总结一下 Command 和 Event 的选择，我个人的建议是不要一刀切：全程 Command 方式的缺点容易理解，但简单替换为全程 Event 也未必合适。</p> <p>我的个人观点是倾向于从实际“业务逻辑”处理的语义出发，判断：</p> <ul><li>如果是业务逻辑的 “<strong>实现</strong>” 部分：倾向于选择使用 Command；</li> <li>如果是业务逻辑完成之后的后续 “<strong>通知</strong>” 部分：强烈建议选择使用 Event；</li></ul> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/microservice/arch-m-singleton-31.png" loading="lazy" class="lazy"></p> <h2 id="总结与反思"><a href="#总结与反思" class="header-anchor">¶</a> 总结与反思</h2> <h3 id="警惕：不要沦为分布式单体"><a href="#警惕：不要沦为分布式单体" class="header-anchor">¶</a> 警惕：不要沦为分布式单体</h3> <p>上面我们列出了微服务和 Serverless 实践中容易形成 “分布式单体” 的两个主要原因和对策：</p> <ul><li>通过共享库和网络客户端访问分布式能力：引入非侵入方案解耦应用和各种分布式能力；</li> <li>简单用远程调用替代进程内方法调用：区分 Command 和 Event，引入 Event 来解除微服务间不必要的强耦合；</li></ul> <p>前者在技术上目前还不太成熟，典型如 Istio/Dapr 项目都还有待加强，暂时在落地上阻力比较大。但后者已经是业界多年的成熟实践，甚至在微服务和 Serverless 兴起之前就广泛使用，因此建议可以立即着手改进。</p> <h3 id="反思：喧闹和谩骂之外的冷静思考"><a href="#反思：喧闹和谩骂之外的冷静思考" class="header-anchor">¶</a> 反思：喧闹和谩骂之外的冷静思考</h3> <p>如果我们在微服务和 Serverless 实践中，始终停留在“用远程调用简单替代进程内方法调用”的程度，并固守单体时代的习惯引入各种 SDK，那么分布式单体问题就必然不可避免。我们的微服务转型、Serverless 实践最后得到的往往是：</p> <p><strong>把单体变成…… 更糟糕的分布式单体</strong>。</p> <p>当然，微服务可能成为分布式单体，但这并不意味着微服务架构是个谎言，也不意味着比单体架构更差。Serverless  可能同样遭遇分布式单体（还有后续要深入探讨的 Lambda Pinball），但这也不意味着 Serverless 不可取 —— 微服务和 Serverless 都是解决特定问题的工具，和所有的工具一样，在使用工具之前，我们需要先研究和了解它们，学习如何正确的使用它们：</p> <ul><li>需要为微服务创建正确的架构，和单体架构必然会有很大的不同：一定不是“原封不动”的将方法调替换为远程调用，最好不要用共享类库和网络客户端的方式直接使用各种分布式能力；</li> <li><strong>Serverless 更是需要我们对架构进行彻底的反思</strong>，需要改变思维方式，才能保证收益大于弊端；</li></ul> <h2 id="参考资料和推荐阅读"><a href="#参考资料和推荐阅读" class="header-anchor">¶</a> 参考资料和推荐阅读</h2> <ul><li><a href="https://www.slideshare.net/DevOpsDaysDFW/avoid-the-distributed-monolith" target="_blank" rel="noopener noreferrer">Avoid the Distributed Monolith!!<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a>：来自 verizon 的 Mohamad Byan 在2018年9月的一个演讲，描述微服务实践中的分布式单体陷阱和解决的方式。</li> <li><a href="https://skyao.io/talk/202004-mecha-mesh-through-to-the-end/" target="_blank" rel="noopener noreferrer">“Mecha：将Mesh进行到底”<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a> ：我前段时间的文章，详细介绍 Multiple Runtime / Macha 架构，将更多的分布式能力进行Mesh化。</li> <li><a href="https://www.red-gate.com/simple-talk/blogs/the-eight-fallacies-of-distributed-computing/" target="_blank" rel="noopener noreferrer">The Eight Fallacies of Distributed Computing<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a>: 分布式计算领域的经典文章，中文翻译请见 分布式计算的八大谬论</li> <li><a href="https://www.youtube.com/watch?v=jjYAZ0DPLNM" target="_blank" rel="noopener noreferrer">Opportunities and Pitfalls of Event-driven Utopia<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a>: Bernd Rücker 在QCon上的一个演讲，讲述“事件驱动乌托邦的机遇与陷阱”，本文的部分图片来自这份PPT。</li> <li><a href="https://www.infoq.com/presentations/microservices-ddd-bounded-contexts/" target="_blank" rel="noopener noreferrer">Practical DDD: Bounded Contexts + Events =&gt; Microservices<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a>: Indu Alagarsamy的一个演讲，介绍领域驱动开发（DDD）和 Messaging 的交集。推荐使用消息技术在干净、定义良好的有界上下文之间进行通信，以去除时空耦合。</li> <li><a href="https://medium.com/@ratrosy/building-event-driven-cloud-applications-and-services-ad0b5b970036" target="_blank" rel="noopener noreferrer">Building Event-Driven Cloud Applications and Services<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a>: 讨论构建事件驱动的应用和服务的通用实践和技术，是一个序列教程。中文翻译看 构建事件驱动的云应用和服务</li> <li><a href="https://go.solace.com/wp-download-eventdrivenmicroservices.html" target="_blank" rel="noopener noreferrer">The Architect’s Guide to Event-Driven Microservices<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a>: 来自Solace公司网站上的一份PDF格式的小册子,副标题为 “The Architect’s Guide to Building a Responsive, Elastic and Resilient Microservices Architecture / 架构师指南，用于建立响应式的，灵活而弹性的微服务架构。” 中文翻译见 <a href="https://skyao.io/post/202004-event-driven-microservices/" target="_blank" rel="noopener noreferrer">事件驱动微服务架构师指南<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li> <li><a href="https://www.infoq.cn/article/Nd0RofAUp0WtlvlQArbu" target="_blank" rel="noopener noreferrer">致传统企业朋友：不够痛就别微服务<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a>，有坑：网易云刘超刘老师的超级好文章，极其实在而全面的讲述微服务落地需要考虑的方方面面以及各种问题，强烈推荐阅读。</li></ul> <h2 id="参考文章"><a href="#参考文章" class="header-anchor">¶</a> 参考文章</h2> <ul><li>作者：蚂蚁金服分布式架构</li> <li>链接：https://juejin.im/post/6844904202565599240</li> <li>来源：掘金</li> <li>著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。</li></ul></div> <div class="page-contract"><h2>联系我</h2> <div class="c-content"><span style="font-size:1rem;font-weight:bold;">添加@pdai微信</span><br> <img src="../../../pdai.jpg" height="280px" style="margin:10px;"><br>
+        PS：添加时请备注<b>Java全栈</b>，谢谢！
+      </div></div> <footer class="page-edit"><div class="edit-link"><a href="https://github.com/realpdai/tech-arch-doc/edit/master/md/arch/microservice/arch-m-singleton-2.md" target="_blank" rel="noopener noreferrer">在 GitHub 上编辑此页</a> <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></div> <div class="last-updated"><span class="prefix">上次更新: </span> <span class="time">9/27/2021,</span></div></footer> <div class="page-nav"><p class="inner"><span class="prev">
+        ←
+        <a href="../arch-z-wrong.html" class="prev">
+          分布式系统 - 分布式系统的8个谬误
+        </a></span> <span class="next"><a href="../arch-example-seckill.html">
+          架构案例 - 秒杀系统设计
+        </a>
+        →
+      </span></p></div> <div class="google_ad_bottom"><ins data-ad-client="ca-pub-5088193899865249" data-ad-slot="6822031208" data-ad-format="auto" data-full-width-responsive="true" class="adsbygoogle" style="display:block"></ins> <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script></div> </main></div> <aside class="page-sidebar"> <div class="page-side-toolbar"><div class="option-box-toc-fixed"><div class="toc-container-sidebar"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:650px"><div style="font-weight:bold;text-align:center;">走出微服务误区：避免从单体到分布式单体</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="arch-m-singleton-2.html#回顾：从单体到微服务到-function" class="toc-sidebar-link">回顾：从单体到微服务到 Function</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="arch-m-singleton-2.html#分布式单体" class="toc-sidebar-link">分布式单体</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="arch-m-singleton-2.html#分布式单体起因之一：通过共享库和网络客户端访问分布式能力" class="toc-sidebar-link">分布式单体起因之一：通过共享库和网络客户端访问分布式能力</a></li><li class="toc-sidebar-sub-header"><a href="arch-m-singleton-2.html#分布式单体起因之二：简单用远程调用替代进程内方法调用" class="toc-sidebar-link">分布式单体起因之二：简单用远程调用替代进程内方法调用</a></li><li class="toc-sidebar-sub-header"><a href="arch-m-singleton-2.html#分布式单体起因小结" class="toc-sidebar-link">分布式单体起因小结</a></li></ul></li><li><a href="arch-m-singleton-2.html#引入非侵入式方案：物理隔离逻辑抽象" class="toc-sidebar-link">引入非侵入式方案：物理隔离+逻辑抽象</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="arch-m-singleton-2.html#引入-event：解除不必要的强耦合" class="toc-sidebar-link">引入 Event：解除不必要的强耦合</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="arch-m-singleton-2.html#温故而知新：event-和-command" class="toc-sidebar-link">温故而知新：Event 和 Command</a></li><li class="toc-sidebar-sub-header"><a href="arch-m-singleton-2.html#从业务视角出发：关系模型决定通讯行为" class="toc-sidebar-link">从业务视角出发：关系模型决定通讯行为</a></li><li class="toc-sidebar-sub-header"><a href="arch-m-singleton-2.html#全程-command-带来的问题：不必要的强耦合" class="toc-sidebar-link">全程 Command 带来的问题：不必要的强耦合</a></li><li class="toc-sidebar-sub-header"><a href="arch-m-singleton-2.html#全程-event-带来的问题：开发困难和业务边界不清晰" class="toc-sidebar-link">全程 Event 带来的问题：开发困难和业务边界不清晰</a></li><li class="toc-sidebar-sub-header"><a href="arch-m-singleton-2.html#command-和-event-的选择：实事求是不偏不倚" class="toc-sidebar-link">Command 和 Event 的选择：实事求是不偏不倚</a></li></ul></li><li><a href="arch-m-singleton-2.html#总结与反思" class="toc-sidebar-link">总结与反思</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="arch-m-singleton-2.html#警惕：不要沦为分布式单体" class="toc-sidebar-link">警惕：不要沦为分布式单体</a></li><li class="toc-sidebar-sub-header"><a href="arch-m-singleton-2.html#反思：喧闹和谩骂之外的冷静思考" class="toc-sidebar-link">反思：喧闹和谩骂之外的冷静思考</a></li></ul></li><li><a href="arch-m-singleton-2.html#参考资料和推荐阅读" class="toc-sidebar-link">参考资料和推荐阅读</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="arch-m-singleton-2.html#参考文章" class="toc-sidebar-link">参考文章</a><ul class="toc-sidebar-sub-headers"></ul></li></ul></div></div></div></div></div> <div class="option-box-toc-over"><img src="../../../toc.png" class="nozoom"> <span class="show-txt">目录</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:550px"><div style="font-weight:bold;text-align:center;">走出微服务误区：避免从单体到分布式单体</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="arch-m-singleton-2.html#回顾：从单体到微服务到-function" class="toc-sidebar-link">回顾：从单体到微服务到 Function</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="arch-m-singleton-2.html#分布式单体" class="toc-sidebar-link">分布式单体</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="arch-m-singleton-2.html#分布式单体起因之一：通过共享库和网络客户端访问分布式能力" class="toc-sidebar-link">分布式单体起因之一：通过共享库和网络客户端访问分布式能力</a></li><li class="toc-sidebar-sub-header"><a href="arch-m-singleton-2.html#分布式单体起因之二：简单用远程调用替代进程内方法调用" class="toc-sidebar-link">分布式单体起因之二：简单用远程调用替代进程内方法调用</a></li><li class="toc-sidebar-sub-header"><a href="arch-m-singleton-2.html#分布式单体起因小结" class="toc-sidebar-link">分布式单体起因小结</a></li></ul></li><li><a href="arch-m-singleton-2.html#引入非侵入式方案：物理隔离逻辑抽象" class="toc-sidebar-link">引入非侵入式方案：物理隔离+逻辑抽象</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="arch-m-singleton-2.html#引入-event：解除不必要的强耦合" class="toc-sidebar-link">引入 Event：解除不必要的强耦合</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="arch-m-singleton-2.html#温故而知新：event-和-command" class="toc-sidebar-link">温故而知新：Event 和 Command</a></li><li class="toc-sidebar-sub-header"><a href="arch-m-singleton-2.html#从业务视角出发：关系模型决定通讯行为" class="toc-sidebar-link">从业务视角出发：关系模型决定通讯行为</a></li><li class="toc-sidebar-sub-header"><a href="arch-m-singleton-2.html#全程-command-带来的问题：不必要的强耦合" class="toc-sidebar-link">全程 Command 带来的问题：不必要的强耦合</a></li><li class="toc-sidebar-sub-header"><a href="arch-m-singleton-2.html#全程-event-带来的问题：开发困难和业务边界不清晰" class="toc-sidebar-link">全程 Event 带来的问题：开发困难和业务边界不清晰</a></li><li class="toc-sidebar-sub-header"><a href="arch-m-singleton-2.html#command-和-event-的选择：实事求是不偏不倚" class="toc-sidebar-link">Command 和 Event 的选择：实事求是不偏不倚</a></li></ul></li><li><a href="arch-m-singleton-2.html#总结与反思" class="toc-sidebar-link">总结与反思</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="arch-m-singleton-2.html#警惕：不要沦为分布式单体" class="toc-sidebar-link">警惕：不要沦为分布式单体</a></li><li class="toc-sidebar-sub-header"><a href="arch-m-singleton-2.html#反思：喧闹和谩骂之外的冷静思考" class="toc-sidebar-link">反思：喧闹和谩骂之外的冷静思考</a></li></ul></li><li><a href="arch-m-singleton-2.html#参考资料和推荐阅读" class="toc-sidebar-link">参考资料和推荐阅读</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="arch-m-singleton-2.html#参考文章" class="toc-sidebar-link">参考文章</a><ul class="toc-sidebar-sub-headers"></ul></li></ul></div></div></div></div></div> <div class="option-box"><img src="../../../wechat.png" class="nozoom"> <span class="show-txt">手机看</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.9rem">微信扫一扫</span> <img height="180px" src="https://api.qrserver.com/v1/create-qr-code/?data=https://www.pdai.tech/md/arch/microservice/arch-m-singleton-2.html" style="margin:10px;">
+              可以<b>手机看</b>或分享至<b>朋友圈</b></div></div></div></div> <div class="option-box"><a title="点击切换全屏" style="text-align:center;padding-left:2px;"><img src="../../../full.png" width="30px" class="nozoom"> <span style="color:gray;font-size:11px;font-weight:400;">全屏看</span></a></div> <div class="option-box"><img src="../../../toggle.png" width="30px" class="nozoom"> <span class="show-txt">左栏</span></div> <div class="option-box"><img src="../../../wexin2.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:yellow">交流圈</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">添加pdai微信进《Java全栈知识体系》学习交流圈「无任何套路」</span> <img src="../../../pdai.jpg" height="180px" style="margin:10px;">
+              PS：添加时请备注<b>Java全栈</b>，谢谢！
+            </div></div></div></div> <div class="option-box"><img src="../../../download.jpg" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:#a6f792">下资料</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">扫描公众号，回复“资料”下载<font style="color:red;">10GB+</font>书籍资料「无任何套路」</span> <img src="../../../pdai_gzh.jpg" height="180px" style="margin:10px;"> <b>公众号:</b> Java全栈知识体系
+            </div></div></div></div> <div class="option-box"><img src="../../../heart.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;background-color:#gray">支持我</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">鼓励/支持/赞赏我</span> <img src="../../../pdai-guli.png" height="180px" width="200px" style="margin:5px;">
+              1. 不靠它生存但仍希望得到你的鼓励；<br> 2. 时刻警醒自己保持技术人的初心，恒心，简单，利他；
+            </div></div></div></div> <div title="分布式系统 - 分布式系统的8个谬误" class="option-box" style="padding-left:2px;text-align:center;"><a href="../arch-z-wrong.html"><img src="../../../pre2.png" width="30px" class="nozoom"> <span class="show-txt">上一篇</span></a></div> <div title="架构案例 - 秒杀系统设计" class="option-box" style="padding-left:2px;text-align:center;"><a href="../arch-example-seckill.html"><img src="../../../next2.png" width="30px" class="nozoom"> <span class="show-txt">下一篇</span></a></div></div>  <div class="page-side-sitemap"><div class="option-box"><img src="../../../sitemap.png" class="nozoom img"> <span class="show-txt">站点图</span> <div class="sitemap-container"><h4>站点导航图
+            <a href="../../about/me/about-me.html" class="sitemap-top-link"> 关于我</a> <a href="../../about/blog/blog-build-vuepress.html" class="sitemap-top-link"> 关于站点</a> <a href="../../about/me/blog-changelist.html" class="sitemap-top-link"> 最近更新记录</a> <a href="../../about/me/blog-question.html" class="sitemap-top-link"><font style="color:red;background-color:yellow;">问题反馈</font></a></h4> <table class="sitemap-table"><tr><td nowrap="nowrap"><div class="sitemap-col-group">常用搜索</div></td> <td><div class="sitemap-col-item"><a href="http://www.baidu.com/" target="_blank" title="百度">  
+            百度
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.google.com/" target="_blank" title="Google">  
+            Google
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.bing.com/" target="_blank" title="Bing">  
+            Bing
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://github.com/" target="_blank" title="Github">  
+            Github
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.programcreek.com/java-api-examples/index.php" target="_blank" title="搜代码">  
+            搜代码
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">技术社区</div></td> <td><div class="sitemap-col-item"><a href="http://www.csdn.net/" target="_blank" title="CDSN">  
+            CDSN
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.cnblogs.com/" target="_blank" title="博客园">  
+            博客园
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.oschina.net/" target="_blank" title="OSChina">  
+            OSChina
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://segmentfault.com/" target="_blank" title="知否">  
+            知否
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://juejin.im/" target="_blank" title="掘金">  
+            掘金
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.linuxidc.com/" target="_blank" title="Linux公社">  
+            Linux公社
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.ibm.com/developerworks/cn/" target="_blank" title="IBM 开发者">  
+            IBM 开发者
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://stackoverflow.com/" target="_blank" title="StackOverflow">  
+            StackOverflow
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">Java相关</div></td> <!----> <td><a href="../../java/basic/java-basic-oop.html" class="sitemap-col-item">
+            面向对象基础
+          </a><a href="../../java/basic/java-basic-lan-basic.html" class="sitemap-col-item">
+            语法基础
+          </a><a href="../../java/collection/java-collection-all.html" class="sitemap-col-item">
+            集合框架
+          </a><a href="../../java/thread/java-thread-x-overview.html" class="sitemap-col-item">
+            并发基础
+          </a><a href="../../java/thread/java-thread-x-key-synchronized.html" class="sitemap-col-item">
+            并发关键字
+          </a><a href="../../java/thread/java-thread-x-juc-overview.html" class="sitemap-col-item">
+            JUC并发框架
+          </a><a href="../../java/io/java-io-overview.html" class="sitemap-col-item">
+            IO框架
+          </a><a href="../../java/java8/java8.html" class="sitemap-col-item">
+            Java8 特性
+          </a><a href="../../java/jvm/java-jvm-x-overview.html" class="sitemap-col-item">
+            JVM基础
+          </a><a href="../../java/jvm/java-jvm-param.html" class="sitemap-col-item">
+            调试排错
+          </a><a href="../../java/others/java-others-awesome-java.html" class="sitemap-col-item">
+            更多资源
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">算法相关</div></td> <!----> <td><a href="../../algorithm/alg-basic-array.html" class="sitemap-col-item">
+            数组与线性表
+          </a><a href="../../algorithm/alg-basic-tree.html" class="sitemap-col-item">
+            树详解
+          </a><a href="../../algorithm/alg-basic-graph.html" class="sitemap-col-item">
+            图详解
+          </a><a href="../../algorithm/alg-sort-overview.html" class="sitemap-col-item">
+            内部排序
+          </a><a href="../../algorithm/alg-core-divide-and-conquer.html" class="sitemap-col-item">
+            算法思想
+          </a><a href="../../algorithm/alg-domain-security-degist.html" class="sitemap-col-item">
+            安全算法
+          </a><a href="../../algorithm/alg-domain-bigdata-overview.html" class="sitemap-col-item">
+            大数据处理
+          </a><a href="../../algorithm/alg-domain-distribute-overview.html" class="sitemap-col-item">
+            分布式算法
+          </a><a href="../../algorithm/alg-domain-load-balance.html" class="sitemap-col-item">
+            负载均衡算法
+          </a><a href="../../algorithm/alg-domain-suggest.html" class="sitemap-col-item">
+            推荐算法
+          </a><a href="../../algorithm/alg-other-mind.html" class="sitemap-col-item">
+            头脑风暴
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">数据库相关</div></td> <!----> <td><a href="../../db/sql/sql-db-howitworks.html" class="sitemap-col-item">
+            数据库原理
+          </a><a href="../../db/sql-lan/sql-lan.html" class="sitemap-col-item">
+            SQL语言
+          </a><a href="../../db/sql-mysql/sql-mysql-theory.html" class="sitemap-col-item">
+            MySQL相关
+          </a><a href="../../db/nosql-mongo/mongo-performance-improve.html" class="sitemap-col-item">
+            MongoDB
+          </a><a href="../../db/nosql-es/elasticsearch.html" class="sitemap-col-item">
+            ElasticSearch
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">开发基础相关</div></td> <!----> <td><a href="../../develop/package/dev-package-x-apache-common.html" class="sitemap-col-item">
+            常用类库
+          </a><a href="../../develop/ut/dev-ut-x-junit.html" class="sitemap-col-item">
+            单元测试
+          </a><a href="../../develop/regex/dev-regex-all.html" class="sitemap-col-item">
+            正则表达式
+          </a><a href="../../develop/protocol/dev-protocol-overview.html" class="sitemap-col-item">
+            网络协议
+          </a><a href="../../develop/security/dev-security-overview.html" class="sitemap-col-item">
+            安全相关
+          </a><a href="../../develop/refactor/dev-refactor-if-else.html" class="sitemap-col-item">
+            常见重构技巧
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">架构相关</div></td> <!----> <td><a href="../arch-x-basic.html" class="sitemap-col-item">
+            架构基础
+          </a><a href="../arch-x-view.html" class="sitemap-col-item">
+            架构视角
+          </a><a href="../arch-x-evolution.html" class="sitemap-col-item">
+            架构演进
+          </a><a href="../arch-x-pattern.html" class="sitemap-col-item">
+            架构模式和要素
+          </a><a href="../arch-y-cache.html" class="sitemap-col-item">
+            高并发之缓存
+          </a><a href="../arch-y-ratelimit.html" class="sitemap-col-item">
+            高并发之限流
+          </a><a href="../arch-y-reduce.html" class="sitemap-col-item">
+            高并发之降级
+          </a><a href="../arch-y-loadbalance.html" class="sitemap-col-item">
+            负载均衡
+          </a><a href="../arch-y-backup.html" class="sitemap-col-item">
+            容灾备份
+          </a><a href="../arch-x-security.html" class="sitemap-col-item">
+            架构安全
+          </a><a href="../arch-example-seckill.html" class="sitemap-col-item">
+            秒杀系统设计
+          </a><a href="../arch-example-goods-detail.html" class="sitemap-col-item">
+            架构案例
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">工具和部署</div></td> <!----> <td><a href="../../devops/tool/tool-list-overview.html" class="sitemap-col-item">
+            工具集合
+          </a><a href="../../devops/tool/tool-ide.html" class="sitemap-col-item">
+            IDE相关
+          </a><a href="../../devops/tool/tool-git.html" class="sitemap-col-item">
+            Git
+          </a><a href="../../devops/tool/tool-maven.html" class="sitemap-col-item">
+            Maven
+          </a><a href="../../devops/linux/linux.html" class="sitemap-col-item">
+            Linux
+          </a><a href="../../devops/docker/docker-00-overview.html" class="sitemap-col-item">
+            Docker
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">方法论</div></td> <!----> <td><a href="../../dev-spec/spec/dev-th-solid.html" class="sitemap-col-item">
+            SOLID
+          </a><a href="../../dev-spec/spec/dev-th-cap.html" class="sitemap-col-item">
+            CAP
+          </a><a href="../../dev-spec/spec/dev-th-base.html" class="sitemap-col-item">
+            BASE
+          </a><a href="../../dev-spec/spec/dev-opensource.html" class="sitemap-col-item">
+            开源协议
+          </a><a href="../../dev-spec/code-style/code-style-alibaba.html" class="sitemap-col-item">
+            代码规范
+          </a><a href="../../dev-spec/pattern/1_overview.html" class="sitemap-col-item">
+            设计模式
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">产品和团队</div></td> <!----> <td><a href="../../team/team-z-wechat.html" class="sitemap-col-item">
+            产品相关
+          </a><a href="../../team/team-z-task-emergency.html" class="sitemap-col-item">
+            团队相关
+          </a><a href="../../team/team-z-arch-future.html" class="sitemap-col-item">
+            其它分享
+          </a></td></tr></table></div></div></div> <!----> </aside></div><div class="global-ui"></div></div>
+    <script src="../../../assets/js/app.691e72ae.js" defer></script><script src="../../../assets/js/4.2e3efdf6.js" defer></script><script src="../../../assets/js/3.d77b006c.js" defer></script><script src="../../../assets/js/148.7bc863bb.js" defer></script>
+  </body>
+
+<!-- Mirrored from www.pdai.tech/md/arch/microservice/arch-m-singleton-2.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:33:33 GMT -->
+</html>

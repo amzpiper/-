@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  
+<!-- Mirrored from www.pdai.tech/md/framework/tomcat/tomcat-x-sourcecode.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:31:41 GMT -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Tomcat - 源码分析准备和分析入口 | Java 全栈知识体系</title>
+    <meta name="generator" content="VuePress 1.8.2">
+    <link rel="icon" href="../../../favicon.ico">
+    <script src="../../../../hm.baidu.com/hma448.js?525d4abc4a8675472736969f817ceb47"></script>
+    <script defer="defer" async="async" src="../../../../pagead2.googlesyndication.com/pagead/js/f.txt"></script>
+    <meta name="description" content="包含: Java 基础, Java 部分源码, JVM, Spring, Spring Boot, Spring Cloud, 数据库原理, MySQL, ElasticSearch, MongoDB, Docker, k8s, CI&CD, Linux, DevOps, 分布式, 中间件, 开发工具, Git, IDE, 源码阅读，读书笔记, 开源项目...">
+    <meta property="article:modified_time" content="2021-09-27T13:15:21.000Z">
+    <meta property="og:title" content="Tomcat - 源码分析准备和分析入口">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="/md/framework/tomcat/tomcat-x-sourcecode.html">
+    <meta name="twitter:title" content="Tomcat - 源码分析准备和分析入口">
+    <meta name="twitter:url" content="/md/framework/tomcat/tomcat-x-sourcecode.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="robots" content="all">
+    <meta name="author" content="pdai">
+    <meta name="keywords" content="Java 全栈知识体系, java体系, java知识体系, java框架,java全栈,java学习路线,java全栈知识, java面试, 知识体系, java技术体系, java编程, java编程指南,java开发体系, java开发,java教程,java,java数据结构, 算法, 开发基础">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <link rel="preload" href="../../../assets/css/0.styles.d4bb5489.css" as="style"><link rel="preload" href="../../../assets/js/app.691e72ae.js" as="script"><link rel="preload" href="../../../assets/js/4.2e3efdf6.js" as="script"><link rel="preload" href="../../../assets/js/3.d77b006c.js" as="script"><link rel="preload" href="../../../assets/js/405.63b2b723.js" as="script">
+    <link rel="stylesheet" href="../../../assets/css/0.styles.d4bb5489.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="../../../index.html" class="home-link router-link-active"><!----> <span class="site-name">Java 全栈知识体系</span></a> <div class="links"><form id="search-form" role="search" class="algolia-search-wrapper search-box"><input id="algolia-search-input" class="search-query"></form> <nav class="nav-links can-hide"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav>  <ul class="sidebar-links"><li><section class="sidebar-group depth-0"><p class="sidebar-heading open"><span>Web容器 - Tomcat知识体系详解</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="tomcat-x-design-web-container.html" class="sidebar-link">Tomcat - 如何设计一个简单的web容器</a></li><li><a href="tomcat-x-arch.html" class="sidebar-link">Tomcat - 理解Tomcat架构设计</a></li><li><a href="tomcat-x-sourcecode.html" aria-current="page" class="active sidebar-link">Tomcat - 源码分析准备和分析入口</a></li><li><a href="tomcat-x-start.html" class="sidebar-link">Tomcat - 启动过程：初始化和启动流程</a></li><li><a href="tomcat-x-classloader.html" class="sidebar-link">Tomcat - 启动过程:类加载机制详解</a></li><li><a href="tomcat-x-catalina.html" class="sidebar-link">Tomcat - 启动过程:Catalina的加载</a></li><li><a href="tomcat-x-lifecycle.html" class="sidebar-link">Tomcat - 组件生命周期管理:LifeCycle</a></li><li><a href="tomcat-x-jmx.html" class="sidebar-link">Tomcat - 组件拓展管理:JMX和MBean</a></li><li><a href="tomcat-x-listener.html" class="sidebar-link">Tomcat - 事件的监听机制：观察者模式</a></li><li><a href="tomcat-x-server.html" class="sidebar-link">Tomcat - Server的设计和实现: StandardServer</a></li><li><a href="tomcat-x-service.html" class="sidebar-link">Tomcat - Service的设计和实现: StandardService</a></li><li><a href="tomcat-x-executor.html" class="sidebar-link">Tomcat - 线程池的设计与实现：StandardThreadExecutor</a></li><li><a href="tomcat-x-container.html" class="sidebar-link">Tomcat - Request请求处理: Container设计</a></li><li><a href="tomcat-x-container-engine.html" class="sidebar-link">Tomcat - Container容器之Engine：StandardEngine</a></li><li><a href="tomcat-x-container-pipline.html" class="sidebar-link">Tomcat - Container的管道机制：责任链模式</a></li><li><a href="tomcat-x-connector.html" class="sidebar-link">Tomcat - Request请求处理过程：Connector</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>ORM框架 - MyBatis知识体系详解</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../orm-mybatis/mybatis-y-arch.html" class="sidebar-link">MyBatis详解 - 总体框架设计</a></li><li><a href="../orm-mybatis/mybatis-y-init.html" class="sidebar-link">MyBatis详解 - 初始化基本过程</a></li><li><a href="../orm-mybatis/mybatis-y-config-load.html" class="sidebar-link">MyBatis详解 - 配置解析过程</a></li><li><a href="../orm-mybatis/mybatis-y-config-list.html" class="sidebar-link">MyBatis详解 - 官网配置清单</a></li><li><a href="../orm-mybatis/mybatis-y-config-mapper.html" class="sidebar-link">MyBatis详解 - Mapper映射文件配置</a></li><li><a href="../orm-mybatis/mybatis-y-sql-exec.html" class="sidebar-link">MyBatis详解 - sqlSession执行流程</a></li><li><a href="../orm-mybatis/mybatis-y-dynamic-sql.html" class="sidebar-link">MyBatis详解 - 动态SQL使用与原理</a></li><li><a href="../orm-mybatis/mybatis-y-plugin.html" class="sidebar-link">MyBatis详解 - 插件机制</a></li><li><a href="../orm-mybatis/mybatis-y-plugin-page.html" class="sidebar-link">MyBatis详解 - 插件之分页机制</a></li><li><a href="../orm-mybatis/mybatis-y-datasource.html" class="sidebar-link">MyBatis详解 - 数据源与连接池</a></li><li><a href="../orm-mybatis/mybatis-y-trans.html" class="sidebar-link">MyBatis详解 - 事务管理机制</a></li><li><a href="../orm-mybatis/mybatis-y-cache-level1.html" class="sidebar-link">MyBatis详解 - 一级缓存实现机制</a></li><li><a href="../orm-mybatis/mybatis-y-cache-level2.html" class="sidebar-link">MyBatis详解 - 二级缓存实现机制</a></li></ul></section></li></ul> </aside> <div><main class="page"> <div class="theme-default-content content__default"><h1 id="tomcat---源码分析准备和分析入口"><a href="#tomcat---源码分析准备和分析入口" class="header-anchor">¶</a> Tomcat - 源码分析准备和分析入口</h1> <blockquote><p>上文我们介绍了Tomcat的架构设计，接下来我们便可以下载源码以及寻找源码入口了。@pdai</p></blockquote> <ul><li><a href="#tomcat---%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E5%87%86%E5%A4%87%E5%92%8C%E5%88%86%E6%9E%90%E5%85%A5%E5%8F%A3">Tomcat - 源码分析准备和分析入口</a> <ul><li><a href="#%E6%BA%90%E4%BB%A3%E7%A0%81%E4%B8%8B%E8%BD%BD%E5%92%8C%E7%BC%96%E8%AF%91">源代码下载和编译</a> <ul><li><a href="#%E4%B8%8B%E8%BD%BD%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%8C%85%E5%92%8C%E6%BA%90%E7%A0%81">下载二进制包和源码</a></li> <li><a href="#%E7%BC%96%E8%AF%91%E6%BA%90%E7%A0%81">编译源码</a></li> <li><a href="#%E7%90%86%E8%A7%A3%E7%BC%96%E8%AF%91%E5%90%8E%E6%A8%A1%E5%9D%97">理解编译后模块</a></li></ul></li> <li><a href="#%E4%BB%8E%E5%90%AF%E5%8A%A8%E8%84%9A%E6%9C%AC%E5%AE%9A%E4%BD%8Dtomcat%E6%BA%90%E7%A0%81%E5%85%A5%E5%8F%A3">从启动脚本定位Tomcat源码入口</a> <ul><li><a href="#startupbat">startup.bat</a></li> <li><a href="#catalinabat">catalina.bat</a></li></ul></li> <li><a href="#%E5%8F%82%E8%80%83%E6%96%87%E7%AB%A0">参考文章</a></li></ul></li></ul> <h2 id="源代码下载和编译"><a href="#源代码下载和编译" class="header-anchor">¶</a> 源代码下载和编译</h2> <p>首先是去官网下载Tomcat的源代码和二进制安装包，我这里分析最新的<a href="https://tomcat.apache.org/download-90.cgi" target="_blank" rel="noopener noreferrer">Tomcat9.0.39稳定版本<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a>https://tomcat.apache.org/download-90.cgi</p> <h3 id="下载二进制包和源码"><a href="#下载二进制包和源码" class="header-anchor">¶</a> 下载二进制包和源码</h3> <blockquote><p>下载二进制包的主要目的在于，让我们回顾一下包中的内容；其次，在我们后面通过源码包编译后，以方便和二进制包进行对比。</p></blockquote> <ul><li>下载两个包</li></ul> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/tomcat/tomcat-x-sourcecode-2.png" loading="lazy" class="lazy"></p> <ul><li>查看二进制包中主要模块</li></ul> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/tomcat/tomcat-x-sourcecode-3.png" loading="lazy" class="lazy"></p> <h3 id="编译源码"><a href="#编译源码" class="header-anchor">¶</a> 编译源码</h3> <ul><li>导入IDEA</li></ul> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/tomcat/tomcat-x-sourcecode-4.png" loading="lazy" class="lazy"></p> <ul><li>使用ant编译</li></ul> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/tomcat/tomcat-x-sourcecode-1.png" loading="lazy" class="lazy"></p> <h3 id="理解编译后模块"><a href="#理解编译后模块" class="header-anchor">¶</a> 理解编译后模块</h3> <blockquote><p>这里有两点要注意下：第一：在编译完之后，编译输出到哪里了呢？第二：编译后的结果是不是和我们下载的二进制文件对的上呢？</p></blockquote> <ul><li>编译的输出在哪里</li></ul> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/tomcat/tomcat-x-sourcecode-5.png" loading="lazy" class="lazy"></p> <ul><li>编译的输出结果是否对的上，很显然和上面的二进制包一致</li></ul> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/tomcat/tomcat-x-sourcecode-6.png" loading="lazy" class="lazy"></p> <h2 id="从启动脚本定位tomcat源码入口"><a href="#从启动脚本定位tomcat源码入口" class="header-anchor">¶</a> 从启动脚本定位Tomcat源码入口</h2> <blockquote><p>好了，到这里我们基本上已经有准备好代码了，接下来便是寻找代码入口了。@pdai</p></blockquote> <h3 id="startupbat"><a href="#startupbat" class="header-anchor">¶</a> startup.bat</h3> <blockquote><p>当我们初学tomcat的时候, 肯定先要学习怎样启动tomcat. 在tomcat的bin目录下有两个启动tomcat的文件, 一个是startup.bat, 它用于windows环境下启动tomcat; 另一个是startup.sh, 它用于linux环境下tomcat的启动. 两个文件中的逻辑是一样的, 我们只分析其中的startup.bat.</p></blockquote> <ul><li>startup.bat的源码: <strong>startup.bat文件实际上就做了一件事情: 启动catalina.bat.</strong></li></ul> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>@echo off
+rem Licensed to the Apache Software Foundation <span class="token punctuation">(</span>ASF<span class="token punctuation">)</span> under one or <span class="token function">more</span>
+rem contributor license agreements.  See the NOTICE <span class="token function">file</span> distributed with
+rem this work <span class="token keyword">for</span> additional information regarding copyright ownership.
+rem The ASF licenses this <span class="token function">file</span> to You under the Apache License, Version <span class="token number">2.0</span>
+rem <span class="token punctuation">(</span>the <span class="token string">&quot;License&quot;</span><span class="token punctuation">)</span><span class="token punctuation">;</span> you may not use this <span class="token function">file</span> except <span class="token keyword">in</span> compliance with
+rem the License.  You may obtain a copy of the License at
+rem
+rem     http://www.apache.org/licenses/LICENSE-2.0
+rem
+rem Unless required by applicable law or agreed to <span class="token keyword">in</span> writing, software
+rem distributed under the License is distributed on an <span class="token string">&quot;AS IS&quot;</span> BASIS,
+rem WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+rem See the License <span class="token keyword">for</span> the specific language governing permissions and
+rem limitations under the License.
+
+rem ---------------------------------------------------------------------------
+rem Start script <span class="token keyword">for</span> the CATALINA Server
+rem ---------------------------------------------------------------------------
+
+setlocal
+
+rem Guess CATALINA_HOME <span class="token keyword">if</span> not defined
+<span class="token builtin class-name">set</span> <span class="token string">&quot;CURRENT_DIR=%cd%&quot;</span>
+<span class="token keyword">if</span> not <span class="token string">&quot;%CATALINA_HOME%&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span> goto gotHome
+<span class="token builtin class-name">set</span> <span class="token string">&quot;CATALINA_HOME=%CURRENT_DIR%&quot;</span>
+<span class="token keyword">if</span> exist <span class="token string">&quot;%CATALINA_HOME%<span class="token entity" title="\b">\b</span>in<span class="token entity" title="\c">\c</span>atalina.bat&quot;</span> goto okHome
+<span class="token builtin class-name">cd</span> <span class="token punctuation">..</span>
+<span class="token builtin class-name">set</span> <span class="token string">&quot;CATALINA_HOME=%cd%&quot;</span>
+<span class="token builtin class-name">cd</span> <span class="token string">&quot;%CURRENT_DIR%&quot;</span>
+:gotHome
+<span class="token keyword">if</span> exist <span class="token string">&quot;%CATALINA_HOME%<span class="token entity" title="\b">\b</span>in<span class="token entity" title="\c">\c</span>atalina.bat&quot;</span> goto okHome
+<span class="token builtin class-name">echo</span> The CATALINA_HOME environment variable is not defined correctly
+<span class="token builtin class-name">echo</span> This environment variable is needed to run this program
+goto end
+:okHome
+
+<span class="token builtin class-name">set</span> <span class="token string">&quot;EXECUTABLE=%CATALINA_HOME%<span class="token entity" title="\b">\b</span>in<span class="token entity" title="\c">\c</span>atalina.bat&quot;</span>
+
+rem Check that target executable exists
+<span class="token keyword">if</span> exist <span class="token string">&quot;%EXECUTABLE%&quot;</span> goto okExec
+<span class="token builtin class-name">echo</span> Cannot <span class="token function">find</span> <span class="token string">&quot;%EXECUTABLE%&quot;</span>
+<span class="token builtin class-name">echo</span> This <span class="token function">file</span> is needed to run this program
+goto end
+:okExec
+
+rem Get remaining unshifted <span class="token builtin class-name">command</span> line arguments and save them <span class="token keyword">in</span> the
+<span class="token builtin class-name">set</span> <span class="token assign-left variable">CMD_LINE_ARGS</span><span class="token operator">=</span>
+:setArgs
+<span class="token keyword">if</span> <span class="token string">&quot;&quot;</span>%1<span class="token string">&quot;&quot;</span><span class="token operator">==</span><span class="token string">&quot;&quot;</span>&quot;<span class="token string">&quot; goto doneSetArgs
+set CMD_LINE_ARGS=%CMD_LINE_ARGS% %1
+shift
+goto setArgs
+:doneSetArgs
+
+call &quot;</span>%EXECUTABLE%&quot; start %CMD_LINE_ARGS%
+
+:end
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br><span class="line-number">35</span><br><span class="line-number">36</span><br><span class="line-number">37</span><br><span class="line-number">38</span><br><span class="line-number">39</span><br><span class="line-number">40</span><br><span class="line-number">41</span><br><span class="line-number">42</span><br><span class="line-number">43</span><br><span class="line-number">44</span><br><span class="line-number">45</span><br><span class="line-number">46</span><br><span class="line-number">47</span><br><span class="line-number">48</span><br><span class="line-number">49</span><br><span class="line-number">50</span><br><span class="line-number">51</span><br><span class="line-number">52</span><br><span class="line-number">53</span><br><span class="line-number">54</span><br><span class="line-number">55</span><br><span class="line-number">56</span><br><span class="line-number">57</span><br><span class="line-number">58</span><br></div></div><ul><li>当然如果你感兴趣，不妨也可以看下上面脚本的含义
+<ul><li>.bat文件中@echo是打印指令, 用于控制台输出信息, rem是注释符.</li> <li>跳过开头的注释, 我们来到配置CATALINA_HOME的代码段, 执行startup.bat文件首先会设置CATALINA_HOME.</li></ul> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token builtin class-name">set</span> <span class="token string">&quot;CURRENT_DIR=%cd%&quot;</span>
+<span class="token keyword">if</span> not <span class="token string">&quot;%CATALINA_HOME%&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span> goto gotHome
+<span class="token builtin class-name">set</span> <span class="token string">&quot;CATALINA_HOME=%CURRENT_DIR%&quot;</span>
+<span class="token keyword">if</span> exist <span class="token string">&quot;%CATALINA_HOME%<span class="token entity" title="\b">\b</span>in<span class="token entity" title="\c">\c</span>atalina.bat&quot;</span> goto okHome
+<span class="token builtin class-name">cd</span> <span class="token punctuation">..</span>
+<span class="token builtin class-name">set</span> <span class="token string">&quot;CATALINA_HOME=%cd%&quot;</span>
+<span class="token builtin class-name">cd</span> <span class="token string">&quot;%CURRENT_DIR%&quot;</span>
+:gotHome
+<span class="token keyword">if</span> exist <span class="token string">&quot;%CATALINA_HOME%<span class="token entity" title="\b">\b</span>in<span class="token entity" title="\c">\c</span>atalina.bat&quot;</span> goto okHome
+<span class="token builtin class-name">echo</span> The CATALINA_HOME environment variable is not defined correctly
+<span class="token builtin class-name">echo</span> This environment variable is needed to run this program
+goto end
+:okHome
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br></div></div><ul><li>先通过set指令把当前目录设置到一个名为CURRENT_DIR的变量中,</li> <li>如果系统中配置过CATALINA_HOME则跳到gotHome代码段. 正常情况下我们的电脑都没有配置CATALINA_HOME, 所以往下执行, 把当前目录设置为CATALINA_HOME.</li> <li>然后判断CATALINA_HOME目录下是否存在catalina.bat文件, 如果存在就跳到okHome代码块.</li> <li>在okHome中, 会把catalina.bat文件的的路径赋给一个叫EXECUTABLE的变量, 然后会进一步判断这个路径是否存在, 存在则跳转到okExec代码块, 不存在的话会在控制台输出一些错误信息.</li> <li>在okExec中, 会把setArgs代码块的返回结果赋值给CMD_LINE_ARGS变量, 这个变量用于存储启动参数.</li> <li>setArgs中首先会判断是否有参数, (if &quot;&quot;%1&quot;&quot;==&quot;&quot;&quot;&quot;判断第一个参数是否为空), 如果没有参数则相当于参数项为空. 如果有参数则循环遍历所有的参数(每次拼接第一个参数).</li> <li>最后执行call &quot;%EXECUTABLE%&quot; start %CMD_LINE_ARGS%, 也就是说执行catalina.bat文件, 如果有参数则带上参数.</li></ul></li></ul> <blockquote><p>这样看来, 在windows下启动tomcat未必一定要通过startup.bat, 用catalina.bat start也是可以的.</p></blockquote> <h3 id="catalinabat"><a href="#catalinabat" class="header-anchor">¶</a> catalina.bat</h3> <blockquote><p>catalina的脚本有点多，我们分开看：</p></blockquote> <ul><li>跳过开头的注释, 我们来到下面的代码段:</li></ul> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>setlocal
+
+rem Suppress Terminate batch job on CTRL+C
+<span class="token keyword">if</span> not <span class="token string">&quot;&quot;</span>%1<span class="token string">&quot;&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span>run<span class="token string">&quot;&quot;</span> goto mainEntry
+<span class="token keyword">if</span> <span class="token string">&quot;%TEMP%&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span> goto mainEntry
+<span class="token keyword">if</span> exist <span class="token string">&quot;%TEMP%\%~nx0.run&quot;</span> goto mainEntry
+<span class="token builtin class-name">echo</span> Y<span class="token operator">&gt;</span><span class="token string">&quot;%TEMP%\%~nx0.run&quot;</span>
+<span class="token keyword">if</span> not exist <span class="token string">&quot;%TEMP%\%~nx0.run&quot;</span> goto mainEntry
+<span class="token builtin class-name">echo</span> Y<span class="token operator">&gt;</span><span class="token string">&quot;%TEMP%\%~nx0.Y&quot;</span>
+call <span class="token string">&quot;%~f0&quot;</span> %* <span class="token operator">&lt;</span><span class="token string">&quot;%TEMP%\%~nx0.Y&quot;</span>
+rem Use provided errorlevel
+<span class="token builtin class-name">set</span> <span class="token assign-left variable">RETVAL</span><span class="token operator">=</span>%ERRORLEVEL%
+del /Q <span class="token string">&quot;%TEMP%\%~nx0.Y&quot;</span> <span class="token operator">&gt;</span>NUL <span class="token operator"><span class="token file-descriptor important">2</span>&gt;</span><span class="token file-descriptor important">&amp;1</span>
+<span class="token builtin class-name">exit</span> /B %RETVAL%
+:mainEntry
+del /Q <span class="token string">&quot;%TEMP%\%~nx0.run&quot;</span> <span class="token operator">&gt;</span>NUL <span class="token operator"><span class="token file-descriptor important">2</span>&gt;</span><span class="token file-descriptor important">&amp;1</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br></div></div><ul><li>大多情况下我们启动tomcat都没有设置参数, 所以直接跳到mainEntry代码段, 删除了一个临时文件后, 继续往下执行.</li></ul> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>rem Guess CATALINA_HOME <span class="token keyword">if</span> not defined
+<span class="token builtin class-name">set</span> <span class="token string">&quot;CURRENT_DIR=%cd%&quot;</span>
+<span class="token keyword">if</span> not <span class="token string">&quot;%CATALINA_HOME%&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span> goto gotHome
+<span class="token builtin class-name">set</span> <span class="token string">&quot;CATALINA_HOME=%CURRENT_DIR%&quot;</span>
+<span class="token keyword">if</span> exist <span class="token string">&quot;%CATALINA_HOME%<span class="token entity" title="\b">\b</span>in<span class="token entity" title="\c">\c</span>atalina.bat&quot;</span> goto okHome
+<span class="token builtin class-name">cd</span> <span class="token punctuation">..</span>
+<span class="token builtin class-name">set</span> <span class="token string">&quot;CATALINA_HOME=%cd%&quot;</span>
+<span class="token builtin class-name">cd</span> <span class="token string">&quot;%CURRENT_DIR%&quot;</span>
+:gotHome
+
+<span class="token keyword">if</span> exist <span class="token string">&quot;%CATALINA_HOME%<span class="token entity" title="\b">\b</span>in<span class="token entity" title="\c">\c</span>atalina.bat&quot;</span> goto okHome
+<span class="token builtin class-name">echo</span> The CATALINA_HOME environment variable is not defined correctly
+<span class="token builtin class-name">echo</span> This environment variable is needed to run this program
+goto end
+:okHome
+
+rem Copy CATALINA_BASE from CATALINA_HOME <span class="token keyword">if</span> not defined
+<span class="token keyword">if</span> not <span class="token string">&quot;%CATALINA_BASE%&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span> goto gotBase
+<span class="token builtin class-name">set</span> <span class="token string">&quot;CATALINA_BASE=%CATALINA_HOME%&quot;</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br></div></div><ul><li>可以看到这段代码与startup.bat中开头的代码相似, 在确定CATALINA_HOME下有catalina.bat后把CATALINA_HOME赋给变量CATALINA_BASE.</li></ul> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>rem Get standard environment variables
+<span class="token keyword">if</span> not exist <span class="token string">&quot;%CATALINA_BASE%<span class="token entity" title="\b">\b</span>in\setenv.bat&quot;</span> goto checkSetenvHome
+call <span class="token string">&quot;%CATALINA_BASE%<span class="token entity" title="\b">\b</span>in\setenv.bat&quot;</span>
+goto setenvDone
+:checkSetenvHome
+<span class="token keyword">if</span> exist <span class="token string">&quot;%CATALINA_HOME%<span class="token entity" title="\b">\b</span>in\setenv.bat&quot;</span> call <span class="token string">&quot;%CATALINA_HOME%<span class="token entity" title="\b">\b</span>in\setenv.bat&quot;</span>
+:setenvDone
+
+rem Get standard Java environment variables
+<span class="token keyword">if</span> exist <span class="token string">&quot;%CATALINA_HOME%<span class="token entity" title="\b">\b</span>in\setclasspath.bat&quot;</span> goto okSetclasspath
+<span class="token builtin class-name">echo</span> Cannot <span class="token function">find</span> <span class="token string">&quot;%CATALINA_HOME%<span class="token entity" title="\b">\b</span>in\setclasspath.bat&quot;</span>
+<span class="token builtin class-name">echo</span> This <span class="token function">file</span> is needed to run this program
+goto end
+:okSetclasspath
+call <span class="token string">&quot;%CATALINA_HOME%<span class="token entity" title="\b">\b</span>in\setclasspath.bat&quot;</span> %1
+<span class="token keyword">if</span> errorlevel <span class="token number">1</span> goto end
+
+rem Add on extra jar <span class="token function">file</span> to CLASSPATH
+rem Note that there are no quotes as we <span class="token keyword">do</span> not want to introduce random
+rem quotes into the CLASSPATH
+<span class="token keyword">if</span> <span class="token string">&quot;%CLASSPATH%&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span> goto emptyClasspath
+<span class="token builtin class-name">set</span> <span class="token string">&quot;CLASSPATH=%CLASSPATH%;&quot;</span>
+:emptyClasspath
+<span class="token builtin class-name">set</span> <span class="token string">&quot;CLASSPATH=%CLASSPATH%%CATALINA_HOME%<span class="token entity" title="\b">\b</span>in<span class="token entity" title="\b">\b</span>ootstrap.jar&quot;</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br></div></div><blockquote><p>上面这段代码依次执行了setenv.bat和setclasspath.bat文件, 目的是获得CLASSPATH, 相信会Java的同学应该都会在配置环境变量时都配置过classpath, 系统拿到classpath路径后把它和CATALINA_HOME拼接在一起, 最终定位到一个叫bootstrap.jar的文件. 虽然后面还有很多代码, 但是这里必须暂停提示一下: bootstrap.jar将是我们启动tomcat的环境.</p></blockquote> <ul><li>接下来从gotTmpdir代码块到noEndorsedVar代码块进行了一些配置, 由于不是主要内容暂且跳过.</li></ul> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token builtin class-name">echo</span> Using CATALINA_BASE:   <span class="token string">&quot;%CATALINA_BASE%&quot;</span>
+<span class="token builtin class-name">echo</span> Using CATALINA_HOME:   <span class="token string">&quot;%CATALINA_HOME%&quot;</span>
+<span class="token builtin class-name">echo</span> Using CATALINA_TMPDIR: <span class="token string">&quot;%CATALINA_TMPDIR%&quot;</span>
+<span class="token keyword">if</span> <span class="token string">&quot;&quot;</span>%1<span class="token string">&quot;&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span>debug<span class="token string">&quot;&quot;</span> goto use_jdk
+<span class="token builtin class-name">echo</span> Using JRE_HOME:        <span class="token string">&quot;%JRE_HOME%&quot;</span>
+goto java_dir_displayed
+:use_jdk
+<span class="token builtin class-name">echo</span> Using JAVA_HOME:       <span class="token string">&quot;%JAVA_HOME%&quot;</span>
+:java_dir_displayed
+<span class="token builtin class-name">echo</span> Using CLASSPATH:       <span class="token string">&quot;%CLASSPATH%&quot;</span>
+
+<span class="token builtin class-name">set</span> <span class="token assign-left variable">_EXECJAVA</span><span class="token operator">=</span>%_RUNJAVA%
+<span class="token builtin class-name">set</span> <span class="token assign-left variable">MAINCLASS</span><span class="token operator">=</span>org.apache.catalina.startup.Bootstrap
+<span class="token builtin class-name">set</span> <span class="token assign-left variable">ACTION</span><span class="token operator">=</span>start
+<span class="token builtin class-name">set</span> <span class="token assign-left variable">SECURITY_POLICY_FILE</span><span class="token operator">=</span>
+<span class="token builtin class-name">set</span> <span class="token assign-left variable">DEBUG_OPTS</span><span class="token operator">=</span>
+<span class="token builtin class-name">set</span> <span class="token assign-left variable">JPDA</span><span class="token operator">=</span>
+
+<span class="token keyword">if</span> not <span class="token string">&quot;&quot;</span>%1<span class="token string">&quot;&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span>jpda<span class="token string">&quot;&quot;</span> goto noJpda
+<span class="token builtin class-name">set</span> <span class="token assign-left variable">JPDA</span><span class="token operator">=</span>jpda
+<span class="token keyword">if</span> not <span class="token string">&quot;%JPDA_TRANSPORT%&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span> goto gotJpdaTransport
+<span class="token builtin class-name">set</span> <span class="token assign-left variable">JPDA_TRANSPORT</span><span class="token operator">=</span>dt_socket
+:gotJpdaTransport
+<span class="token keyword">if</span> not <span class="token string">&quot;%JPDA_ADDRESS%&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span> goto gotJpdaAddress
+<span class="token builtin class-name">set</span> <span class="token assign-left variable">JPDA_ADDRESS</span><span class="token operator">=</span><span class="token number">8000</span>
+:gotJpdaAddress
+<span class="token keyword">if</span> not <span class="token string">&quot;%JPDA_SUSPEND%&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span> goto gotJpdaSuspend
+<span class="token builtin class-name">set</span> <span class="token assign-left variable">JPDA_SUSPEND</span><span class="token operator">=</span>n
+:gotJpdaSuspend
+<span class="token keyword">if</span> not <span class="token string">&quot;%JPDA_OPTS%&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span> goto gotJpdaOpts
+<span class="token builtin class-name">set</span> <span class="token assign-left variable">JPDA_OPTS</span><span class="token operator">=</span>-agentlib:jdwp<span class="token operator">=</span>transport<span class="token operator">=</span>%JPDA_TRANSPORT%,address<span class="token operator">=</span>%JPDA_ADDRESS%,server<span class="token operator">=</span>y,suspend<span class="token operator">=</span>%JPDA_SUSPEND%
+:gotJpdaOpts
+<span class="token builtin class-name">shift</span>
+:noJpda
+
+<span class="token keyword">if</span> <span class="token string">&quot;&quot;</span>%1<span class="token string">&quot;&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span>debug<span class="token string">&quot;&quot;</span> goto doDebug
+<span class="token keyword">if</span> <span class="token string">&quot;&quot;</span>%1<span class="token string">&quot;&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span>run<span class="token string">&quot;&quot;</span> goto doRun
+<span class="token keyword">if</span> <span class="token string">&quot;&quot;</span>%1<span class="token string">&quot;&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span>start<span class="token string">&quot;&quot;</span> goto doStart
+<span class="token keyword">if</span> <span class="token string">&quot;&quot;</span>%1<span class="token string">&quot;&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span>stop<span class="token string">&quot;&quot;</span> goto doStop
+<span class="token keyword">if</span> <span class="token string">&quot;&quot;</span>%1<span class="token string">&quot;&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span>configtest<span class="token string">&quot;&quot;</span> goto doConfigTest
+<span class="token keyword">if</span> <span class="token string">&quot;&quot;</span>%1<span class="token string">&quot;&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span>version<span class="token string">&quot;&quot;</span> goto doVersion
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br><span class="line-number">35</span><br><span class="line-number">36</span><br><span class="line-number">37</span><br><span class="line-number">38</span><br><span class="line-number">39</span><br><span class="line-number">40</span><br><span class="line-number">41</span><br></div></div><ul><li>接下来, 我们能看到一些重要的信息, 其中的重点是:</li></ul> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token builtin class-name">set</span> <span class="token assign-left variable">_EXECJAVA</span><span class="token operator">=</span>%_RUNJAVA%, 设置了jdk中bin目录下的java.exe文件路径.
+<span class="token builtin class-name">set</span> <span class="token assign-left variable">MAINCLASS</span><span class="token operator">=</span>org.apache.catalina.startup.Bootstrap, 设置了tomcat的启动类为Bootstrap这个类. <span class="token punctuation">(</span>后面会分析这个类<span class="token punctuation">)</span>
+<span class="token builtin class-name">set</span> <span class="token assign-left variable">ACTION</span><span class="token operator">=</span>start设置tomcat启动
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br></div></div><blockquote><p>大家可以留意这些参数, 最后执行tomcat的启动时会用到.</p></blockquote> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token keyword">if</span> not <span class="token string">&quot;&quot;</span>%1<span class="token string">&quot;&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span>jpda<span class="token string">&quot;&quot;</span> goto noJpda
+<span class="token builtin class-name">set</span> <span class="token assign-left variable">JPDA</span><span class="token operator">=</span>jpda
+<span class="token keyword">if</span> not <span class="token string">&quot;%JPDA_TRANSPORT%&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span> goto gotJpdaTransport
+<span class="token builtin class-name">set</span> <span class="token assign-left variable">JPDA_TRANSPORT</span><span class="token operator">=</span>dt_socket
+:gotJpdaTransport
+<span class="token keyword">if</span> not <span class="token string">&quot;%JPDA_ADDRESS%&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span> goto gotJpdaAddress
+<span class="token builtin class-name">set</span> <span class="token assign-left variable">JPDA_ADDRESS</span><span class="token operator">=</span><span class="token number">8000</span>
+:gotJpdaAddress
+<span class="token keyword">if</span> not <span class="token string">&quot;%JPDA_SUSPEND%&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span> goto gotJpdaSuspend
+<span class="token builtin class-name">set</span> <span class="token assign-left variable">JPDA_SUSPEND</span><span class="token operator">=</span>n
+:gotJpdaSuspend
+<span class="token keyword">if</span> not <span class="token string">&quot;%JPDA_OPTS%&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span> goto gotJpdaOpts
+<span class="token builtin class-name">set</span> <span class="token assign-left variable">JPDA_OPTS</span><span class="token operator">=</span>-agentlib:jdwp<span class="token operator">=</span>transport<span class="token operator">=</span>%JPDA_TRANSPORT%,address<span class="token operator">=</span>%JPDA_ADDRESS%,server<span class="token operator">=</span>y,suspend<span class="token operator">=</span>%JPDA_SUSPEND%
+:gotJpdaOpts
+<span class="token builtin class-name">shift</span>
+:noJpda
+
+<span class="token keyword">if</span> <span class="token string">&quot;&quot;</span>%1<span class="token string">&quot;&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span>debug<span class="token string">&quot;&quot;</span> goto doDebug
+<span class="token keyword">if</span> <span class="token string">&quot;&quot;</span>%1<span class="token string">&quot;&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span>run<span class="token string">&quot;&quot;</span> goto doRun
+<span class="token keyword">if</span> <span class="token string">&quot;&quot;</span>%1<span class="token string">&quot;&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span>start<span class="token string">&quot;&quot;</span> goto doStart
+<span class="token keyword">if</span> <span class="token string">&quot;&quot;</span>%1<span class="token string">&quot;&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span>stop<span class="token string">&quot;&quot;</span> goto doStop
+<span class="token keyword">if</span> <span class="token string">&quot;&quot;</span>%1<span class="token string">&quot;&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span>configtest<span class="token string">&quot;&quot;</span> goto doConfigTest
+<span class="token keyword">if</span> <span class="token string">&quot;&quot;</span>%1<span class="token string">&quot;&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span>version<span class="token string">&quot;&quot;</span> goto doVersion
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br></div></div><ul><li>接着判断第一个参数是否是jpda, 是则进行一些设定. 而正常情况下第一个参数是start, 所以跳过这段代码. 接着会判断第一个参数的内容, 根据判断, 我们会跳到doStart代码段. (有余力的同学不妨看下debug, run等启动方式)</li></ul> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>:doStart
+<span class="token builtin class-name">shift</span>
+<span class="token keyword">if</span> <span class="token string">&quot;%TITLE%&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span> <span class="token builtin class-name">set</span> <span class="token assign-left variable">TITLE</span><span class="token operator">=</span>Tomcat
+<span class="token builtin class-name">set</span> <span class="token assign-left variable">_EXECJAVA</span><span class="token operator">=</span>start <span class="token string">&quot;%TITLE%&quot;</span> %_RUNJAVA%
+<span class="token keyword">if</span> not <span class="token string">&quot;&quot;</span>%1<span class="token string">&quot;&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span>-security<span class="token string">&quot;&quot;</span> goto execCmd
+<span class="token builtin class-name">shift</span>
+<span class="token builtin class-name">echo</span> Using Security Manager
+<span class="token builtin class-name">set</span> <span class="token string">&quot;SECURITY_POLICY_FILE=%CATALINA_BASE%<span class="token entity" title="\c">\c</span>onf<span class="token entity" title="\c">\c</span>atalina.policy&quot;</span>
+goto execCmd
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br></div></div><ul><li>可以看到doStart中无非也是设定一些参数, 最终会跳转到execCmd代码段</li></ul> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>:execCmd
+rem Get remaining unshifted <span class="token builtin class-name">command</span> line arguments and save them <span class="token keyword">in</span> the
+<span class="token builtin class-name">set</span> <span class="token assign-left variable">CMD_LINE_ARGS</span><span class="token operator">=</span>
+:setArgs
+<span class="token keyword">if</span> <span class="token string">&quot;&quot;</span>%1<span class="token string">&quot;&quot;</span><span class="token operator">==</span><span class="token string">&quot;&quot;</span>&quot;&quot; goto doneSetArgs
+<span class="token builtin class-name">set</span> <span class="token assign-left variable">CMD_LINE_ARGS</span><span class="token operator">=</span>%CMD_LINE_ARGS% %1
+<span class="token builtin class-name">shift</span>
+goto setArgs
+:doneSetArgs
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br></div></div><blockquote><p>可以看到这段代码也是在拼接参数, 把参数拼接到一个叫CMD_LINE_ARGS的变量中, 接下来就是catalina最后的一段代码了.</p></blockquote> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>rem Execute Java with the applicable properties
+<span class="token keyword">if</span> not <span class="token string">&quot;%JPDA%&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span> goto doJpda
+<span class="token keyword">if</span> not <span class="token string">&quot;%SECURITY_POLICY_FILE%&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span> goto doSecurity
+%_EXECJAVA% %LOGGING_CONFIG% %LOGGING_MANAGER% %JAVA_OPTS% %CATALINA_OPTS% %DEBUG_OPTS% -D%ENDORSED_PROP%<span class="token operator">=</span><span class="token string">&quot;%JAVA_ENDORSED_DIRS%&quot;</span> -classpath <span class="token string">&quot;%CLASSPATH%&quot;</span> -Dcatalina.base<span class="token operator">=</span><span class="token string">&quot;%CATALINA_BASE%&quot;</span> -Dcatalina.home<span class="token operator">=</span><span class="token string">&quot;%CATALINA_HOME%&quot;</span> -Djava.io.tmpdir<span class="token operator">=</span><span class="token string">&quot;%CATALINA_TMPDIR%&quot;</span> %MAINCLASS% %CMD_LINE_ARGS% %ACTION%
+goto end
+:doSecurity
+%_EXECJAVA% %LOGGING_CONFIG% %LOGGING_MANAGER% %JAVA_OPTS% %CATALINA_OPTS% %DEBUG_OPTS% -D%ENDORSED_PROP%<span class="token operator">=</span><span class="token string">&quot;%JAVA_ENDORSED_DIRS%&quot;</span> -classpath <span class="token string">&quot;%CLASSPATH%&quot;</span> -Djava.security.manager -Djava.security.policy<span class="token operator">==</span><span class="token string">&quot;%SECURITY_POLICY_FILE%&quot;</span> -Dcatalina.base<span class="token operator">=</span><span class="token string">&quot;%CATALINA_BASE%&quot;</span> -Dcatalina.home<span class="token operator">=</span><span class="token string">&quot;%CATALINA_HOME%&quot;</span> -Djava.io.tmpdir<span class="token operator">=</span><span class="token string">&quot;%CATALINA_TMPDIR%&quot;</span> %MAINCLASS% %CMD_LINE_ARGS% %ACTION%
+goto end
+:doJpda
+<span class="token keyword">if</span> not <span class="token string">&quot;%SECURITY_POLICY_FILE%&quot;</span> <span class="token operator">==</span> <span class="token string">&quot;&quot;</span> goto doSecurityJpda
+%_EXECJAVA% %LOGGING_CONFIG% %LOGGING_MANAGER% %JAVA_OPTS% %JPDA_OPTS% %CATALINA_OPTS% %DEBUG_OPTS% -D%ENDORSED_PROP%<span class="token operator">=</span><span class="token string">&quot;%JAVA_ENDORSED_DIRS%&quot;</span> -classpath <span class="token string">&quot;%CLASSPATH%&quot;</span> -Dcatalina.base<span class="token operator">=</span><span class="token string">&quot;%CATALINA_BASE%&quot;</span> -Dcatalina.home<span class="token operator">=</span><span class="token string">&quot;%CATALINA_HOME%&quot;</span> -Djava.io.tmpdir<span class="token operator">=</span><span class="token string">&quot;%CATALINA_TMPDIR%&quot;</span> %MAINCLASS% %CMD_LINE_ARGS% %ACTION%
+goto end
+:doSecurityJpda
+%_EXECJAVA% %LOGGING_CONFIG% %LOGGING_MANAGER% %JAVA_OPTS% %JPDA_OPTS% %CATALINA_OPTS% %DEBUG_OPTS% -D%ENDORSED_PROP%<span class="token operator">=</span><span class="token string">&quot;%JAVA_ENDORSED_DIRS%&quot;</span> -classpath <span class="token string">&quot;%CLASSPATH%&quot;</span> -Djava.security.manager -Djava.security.policy<span class="token operator">==</span><span class="token string">&quot;%SECURITY_POLICY_FILE%&quot;</span> -Dcatalina.base<span class="token operator">=</span><span class="token string">&quot;%CATALINA_BASE%&quot;</span> -Dcatalina.home<span class="token operator">=</span><span class="token string">&quot;%CATALINA_HOME%&quot;</span> -Djava.io.tmpdir<span class="token operator">=</span><span class="token string">&quot;%CATALINA_TMPDIR%&quot;</span> %MAINCLASS% %CMD_LINE_ARGS% %ACTION%
+goto end
+
+:end
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br></div></div><ul><li>跳过前面两行判断后, 来到了关键语句:</li></ul> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>%_EXECJAVA% %LOGGING_CONFIG% %LOGGING_MANAGER% %JAVA_OPTS% %CATALINA_OPTS% %DEBUG_OPTS% -D%ENDORSED_PROP%<span class="token operator">=</span><span class="token string">&quot;%JAVA_ENDORSED_DIRS%&quot;</span> -classpath <span class="token string">&quot;%CLASSPATH%&quot;</span> -Dcatalina.base<span class="token operator">=</span><span class="token string">&quot;%CATALINA_BASE%&quot;</span> -Dcatalina.home<span class="token operator">=</span><span class="token string">&quot;%CATALINA_HOME%&quot;</span> -Djava.io.tmpdir<span class="token operator">=</span><span class="token string">&quot;%CATALINA_TMPDIR%&quot;</span> %MAINCLASS% %CMD_LINE_ARGS% %ACTION%
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><blockquote><p>_EXECJAVA也就是_RUNJAVA, 也就是平时说的java指令, 但在之前的doStart代码块中把_EXECJAVA改为了start &quot;%TITLE%&quot; %_RUNJAVA%, 所以系统会另启一个命令行窗口, 名字叫Tomcat.
+在拼接一系列参数后, 我们会看见%MAINCLASS%, 也就是org.apache.catalina.startup.Bootstrap启动类, 拼接完启动参数后, 最后拼接的是%ACTION%, 也就是start.</p></blockquote> <p><strong>总结</strong>:</p> <ul><li><strong>catalina.bat最终执行了Bootstrap类中的main方法</strong>.</li> <li>我们可以通过设定不同的参数让tomcat以不同的方式运行. 在ide中我们是可以选择debug等模式启动tomcat的, 也可以为其配置参数, 在catalina.bat中我们看到了启动tomcat背后的运作流程.</li></ul> <h2 id="参考文章"><a href="#参考文章" class="header-anchor">¶</a> 参考文章</h2> <ul><li>https://www.cnblogs.com/tanshaoshenghao/p/10932306.html</li></ul></div> <div class="page-contract"><h2>联系我</h2> <div class="c-content"><span style="font-size:1rem;font-weight:bold;">添加@pdai微信</span><br> <img src="../../../pdai.jpg" height="280px" style="margin:10px;"><br>
+        PS：添加时请备注<b>Java全栈</b>，谢谢！
+      </div></div> <footer class="page-edit"><div class="edit-link"><a href="https://github.com/realpdai/tech-arch-doc/edit/master/md/framework/tomcat/tomcat-x-sourcecode.md" target="_blank" rel="noopener noreferrer">在 GitHub 上编辑此页</a> <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></div> <div class="last-updated"><span class="prefix">上次更新: </span> <span class="time">9/27/2021,</span></div></footer> <div class="page-nav"><p class="inner"><span class="prev">
+        ←
+        <a href="tomcat-x-arch.html" class="prev">
+          Tomcat - 理解Tomcat架构设计
+        </a></span> <span class="next"><a href="tomcat-x-start.html">
+          Tomcat - 启动过程：初始化和启动流程
+        </a>
+        →
+      </span></p></div> <div class="google_ad_bottom"><ins data-ad-client="ca-pub-5088193899865249" data-ad-slot="6822031208" data-ad-format="auto" data-full-width-responsive="true" class="adsbygoogle" style="display:block"></ins> <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script></div> </main></div> <aside class="page-sidebar"> <div class="page-side-toolbar"><div class="option-box-toc-fixed"><div class="toc-container-sidebar"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:650px"><div style="font-weight:bold;text-align:center;">Tomcat - 源码分析准备和分析入口</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="tomcat-x-sourcecode.html#源代码下载和编译" class="toc-sidebar-link">源代码下载和编译</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="tomcat-x-sourcecode.html#下载二进制包和源码" class="toc-sidebar-link">下载二进制包和源码</a></li><li class="toc-sidebar-sub-header"><a href="tomcat-x-sourcecode.html#编译源码" class="toc-sidebar-link">编译源码</a></li><li class="toc-sidebar-sub-header"><a href="tomcat-x-sourcecode.html#理解编译后模块" class="toc-sidebar-link">理解编译后模块</a></li></ul></li><li><a href="tomcat-x-sourcecode.html#从启动脚本定位tomcat源码入口" class="toc-sidebar-link">从启动脚本定位Tomcat源码入口</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="tomcat-x-sourcecode.html#startupbat" class="toc-sidebar-link">startup.bat</a></li><li class="toc-sidebar-sub-header"><a href="tomcat-x-sourcecode.html#catalinabat" class="toc-sidebar-link">catalina.bat</a></li></ul></li><li><a href="tomcat-x-sourcecode.html#参考文章" class="toc-sidebar-link">参考文章</a><ul class="toc-sidebar-sub-headers"></ul></li></ul></div></div></div></div></div> <div class="option-box-toc-over"><img src="../../../toc.png" class="nozoom"> <span class="show-txt">目录</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:550px"><div style="font-weight:bold;text-align:center;">Tomcat - 源码分析准备和分析入口</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="tomcat-x-sourcecode.html#源代码下载和编译" class="toc-sidebar-link">源代码下载和编译</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="tomcat-x-sourcecode.html#下载二进制包和源码" class="toc-sidebar-link">下载二进制包和源码</a></li><li class="toc-sidebar-sub-header"><a href="tomcat-x-sourcecode.html#编译源码" class="toc-sidebar-link">编译源码</a></li><li class="toc-sidebar-sub-header"><a href="tomcat-x-sourcecode.html#理解编译后模块" class="toc-sidebar-link">理解编译后模块</a></li></ul></li><li><a href="tomcat-x-sourcecode.html#从启动脚本定位tomcat源码入口" class="toc-sidebar-link">从启动脚本定位Tomcat源码入口</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="tomcat-x-sourcecode.html#startupbat" class="toc-sidebar-link">startup.bat</a></li><li class="toc-sidebar-sub-header"><a href="tomcat-x-sourcecode.html#catalinabat" class="toc-sidebar-link">catalina.bat</a></li></ul></li><li><a href="tomcat-x-sourcecode.html#参考文章" class="toc-sidebar-link">参考文章</a><ul class="toc-sidebar-sub-headers"></ul></li></ul></div></div></div></div></div> <div class="option-box"><img src="../../../wechat.png" class="nozoom"> <span class="show-txt">手机看</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.9rem">微信扫一扫</span> <img height="180px" src="https://api.qrserver.com/v1/create-qr-code/?data=https://www.pdai.tech/md/framework/tomcat/tomcat-x-sourcecode.html" style="margin:10px;">
+              可以<b>手机看</b>或分享至<b>朋友圈</b></div></div></div></div> <div class="option-box"><a title="点击切换全屏" style="text-align:center;padding-left:2px;"><img src="../../../full.png" width="30px" class="nozoom"> <span style="color:gray;font-size:11px;font-weight:400;">全屏看</span></a></div> <div class="option-box"><img src="../../../toggle.png" width="30px" class="nozoom"> <span class="show-txt">左栏</span></div> <div class="option-box"><img src="../../../wexin2.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:yellow">交流圈</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">添加pdai微信进《Java全栈知识体系》学习交流圈「无任何套路」</span> <img src="../../../pdai.jpg" height="180px" style="margin:10px;">
+              PS：添加时请备注<b>Java全栈</b>，谢谢！
+            </div></div></div></div> <div class="option-box"><img src="../../../download.jpg" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:#a6f792">下资料</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">扫描公众号，回复“资料”下载<font style="color:red;">10GB+</font>书籍资料「无任何套路」</span> <img src="../../../pdai_gzh.jpg" height="180px" style="margin:10px;"> <b>公众号:</b> Java全栈知识体系
+            </div></div></div></div> <div class="option-box"><img src="../../../heart.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;background-color:#gray">支持我</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">鼓励/支持/赞赏我</span> <img src="../../../pdai-guli.png" height="180px" width="200px" style="margin:5px;">
+              1. 不靠它生存但仍希望得到你的鼓励；<br> 2. 时刻警醒自己保持技术人的初心，恒心，简单，利他；
+            </div></div></div></div> <div title="Tomcat - 理解Tomcat架构设计" class="option-box" style="padding-left:2px;text-align:center;"><a href="tomcat-x-arch.html"><img src="../../../pre2.png" width="30px" class="nozoom"> <span class="show-txt">上一篇</span></a></div> <div title="Tomcat - 启动过程：初始化和启动流程" class="option-box" style="padding-left:2px;text-align:center;"><a href="tomcat-x-start.html"><img src="../../../next2.png" width="30px" class="nozoom"> <span class="show-txt">下一篇</span></a></div></div>  <div class="page-side-sitemap"><div class="option-box"><img src="../../../sitemap.png" class="nozoom img"> <span class="show-txt">站点图</span> <div class="sitemap-container"><h4>站点导航图
+            <a href="../../about/me/about-me.html" class="sitemap-top-link"> 关于我</a> <a href="../../about/blog/blog-build-vuepress.html" class="sitemap-top-link"> 关于站点</a> <a href="../../about/me/blog-changelist.html" class="sitemap-top-link"> 最近更新记录</a> <a href="../../about/me/blog-question.html" class="sitemap-top-link"><font style="color:red;background-color:yellow;">问题反馈</font></a></h4> <table class="sitemap-table"><tr><td nowrap="nowrap"><div class="sitemap-col-group">常用搜索</div></td> <td><div class="sitemap-col-item"><a href="http://www.baidu.com/" target="_blank" title="百度">  
+            百度
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.google.com/" target="_blank" title="Google">  
+            Google
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.bing.com/" target="_blank" title="Bing">  
+            Bing
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://github.com/" target="_blank" title="Github">  
+            Github
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.programcreek.com/java-api-examples/index.php" target="_blank" title="搜代码">  
+            搜代码
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">技术社区</div></td> <td><div class="sitemap-col-item"><a href="http://www.csdn.net/" target="_blank" title="CDSN">  
+            CDSN
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.cnblogs.com/" target="_blank" title="博客园">  
+            博客园
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.oschina.net/" target="_blank" title="OSChina">  
+            OSChina
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://segmentfault.com/" target="_blank" title="知否">  
+            知否
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://juejin.im/" target="_blank" title="掘金">  
+            掘金
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.linuxidc.com/" target="_blank" title="Linux公社">  
+            Linux公社
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.ibm.com/developerworks/cn/" target="_blank" title="IBM 开发者">  
+            IBM 开发者
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://stackoverflow.com/" target="_blank" title="StackOverflow">  
+            StackOverflow
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">Java相关</div></td> <!----> <td><a href="../../java/basic/java-basic-oop.html" class="sitemap-col-item">
+            面向对象基础
+          </a><a href="../../java/basic/java-basic-lan-basic.html" class="sitemap-col-item">
+            语法基础
+          </a><a href="../../java/collection/java-collection-all.html" class="sitemap-col-item">
+            集合框架
+          </a><a href="../../java/thread/java-thread-x-overview.html" class="sitemap-col-item">
+            并发基础
+          </a><a href="../../java/thread/java-thread-x-key-synchronized.html" class="sitemap-col-item">
+            并发关键字
+          </a><a href="../../java/thread/java-thread-x-juc-overview.html" class="sitemap-col-item">
+            JUC并发框架
+          </a><a href="../../java/io/java-io-overview.html" class="sitemap-col-item">
+            IO框架
+          </a><a href="../../java/java8/java8.html" class="sitemap-col-item">
+            Java8 特性
+          </a><a href="../../java/jvm/java-jvm-x-overview.html" class="sitemap-col-item">
+            JVM基础
+          </a><a href="../../java/jvm/java-jvm-param.html" class="sitemap-col-item">
+            调试排错
+          </a><a href="../../java/others/java-others-awesome-java.html" class="sitemap-col-item">
+            更多资源
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">算法相关</div></td> <!----> <td><a href="../../algorithm/alg-basic-array.html" class="sitemap-col-item">
+            数组与线性表
+          </a><a href="../../algorithm/alg-basic-tree.html" class="sitemap-col-item">
+            树详解
+          </a><a href="../../algorithm/alg-basic-graph.html" class="sitemap-col-item">
+            图详解
+          </a><a href="../../algorithm/alg-sort-overview.html" class="sitemap-col-item">
+            内部排序
+          </a><a href="../../algorithm/alg-core-divide-and-conquer.html" class="sitemap-col-item">
+            算法思想
+          </a><a href="../../algorithm/alg-domain-security-degist.html" class="sitemap-col-item">
+            安全算法
+          </a><a href="../../algorithm/alg-domain-bigdata-overview.html" class="sitemap-col-item">
+            大数据处理
+          </a><a href="../../algorithm/alg-domain-distribute-overview.html" class="sitemap-col-item">
+            分布式算法
+          </a><a href="../../algorithm/alg-domain-load-balance.html" class="sitemap-col-item">
+            负载均衡算法
+          </a><a href="../../algorithm/alg-domain-suggest.html" class="sitemap-col-item">
+            推荐算法
+          </a><a href="../../algorithm/alg-other-mind.html" class="sitemap-col-item">
+            头脑风暴
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">数据库相关</div></td> <!----> <td><a href="../../db/sql/sql-db-howitworks.html" class="sitemap-col-item">
+            数据库原理
+          </a><a href="../../db/sql-lan/sql-lan.html" class="sitemap-col-item">
+            SQL语言
+          </a><a href="../../db/sql-mysql/sql-mysql-theory.html" class="sitemap-col-item">
+            MySQL相关
+          </a><a href="../../db/nosql-mongo/mongo-performance-improve.html" class="sitemap-col-item">
+            MongoDB
+          </a><a href="../../db/nosql-es/elasticsearch.html" class="sitemap-col-item">
+            ElasticSearch
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">开发基础相关</div></td> <!----> <td><a href="../../develop/package/dev-package-x-apache-common.html" class="sitemap-col-item">
+            常用类库
+          </a><a href="../../develop/ut/dev-ut-x-junit.html" class="sitemap-col-item">
+            单元测试
+          </a><a href="../../develop/regex/dev-regex-all.html" class="sitemap-col-item">
+            正则表达式
+          </a><a href="../../develop/protocol/dev-protocol-overview.html" class="sitemap-col-item">
+            网络协议
+          </a><a href="../../develop/security/dev-security-overview.html" class="sitemap-col-item">
+            安全相关
+          </a><a href="../../develop/refactor/dev-refactor-if-else.html" class="sitemap-col-item">
+            常见重构技巧
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">架构相关</div></td> <!----> <td><a href="../../arch/arch-x-basic.html" class="sitemap-col-item">
+            架构基础
+          </a><a href="../../arch/arch-x-view.html" class="sitemap-col-item">
+            架构视角
+          </a><a href="../../arch/arch-x-evolution.html" class="sitemap-col-item">
+            架构演进
+          </a><a href="../../arch/arch-x-pattern.html" class="sitemap-col-item">
+            架构模式和要素
+          </a><a href="../../arch/arch-y-cache.html" class="sitemap-col-item">
+            高并发之缓存
+          </a><a href="../../arch/arch-y-ratelimit.html" class="sitemap-col-item">
+            高并发之限流
+          </a><a href="../../arch/arch-y-reduce.html" class="sitemap-col-item">
+            高并发之降级
+          </a><a href="../../arch/arch-y-loadbalance.html" class="sitemap-col-item">
+            负载均衡
+          </a><a href="../../arch/arch-y-backup.html" class="sitemap-col-item">
+            容灾备份
+          </a><a href="../../arch/arch-x-security.html" class="sitemap-col-item">
+            架构安全
+          </a><a href="../../arch/arch-example-seckill.html" class="sitemap-col-item">
+            秒杀系统设计
+          </a><a href="../../arch/arch-example-goods-detail.html" class="sitemap-col-item">
+            架构案例
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">工具和部署</div></td> <!----> <td><a href="../../devops/tool/tool-list-overview.html" class="sitemap-col-item">
+            工具集合
+          </a><a href="../../devops/tool/tool-ide.html" class="sitemap-col-item">
+            IDE相关
+          </a><a href="../../devops/tool/tool-git.html" class="sitemap-col-item">
+            Git
+          </a><a href="../../devops/tool/tool-maven.html" class="sitemap-col-item">
+            Maven
+          </a><a href="../../devops/linux/linux.html" class="sitemap-col-item">
+            Linux
+          </a><a href="../../devops/docker/docker-00-overview.html" class="sitemap-col-item">
+            Docker
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">方法论</div></td> <!----> <td><a href="../../dev-spec/spec/dev-th-solid.html" class="sitemap-col-item">
+            SOLID
+          </a><a href="../../dev-spec/spec/dev-th-cap.html" class="sitemap-col-item">
+            CAP
+          </a><a href="../../dev-spec/spec/dev-th-base.html" class="sitemap-col-item">
+            BASE
+          </a><a href="../../dev-spec/spec/dev-opensource.html" class="sitemap-col-item">
+            开源协议
+          </a><a href="../../dev-spec/code-style/code-style-alibaba.html" class="sitemap-col-item">
+            代码规范
+          </a><a href="../../dev-spec/pattern/1_overview.html" class="sitemap-col-item">
+            设计模式
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">产品和团队</div></td> <!----> <td><a href="../../team/team-z-wechat.html" class="sitemap-col-item">
+            产品相关
+          </a><a href="../../team/team-z-task-emergency.html" class="sitemap-col-item">
+            团队相关
+          </a><a href="../../team/team-z-arch-future.html" class="sitemap-col-item">
+            其它分享
+          </a></td></tr></table></div></div></div> <!----> </aside></div><div class="global-ui"></div></div>
+    <script src="../../../assets/js/app.691e72ae.js" defer></script><script src="../../../assets/js/4.2e3efdf6.js" defer></script><script src="../../../assets/js/3.d77b006c.js" defer></script><script src="../../../assets/js/405.63b2b723.js" defer></script>
+  </body>
+
+<!-- Mirrored from www.pdai.tech/md/framework/tomcat/tomcat-x-sourcecode.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:31:41 GMT -->
+</html>

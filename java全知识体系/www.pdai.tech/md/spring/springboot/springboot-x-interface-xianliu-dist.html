@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  
+<!-- Mirrored from www.pdai.tech/md/spring/springboot/springboot-x-interface-xianliu-dist.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:33:12 GMT -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>SpringBoot接口 - 如何实现接口限流之分布式 | Java 全栈知识体系</title>
+    <meta name="generator" content="VuePress 1.8.2">
+    <link rel="icon" href="../../../favicon.ico">
+    <script src="../../../../hm.baidu.com/hma448.js?525d4abc4a8675472736969f817ceb47"></script>
+    <script defer="defer" async="async" src="../../../../pagead2.googlesyndication.com/pagead/js/f.txt"></script>
+    <meta name="description" content="包含: Java 基础, Java 部分源码, JVM, Spring, Spring Boot, Spring Cloud, 数据库原理, MySQL, ElasticSearch, MongoDB, Docker, k8s, CI&CD, Linux, DevOps, 分布式, 中间件, 开发工具, Git, IDE, 源码阅读，读书笔记, 开源项目...">
+    <meta property="article:modified_time" content="2021-10-13T07:03:32.000Z">
+    <meta property="og:title" content="SpringBoot接口 - 如何实现接口限流之分布式">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="/md/spring/springboot/springboot-x-interface-xianliu-dist.html">
+    <meta name="twitter:title" content="SpringBoot接口 - 如何实现接口限流之分布式">
+    <meta name="twitter:url" content="/md/spring/springboot/springboot-x-interface-xianliu-dist.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="robots" content="all">
+    <meta name="author" content="pdai">
+    <meta name="keywords" content="Java 全栈知识体系, java体系, java知识体系, java框架,java全栈,java学习路线,java全栈知识, java面试, 知识体系, java技术体系, java编程, java编程指南,java开发体系, java开发,java教程,java,java数据结构, 算法, 开发基础">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <link rel="preload" href="../../../assets/css/0.styles.d4bb5489.css" as="style"><link rel="preload" href="../../../assets/js/app.691e72ae.js" as="script"><link rel="preload" href="../../../assets/js/4.2e3efdf6.js" as="script"><link rel="preload" href="../../../assets/js/3.d77b006c.js" as="script"><link rel="preload" href="../../../assets/js/610.4a071975.js" as="script">
+    <link rel="stylesheet" href="../../../assets/css/0.styles.d4bb5489.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="../../../index.html" class="home-link router-link-active"><!----> <span class="site-name">Java 全栈知识体系</span></a> <div class="links"><form id="search-form" role="search" class="algolia-search-wrapper search-box"><input id="algolia-search-input" class="search-query"></form> <nav class="nav-links can-hide"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav>  <ul class="sidebar-links"><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Spring Framework 5基础</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../spring.html" class="sidebar-link">♥Spring框架知识体系详解♥</a></li><li><a href="../spring-x-framework-introduce.html" class="sidebar-link">Spring基础 - Spring和Spring框架组成</a></li><li><a href="../spring-x-framework-helloworld.html" class="sidebar-link">Spring基础 - Spring简单例子引入Spring要点</a></li><li><a href="../spring-x-framework-ioc.html" class="sidebar-link">Spring基础 - Spring核心之控制反转(IOC)</a></li><li><a href="../spring-x-framework-aop.html" class="sidebar-link">Spring基础 - Spring核心之面向切面编程(AOP)</a></li><li><a href="../spring-x-framework-springmvc.html" class="sidebar-link">Spring基础 - SpringMVC案例和机制</a></li><li><a href="../spring-x-framework-annotation.html" class="sidebar-link">Spring基础 - Spring基于注解的配置</a></li><li><a href="../spring-x-framework-spring5.html" class="sidebar-link">Spring基础 - 从Spring 5特性看框架发展方向</a></li><li><a href="../spring-x-framework-ioc-source-1.html" class="sidebar-link">Spring进阶- Spring IOC实现原理详解之IOC体系结构设计</a></li><li><a href="../spring-x-framework-ioc-source-2.html" class="sidebar-link">Spring进阶- Spring IOC实现原理详解之IOC初始化流程</a></li><li><a href="../spring-x-framework-ioc-source-3.html" class="sidebar-link">Spring进阶- Spring IOC实现原理详解之Bean实例化(生命周期,循环依赖等)</a></li><li><a href="../spring-x-framework-aop-source-1.html" class="sidebar-link">Spring进阶 - Spring AOP实现原理详解之切面实现</a></li><li><a href="../spring-x-framework-aop-source-2.html" class="sidebar-link">Spring进阶 - Spring AOP实现原理详解之AOP代理</a></li><li><a href="../spring-x-framework-springmvc-source-1.html" class="sidebar-link">Spring进阶 - SpringMVC实现原理</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading open"><span>SpringBoot 2.5.x系列</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="springboot.html" class="sidebar-link">♥SpringBoot 知识体系详解♥</a></li><li><a href="springboot-x-overview.html" class="sidebar-link">SpringBoot入门 - SpringBoot简介</a></li><li><a href="springboot-x-hello-world.html" class="sidebar-link">SpringBoot入门 - SpringBoot HelloWorld</a></li><li><a href="springboot-x-hello-world-mvc.html" class="sidebar-link">SpringBoot入门 - 对Hello world进行MVC分层</a></li><li><a href="springboot-x-hello-h2-jpa.html" class="sidebar-link">SpringBoot入门 - 添加内存数据库H2</a></li><li><a href="springboot-x-hello-banner.html" class="sidebar-link">SpringBoot入门 - 定制自己的Banner</a></li><li><a href="springboot-x-hello-logback.html" class="sidebar-link">SpringBoot入门 - 添加Logback日志</a></li><li><a href="springboot-x-hello-devtool.html" class="sidebar-link">SpringBoot入门 - 配置热部署devtools工具</a></li><li><a href="springboot-x-hello-anno.html" class="sidebar-link">SpringBoot入门 - 开发中还有哪些常用注解</a></li><li><a href="springboot-x-interface-response.html" class="sidebar-link">SpringBoot接口 - 如何统一接口封装</a></li><li><a href="springboot-x-interface-param.html" class="sidebar-link">SpringBoot接口 - 如何对参数进行校验</a></li><li><a href="springboot-x-interface-param-i18n.html" class="sidebar-link">SpringBoot接口 - 如何参数校验国际化</a></li><li><a href="springboot-x-interface-exception.html" class="sidebar-link">SpringBoot接口 - 如何统一异常处理</a></li><li><a href="springboot-x-interface-version.html" class="sidebar-link">SpringBoot接口 - 如何提供多个版本接口</a></li><li><a href="springboot-x-interface-doc.html" class="sidebar-link">SpringBoot接口 - 如何生成接口文档之Swagger技术栈</a></li><li><a href="springboot-x-interface-doc-smart.html" class="sidebar-link">SpringBoot接口 - 如何生成接口文档之集成Smart-Doc</a></li><li><a href="springboot-x-interface-doc-tool.html" class="sidebar-link">SpringBoot接口 - 如何生成接口文档之常用接口管理工具</a></li><li><a href="springboot-x-interface-3rd.html" class="sidebar-link">SpringBoot接口 - 如何访问外部接口</a></li><li><a href="springboot-x-interface-mideng.html" class="sidebar-link">SpringBoot接口 - 如何保证接口幂等</a></li><li><a href="springboot-x-interface-jiami.html" class="sidebar-link">SpringBoot接口 - 如何对接口进行签名</a></li><li><a href="springboot-x-interface-xianliu.html" class="sidebar-link">SpringBoot接口 - 如何实现接口限流之单实例</a></li><li><a href="springboot-x-interface-xianliu-dist.html" aria-current="page" class="active sidebar-link">SpringBoot接口 - 如何实现接口限流之分布式</a></li><li><a href="springboot-x-mysql-jpa.html" class="sidebar-link">SpringBoot集成MySQL - 基于JPA的封装</a></li><li><a href="springboot-x-mysql-mybatis-xml.html" class="sidebar-link">SpringBoot集成MySQL - MyBatis XML方式</a></li><li><a href="springboot-x-mysql-mybatis-anno.html" class="sidebar-link">SpringBoot集成MySQL - MyBatis 注解方式</a></li><li><a href="springboot-x-mysql-mybatis-page.html" class="sidebar-link">SpringBoot集成MySQL - MyBatis PageHelper分页</a></li><li><a href="springboot-x-mysql-mybatis-multi-ds.html" class="sidebar-link">SpringBoot集成MySQL - MyBatis 多个数据源</a></li><li><a href="springboot-x-mysql-mybatis-plus.html" class="sidebar-link">SpringBoot集成MySQL - MyBatis-Plus方式</a></li><li><a href="springboot-x-mysql-mybatis-plus-gen.html" class="sidebar-link">SpringBoot集成MySQL - MyBatis-Plus代码自动生成</a></li><li><a href="springboot-x-mysql-mybatis-plus-multi-tenant.html" class="sidebar-link">SpringBoot集成MySQL - MyBatis-Plus基于字段隔离的多租户</a></li><li><a href="springboot-x-mysql-shardingjdbc.html" class="sidebar-link">SpringBoot集成MySQL - 分库分表ShardingJDBC</a></li><li><a href="springboot-x-mysql-HikariCP.html" class="sidebar-link">SpringBoot集成连接池 - 数据库连接池和默认连接池HikariCP</a></li><li><a href="springboot-x-mysql-druid.html" class="sidebar-link">SpringBoot集成连接池 - 集成数据库Druid连接池</a></li><li><a href="springboot-x-mysql-liquibase.html" class="sidebar-link">SpringBoot数据库管理 - 用Liquibase对数据库管理和迁移</a></li><li><a href="springboot-x-mysql-flyway.html" class="sidebar-link">SpringBoot数据库管理 - 用flyway对数据库管理和迁移</a></li><li><a href="springboot-x-redis-jedis.html" class="sidebar-link">SpringBoot集成Redis - 基于RedisTemplate+Jedis的数据操作</a></li><li><a href="springboot-x-postgre-jpa.html" class="sidebar-link">SpringBoot集成Postgre - 基于JPA封装基础数据操作</a></li><li><a href="springboot-x-postgre-jpa-jsonb.html" class="sidebar-link">SpringBoot集成Postgre - NoSQL特性JSONB的封装</a></li><li><a href="springboot-x-mongodb-template.html" class="sidebar-link">SpringBoot集成MongoDB - 基于MongoTemplate的数据操作</a></li><li><a href="springboot-x-elastic-template.html" class="sidebar-link">SpringBoot集成ElasticSearch - 基于ElasticSearchTemplate的数据操作</a></li><li><a href="springboot-x-socket-websocket.html" class="sidebar-link">SpringBoot集成Socket - 基础的Websocket实现</a></li><li><a href="springboot-x-socket-netty.html" class="sidebar-link">SpringBoot集成Socket - 用Netty实现socket</a></li><li><a href="springboot-x-task-timer.html" class="sidebar-link">SpringBoot定时任务 - Timer实现方式</a></li><li><a href="springboot-x-task-executor-timer.html" class="sidebar-link">SpringBoot定时任务 - ScheduleExecutorService实现方式</a></li><li><a href="springboot-x-task-spring-task-timer.html" class="sidebar-link">SpringBoot定时任务 - Spring Schedule实现方式</a></li><li><a href="springboot-x-task-hashwheeltimer-timer.html" class="sidebar-link">SpringBoot定时任务 - Netty HashedWheelTimer方式</a></li><li><a href="springboot-x-task-quartz-timer.html" class="sidebar-link">SpringBoot定时任务 - 基础quartz实现方式</a></li><li><a href="springboot-x-task-quartz-cluster-timer.html" class="sidebar-link">SpringBoot定时任务 - 分布式quartz cluster方式</a></li><li><a href="springboot-x-task-elastic-job-timer.html" class="sidebar-link">SpringBoot定时任务 - 分布式elastic-job方式</a></li><li><a href="springboot-x-task-xxl-job-timer.html" class="sidebar-link">SpringBoot定时任务 - 分布式xxl-job方式</a></li><li><a href="springboot-x-view-thymeleaf.html" class="sidebar-link">SpringBoot后端视图 - 基于Thymeleaf视图解析</a></li><li><a href="springboot-x-monitor-actuartor.html" class="sidebar-link">SpringBoot监控 - 集成acturator监控工具</a></li><li><a href="springboot-x-monitor-boot-admin.html" class="sidebar-link">SpringBoot监控 - 集成springboot admin监控工具</a></li><li><a href="springboot-y-auo-config.html" class="sidebar-link">SpringBoot进阶 - 实现自动装配原理</a></li><li><a href="springboot-y-starter.html" class="sidebar-link">SpringBoot进阶 - 自定义starter</a></li><li><a href="springboot-y-wrap-tomcat.html" class="sidebar-link">SpringBoot进阶 - 嵌入web容器Tomcat原理</a></li><li><a href="springboot-y-th-actuartor.html" class="sidebar-link">SpringBoot进阶 - 健康检查Acturator原理</a></li></ul></section></li></ul> </aside> <div><main class="page"> <div class="theme-default-content content__default"><h1 id="springboot接口---如何实现接口限流之分布式"><a href="#springboot接口---如何实现接口限流之分布式" class="header-anchor">¶</a> SpringBoot接口 - 如何实现接口限流之分布式</h1> <blockquote><p>上文中介绍了单实例下如何在业务接口层做限流，本文主要介绍分布式场景下限流的方案，以及什么样的分布式场景下需要在业务层加限流而不是接入层; 并且结合<a href="https://gitee.com/kailing/ratelimiter-spring-boot-starter" target="_blank" rel="noopener noreferrer">开源的ratelimiter-spring-boot-starter<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a>为例，作者是kailing， 学习<strong>思路+代码封装+starter封装</strong>。 @pdai</p></blockquote> <ul><li><a href="#springboot%E6%8E%A5%E5%8F%A3---%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E6%8E%A5%E5%8F%A3%E9%99%90%E6%B5%81%E4%B9%8B%E5%88%86%E5%B8%83%E5%BC%8F">SpringBoot接口 - 如何实现接口限流之分布式</a> <ul><li><a href="#%E5%87%86%E5%A4%87%E7%9F%A5%E8%AF%86%E7%82%B9">准备知识点</a></li> <li><a href="#%E5%AE%9E%E7%8E%B0%E6%80%9D%E8%B7%AF%E4%B9%8Bredislua%E5%B0%81%E8%A3%85">实现思路之redis+lua封装</a> <ul><li><a href="#%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E4%B8%BA%E4%BB%80%E4%B9%88%E6%9C%89%E4%BA%9B%E5%88%86%E5%B8%83%E5%BC%8F%E5%9C%BA%E6%99%AF%E4%B8%8B%E8%BF%98%E4%BC%9A%E5%9C%A8%E4%BB%A3%E7%A0%81%E5%B1%82%E8%BF%9B%E8%A1%8C%E6%8E%A7%E5%88%B6%E9%99%90%E6%B5%81">使用场景：为什么有些分布式场景下，还会在代码层进行控制限流？</a></li> <li><a href="#%E6%BA%90%E4%BB%A3%E7%A0%81%E7%9A%84%E8%A6%81%E7%82%B9">源代码的要点</a></li> <li><a href="#1%E5%BF%AB%E9%80%9F%E5%BC%80%E5%A7%8B">1、快速开始</a> <ul><li><a href="#11%E6%B7%BB%E5%8A%A0%E7%BB%84%E4%BB%B6%E4%BE%9D%E8%B5%96%E5%B7%B2%E4%B8%8A%E4%BC%A0%E5%88%B0maven%E4%B8%AD%E5%A4%AE%E4%BB%93%E5%BA%93">1.1、添加组件依赖，已上传到maven中央仓库</a></li> <li><a href="#12applicationproperties-%E9%85%8D%E7%BD%AE">1.2、application.properties 配置</a></li> <li><a href="#13%E5%9C%A8%E9%9C%80%E8%A6%81%E5%8A%A0%E9%99%90%E6%B5%81%E9%80%BB%E8%BE%91%E7%9A%84%E6%96%B9%E6%B3%95%E4%B8%8A%E6%B7%BB%E5%8A%A0%E6%B3%A8%E8%A7%A3-ratelimit%E5%A6%82">1.3、在需要加限流逻辑的方法上，添加注解 @RateLimit，如：</a> <ul><li><a href="#131-ratelimit-%E6%B3%A8%E8%A7%A3%E8%AF%B4%E6%98%8E">1.3.1 @RateLimit 注解说明</a></li> <li><a href="#132-%E9%99%90%E6%B5%81%E7%9A%84%E7%B2%92%E5%BA%A6%E9%99%90%E6%B5%81-key">1.3.2 限流的粒度，限流 key</a></li> <li><a href="#133-%E8%A7%A6%E5%8F%91%E9%99%90%E6%B5%81%E5%90%8E%E7%9A%84%E8%A1%8C%E4%B8%BA">1.3.3 触发限流后的行为</a></li></ul></li></ul></li> <li><a href="#2%E8%BF%9B%E9%98%B6%E7%94%A8%E6%B3%95">2、进阶用法</a> <ul><li><a href="#21%E8%87%AA%E5%AE%9A%E4%B9%89%E9%99%90%E6%B5%81%E7%9A%84-key">2.1、自定义限流的 key</a> <ul><li><a href="#211ratelimitkey-%E7%9A%84%E6%96%B9%E5%BC%8F">2.1.1、@RateLimitKey 的方式</a></li> <li><a href="#212%E6%8C%87%E5%AE%9A-keys-%E7%9A%84%E6%96%B9%E5%BC%8F">2.1.2、指定 keys 的方式</a></li> <li><a href="#213%E8%87%AA%E5%AE%9A%E4%B9%89-key-%E8%8E%B7%E5%8F%96%E5%87%BD%E6%95%B0">2.1.3、自定义 key 获取函数</a></li></ul></li> <li><a href="#22%E8%87%AA%E5%AE%9A%E4%B9%89%E9%99%90%E6%B5%81%E5%90%8E%E7%9A%84%E8%A1%8C%E4%B8%BA">2.2、自定义限流后的行为</a> <ul><li><a href="#221%E9%85%8D%E7%BD%AE%E5%93%8D%E5%BA%94%E5%86%85%E5%AE%B9">2.2.1、配置响应内容</a></li> <li><a href="#222%E8%87%AA%E5%AE%9A%E4%B9%89%E9%99%90%E6%B5%81%E8%A7%A6%E5%8F%91%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E5%99%A8">2.2.2、自定义限流触发异常处理器</a></li> <li><a href="#223%E8%87%AA%E5%AE%9A%E4%B9%89%E8%A7%A6%E5%8F%91%E9%99%90%E6%B5%81%E5%A4%84%E7%90%86%E5%87%BD%E6%95%B0%E9%99%90%E6%B5%81%E9%99%8D%E7%BA%A7">2.2.3、自定义触发限流处理函数，限流降级</a></li></ul></li> <li><a href="#23-%E5%8A%A8%E6%80%81%E8%AE%BE%E7%BD%AE%E9%99%90%E6%B5%81%E5%A4%A7%E5%B0%8F">2.3 动态设置限流大小</a> <ul><li><a href="#231rateexpression-%E7%9A%84%E4%BD%BF%E7%94%A8">2.3.1、rateExpression 的使用</a></li></ul></li></ul></li> <li><a href="#3%E9%9B%86%E6%88%90%E7%A4%BA%E4%BE%8B%E6%B5%8B%E9%AA%8C">3、集成示例、测验</a> <ul><li><a href="#31%E9%9B%86%E6%88%90%E6%B5%8B%E9%AA%8C">3.1、集成测验</a></li> <li><a href="#32%E5%8E%8B%E5%8A%9B%E6%B5%8B%E8%AF%95">3.2、压力测试</a></li></ul></li> <li><a href="#4%E7%89%88%E6%9C%AC%E6%9B%B4%E6%96%B0">4、版本更新</a> <ul><li><a href="#41v111%E7%89%88%E6%9C%AC%E6%9B%B4%E6%96%B0%E5%86%85%E5%AE%B9">4.1、（v1.1.1）版本更新内容</a></li> <li><a href="#42v12%E7%89%88%E6%9C%AC%E6%9B%B4%E6%96%B0%E5%86%85%E5%AE%B9">4.2、（v1.2）版本更新内容</a></li></ul></li></ul></li> <li><a href="#%E7%A4%BA%E4%BE%8B%E6%BA%90%E7%A0%81">示例源码</a></li></ul></li></ul> <h2 id="准备知识点"><a href="#准备知识点" class="header-anchor">¶</a> 准备知识点</h2> <blockquote><p>上文我们提到了分布式限流的思路：</p></blockquote> <p>我们需要<strong>分布式限流</strong>和<strong>接入层限流</strong>来进行全局限流。</p> <ol><li>redis+lua实现中的lua脚本</li> <li>使用Nginx+Lua实现的Lua脚本</li> <li>使用 OpenResty 开源的限流方案</li> <li>限流框架，比如Sentinel实现降级限流熔断</li></ol> <h2 id="实现思路之redislua封装"><a href="#实现思路之redislua封装" class="header-anchor">¶</a> 实现思路之redis+lua封装</h2> <blockquote><p>redis+lua是代码层实现较为常见的方案，网上有很多的封装， 我这里找一个给你分享下。以<a href="https://gitee.com/kailing/ratelimiter-spring-boot-starter" target="_blank" rel="noopener noreferrer">gitee开源的ratelimiter-spring-boot-starter<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a>为例，作者是kailing， 值得初学者学习<strong>思路+代码封装+starter封装</strong>：</p></blockquote> <h3 id="使用场景：为什么有些分布式场景下还会在代码层进行控制限流"><a href="#使用场景：为什么有些分布式场景下还会在代码层进行控制限流" class="header-anchor">¶</a> 使用场景：为什么有些分布式场景下，还会在代码层进行控制限流？</h3> <p>基于 redis 的偏业务应用的分布式限流组件，使得项目拥有分布式限流能力变得很简单。限流的场景有很多，常说的限流一般指网关限流，控制好洪峰流量，以免打垮后方应用。这里突出<code>偏业务应用的分布式限流</code>的原因，是因为区别于网关限流，业务侧限流可以轻松根据业务性质做到细粒度的流量控制。比如如下场景，</p> <ul><li>案例一：</li></ul> <p>有一个公开的 openApi 接口， openApi 会给接入方派发一个 appId，此时，如果需要根据各个接入方的 appId 限流，网关限流就不好做了，只能在业务侧实现</p> <ul><li>案例二：</li></ul> <p>公司内部的短信接口，内部对接了多个第三方的短信通道，每个短信通道对流量的控制都不尽相同，假设有的第三方根据手机号和短信模板组合限流，网关限流就更不好做了</p> <p>让我们看下，作者kailing是如何封装实现ratelimiter-spring-boot-starter的。</p> <h3 id="源代码的要点"><a href="#源代码的要点" class="header-anchor">¶</a> 源代码的要点</h3> <ul><li><strong>Redis 客户端采用redisson，AOP拦截方式</strong></li></ul> <p>所以引入如下包</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>ext <span class="token punctuation">{</span>
+    redisson_Version <span class="token operator">=</span> <span class="token string">'3.15.1'</span>
+<span class="token punctuation">}</span>
+
+dependencies <span class="token punctuation">{</span>
+    compile <span class="token string">&quot;org.redisson:redisson:<span class="token variable">${redisson_Version}</span>&quot;</span>
+    compile <span class="token string">'org.springframework.boot:spring-boot-starter-aop'</span>
+    compileOnly <span class="token string">'org.springframework.boot:spring-boot-starter-web'</span>
+
+    annotationProcessor <span class="token string">'org.springframework.boot:spring-boot-configuration-processor'</span>
+    testImplementation <span class="token string">'org.springframework.boot:spring-boot-starter-test'</span>
+    testImplementation <span class="token string">'org.springframework.boot:spring-boot-starter-web'</span>
+    testImplementation <span class="token string">'org.springdoc:springdoc-openapi-ui:1.5.2'</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br></div></div><ul><li><strong>RateLimit注解</strong></li></ul> <p>作者考虑了时间表达式，限流后的自定义回退后的拒绝逻辑, 用户自定义Key（PS：<strong>这里其实可以加一些默认的Key生成策略</strong>，比如<strong>按照方法</strong>策略， <strong>按照方法&amp;IP</strong> 策略, <strong>按照自定义策略</strong>等，默认为按照方法）</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>taptap<span class="token punctuation">.</span>ratelimiter<span class="token punctuation">.</span>annotation</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span>annotation<span class="token punctuation">.</span></span><span class="token class-name">ElementType</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span>annotation<span class="token punctuation">.</span></span><span class="token class-name">Retention</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span>annotation<span class="token punctuation">.</span></span><span class="token class-name">RetentionPolicy</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span>annotation<span class="token punctuation">.</span></span><span class="token class-name">Target</span><span class="token punctuation">;</span>
+
+<span class="token comment">/**
+ * @author kl (http://kailing.pub)
+ * @since 2021/3/16
+ */</span>
+<span class="token annotation punctuation">@Target</span><span class="token punctuation">(</span>value <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token class-name">ElementType</span><span class="token punctuation">.</span>METHOD<span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token annotation punctuation">@Retention</span><span class="token punctuation">(</span>value <span class="token operator">=</span> <span class="token class-name">RetentionPolicy</span><span class="token punctuation">.</span>RUNTIME<span class="token punctuation">)</span>
+<span class="token keyword">public</span> <span class="token annotation punctuation">@interface</span> <span class="token class-name">RateLimit</span> <span class="token punctuation">{</span>
+
+    <span class="token comment">/**
+     * 时间窗口流量数量
+     * @return rate
+     */</span>
+    <span class="token keyword">long</span> <span class="token function">rate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">/**
+     * 时间窗口流量数量表达式
+     * @return rateExpression
+     */</span>
+    <span class="token class-name">String</span> <span class="token function">rateExpression</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">default</span> <span class="token string">&quot;&quot;</span><span class="token punctuation">;</span>
+
+    <span class="token comment">/**
+     * 时间窗口，最小单位秒，如 2s，2h , 2d
+     * @return rateInterval
+     */</span>
+    <span class="token class-name">String</span> <span class="token function">rateInterval</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">/**
+     * 获取key
+     * @return keys
+     */</span>
+    <span class="token class-name">String</span> <span class="token punctuation">[</span><span class="token punctuation">]</span> <span class="token function">keys</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">default</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+    <span class="token comment">/**
+     * 限流后的自定义回退后的拒绝逻辑
+     * @return fallback
+     */</span>
+    <span class="token class-name">String</span> <span class="token function">fallbackFunction</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">default</span> <span class="token string">&quot;&quot;</span><span class="token punctuation">;</span>
+
+    <span class="token comment">/**
+     * 自定义业务 key 的 Function
+     * @return key
+     */</span>
+    <span class="token class-name">String</span> <span class="token function">customKeyFunction</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">default</span> <span class="token string">&quot;&quot;</span><span class="token punctuation">;</span>
+
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br><span class="line-number">35</span><br><span class="line-number">36</span><br><span class="line-number">37</span><br><span class="line-number">38</span><br><span class="line-number">39</span><br><span class="line-number">40</span><br><span class="line-number">41</span><br><span class="line-number">42</span><br><span class="line-number">43</span><br><span class="line-number">44</span><br><span class="line-number">45</span><br><span class="line-number">46</span><br><span class="line-number">47</span><br><span class="line-number">48</span><br><span class="line-number">49</span><br><span class="line-number">50</span><br><span class="line-number">51</span><br><span class="line-number">52</span><br></div></div><ul><li><strong>AOP拦截</strong></li></ul> <p>around环绕方式， 通过定义RateLimiterService获取方法注解的信息，存放在为RateLimiterInfo</p> <p>如果还定义了回调方法，被限流后还会执行回调方法，回调方法也在RateLimiterService中。</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>taptap<span class="token punctuation">.</span>ratelimiter<span class="token punctuation">.</span>core</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>taptap<span class="token punctuation">.</span>ratelimiter<span class="token punctuation">.</span>annotation<span class="token punctuation">.</span></span><span class="token class-name">RateLimit</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>taptap<span class="token punctuation">.</span>ratelimiter<span class="token punctuation">.</span>exception<span class="token punctuation">.</span></span><span class="token class-name">RateLimitException</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>taptap<span class="token punctuation">.</span>ratelimiter<span class="token punctuation">.</span>model<span class="token punctuation">.</span></span><span class="token class-name">LuaScript</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>taptap<span class="token punctuation">.</span>ratelimiter<span class="token punctuation">.</span>model<span class="token punctuation">.</span></span><span class="token class-name">RateLimiterInfo</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>aspectj<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span><span class="token class-name">ProceedingJoinPoint</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>aspectj<span class="token punctuation">.</span>lang<span class="token punctuation">.</span>annotation<span class="token punctuation">.</span></span><span class="token class-name">Around</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>aspectj<span class="token punctuation">.</span>lang<span class="token punctuation">.</span>annotation<span class="token punctuation">.</span></span><span class="token class-name">Aspect</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>redisson<span class="token punctuation">.</span>api<span class="token punctuation">.</span></span><span class="token class-name">RScript</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>redisson<span class="token punctuation">.</span>api<span class="token punctuation">.</span></span><span class="token class-name">RedissonClient</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>slf4j<span class="token punctuation">.</span></span><span class="token class-name">Logger</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>slf4j<span class="token punctuation">.</span></span><span class="token class-name">LoggerFactory</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>core<span class="token punctuation">.</span>annotation<span class="token punctuation">.</span></span><span class="token class-name">Order</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>stereotype<span class="token punctuation">.</span></span><span class="token class-name">Component</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">StringUtils</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">ArrayList</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">List</span><span class="token punctuation">;</span>
+
+<span class="token comment">/**
+ * Created by kl on 2017/12/29.
+ * Content : 切面拦截处理器
+ */</span>
+<span class="token annotation punctuation">@Aspect</span>
+<span class="token annotation punctuation">@Component</span>
+<span class="token annotation punctuation">@Order</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">RateLimitAspectHandler</span> <span class="token punctuation">{</span>
+
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">Logger</span> logger <span class="token operator">=</span> <span class="token class-name">LoggerFactory</span><span class="token punctuation">.</span><span class="token function">getLogger</span><span class="token punctuation">(</span><span class="token class-name">RateLimitAspectHandler</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">private</span> <span class="token keyword">final</span> <span class="token class-name">RateLimiterService</span> rateLimiterService<span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">final</span> <span class="token class-name">RScript</span> rScript<span class="token punctuation">;</span>
+
+    <span class="token keyword">public</span> <span class="token class-name">RateLimitAspectHandler</span><span class="token punctuation">(</span><span class="token class-name">RedissonClient</span> client<span class="token punctuation">,</span> <span class="token class-name">RateLimiterService</span> lockInfoProvider<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>rateLimiterService <span class="token operator">=</span> lockInfoProvider<span class="token punctuation">;</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>rScript <span class="token operator">=</span> client<span class="token punctuation">.</span><span class="token function">getScript</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token annotation punctuation">@Around</span><span class="token punctuation">(</span>value <span class="token operator">=</span> <span class="token string">&quot;@annotation(rateLimit)&quot;</span><span class="token punctuation">)</span>
+    <span class="token keyword">public</span> <span class="token class-name">Object</span> <span class="token function">around</span><span class="token punctuation">(</span><span class="token class-name">ProceedingJoinPoint</span> joinPoint<span class="token punctuation">,</span> <span class="token class-name">RateLimit</span> rateLimit<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Throwable</span> <span class="token punctuation">{</span>
+        <span class="token class-name">RateLimiterInfo</span> limiterInfo <span class="token operator">=</span> rateLimiterService<span class="token punctuation">.</span><span class="token function">getRateLimiterInfo</span><span class="token punctuation">(</span>joinPoint<span class="token punctuation">,</span> rateLimit<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Object</span><span class="token punctuation">&gt;</span></span> keys <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">&gt;</span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        keys<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>limiterInfo<span class="token punctuation">.</span><span class="token function">getKey</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        keys<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>limiterInfo<span class="token punctuation">.</span><span class="token function">getRate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        keys<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>limiterInfo<span class="token punctuation">.</span><span class="token function">getRateInterval</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Long</span><span class="token punctuation">&gt;</span></span> results <span class="token operator">=</span> rScript<span class="token punctuation">.</span><span class="token function">eval</span><span class="token punctuation">(</span><span class="token class-name">RScript<span class="token punctuation">.</span>Mode</span><span class="token punctuation">.</span>READ_WRITE<span class="token punctuation">,</span> <span class="token class-name">LuaScript</span><span class="token punctuation">.</span><span class="token function">getRateLimiterScript</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token class-name">RScript<span class="token punctuation">.</span>ReturnType</span><span class="token punctuation">.</span>MULTI<span class="token punctuation">,</span> keys<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">boolean</span> allowed <span class="token operator">=</span> results<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">0L</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>allowed<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            logger<span class="token punctuation">.</span><span class="token function">info</span><span class="token punctuation">(</span><span class="token string">&quot;Trigger current limiting,key:{}&quot;</span><span class="token punctuation">,</span> limiterInfo<span class="token punctuation">.</span><span class="token function">getKey</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">StringUtils</span><span class="token punctuation">.</span><span class="token function">hasLength</span><span class="token punctuation">(</span>rateLimit<span class="token punctuation">.</span><span class="token function">fallbackFunction</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                <span class="token keyword">return</span> rateLimiterService<span class="token punctuation">.</span><span class="token function">executeFunction</span><span class="token punctuation">(</span>rateLimit<span class="token punctuation">.</span><span class="token function">fallbackFunction</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> joinPoint<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+            <span class="token keyword">long</span> ttl <span class="token operator">=</span> results<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">RateLimitException</span><span class="token punctuation">(</span><span class="token string">&quot;Too Many Requests&quot;</span><span class="token punctuation">,</span> ttl<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword">return</span> joinPoint<span class="token punctuation">.</span><span class="token function">proceed</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br><span class="line-number">35</span><br><span class="line-number">36</span><br><span class="line-number">37</span><br><span class="line-number">38</span><br><span class="line-number">39</span><br><span class="line-number">40</span><br><span class="line-number">41</span><br><span class="line-number">42</span><br><span class="line-number">43</span><br><span class="line-number">44</span><br><span class="line-number">45</span><br><span class="line-number">46</span><br><span class="line-number">47</span><br><span class="line-number">48</span><br><span class="line-number">49</span><br><span class="line-number">50</span><br><span class="line-number">51</span><br><span class="line-number">52</span><br><span class="line-number">53</span><br><span class="line-number">54</span><br><span class="line-number">55</span><br><span class="line-number">56</span><br><span class="line-number">57</span><br><span class="line-number">58</span><br><span class="line-number">59</span><br><span class="line-number">60</span><br><span class="line-number">61</span><br><span class="line-number">62</span><br></div></div><p>这里LuaScript加载定义的lua脚本</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>taptap<span class="token punctuation">.</span>ratelimiter<span class="token punctuation">.</span>model</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>slf4j<span class="token punctuation">.</span></span><span class="token class-name">Logger</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>slf4j<span class="token punctuation">.</span></span><span class="token class-name">LoggerFactory</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">StreamUtils</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span><span class="token class-name">IOException</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span><span class="token class-name">InputStream</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>nio<span class="token punctuation">.</span>charset<span class="token punctuation">.</span></span><span class="token class-name">StandardCharsets</span><span class="token punctuation">;</span>
+
+<span class="token comment">/**
+ * @author kl (http://kailing.pub)
+ * @since 2021/3/18
+ */</span>
+<span class="token keyword">public</span> <span class="token keyword">final</span> <span class="token keyword">class</span> <span class="token class-name">LuaScript</span> <span class="token punctuation">{</span>
+
+    <span class="token keyword">private</span> <span class="token class-name">LuaScript</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">{</span><span class="token punctuation">}</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">Logger</span> log <span class="token operator">=</span> <span class="token class-name">LoggerFactory</span><span class="token punctuation">.</span><span class="token function">getLogger</span><span class="token punctuation">(</span><span class="token class-name">LuaScript</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">String</span> RATE_LIMITER_FILE_PATH <span class="token operator">=</span> <span class="token string">&quot;META-INF/ratelimiter-spring-boot-starter-rateLimit.lua&quot;</span><span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">String</span> rateLimiterScript<span class="token punctuation">;</span>
+
+    <span class="token keyword">static</span> <span class="token punctuation">{</span>
+        <span class="token class-name">InputStream</span> in <span class="token operator">=</span> <span class="token class-name">Thread</span><span class="token punctuation">.</span><span class="token function">currentThread</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getContextClassLoader</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">getResourceAsStream</span><span class="token punctuation">(</span>RATE_LIMITER_FILE_PATH<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">try</span> <span class="token punctuation">{</span>
+            rateLimiterScript <span class="token operator">=</span>  <span class="token class-name">StreamUtils</span><span class="token punctuation">.</span><span class="token function">copyToString</span><span class="token punctuation">(</span>in<span class="token punctuation">,</span> <span class="token class-name">StandardCharsets</span><span class="token punctuation">.</span>UTF_8<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">IOException</span> e<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            log<span class="token punctuation">.</span><span class="token function">error</span><span class="token punctuation">(</span><span class="token string">&quot;ratelimiter-spring-boot-starter Initialization failure&quot;</span><span class="token punctuation">,</span>e<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">String</span> <span class="token function">getRateLimiterScript</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> rateLimiterScript<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br><span class="line-number">35</span><br></div></div><p>lua脚本放在META-INF/ratelimiter-spring-boot-starter-rateLimit.lua， 如下</p> <div class="language-lua line-numbers-mode"><pre class="language-lua"><code><span class="token comment">--</span>
+<span class="token comment">-- Created by IntelliJ IDEA.</span>
+<span class="token comment">-- User: kl</span>
+<span class="token comment">-- Date: 2021/3/18</span>
+<span class="token comment">-- Time: 11:17 上午</span>
+<span class="token comment">-- To change this template use File | Settings | File Templates.</span>
+<span class="token keyword">local</span> rateLimitKey <span class="token operator">=</span> KEYS<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token keyword">local</span> rate <span class="token operator">=</span> <span class="token function">tonumber</span><span class="token punctuation">(</span>KEYS<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">local</span> rateInterval <span class="token operator">=</span> <span class="token function">tonumber</span><span class="token punctuation">(</span>KEYS<span class="token punctuation">[</span><span class="token number">3</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">local</span> limitResult <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token keyword">local</span> ttlResult <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token keyword">local</span> currValue <span class="token operator">=</span> redis<span class="token punctuation">.</span><span class="token function">call</span><span class="token punctuation">(</span><span class="token string">'incr'</span><span class="token punctuation">,</span> rateLimitKey<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">if</span> <span class="token punctuation">(</span>currValue <span class="token operator">==</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token keyword">then</span>
+    redis<span class="token punctuation">.</span><span class="token function">call</span><span class="token punctuation">(</span><span class="token string">'expire'</span><span class="token punctuation">,</span> rateLimitKey<span class="token punctuation">,</span> rateInterval<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    limitResult <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token keyword">else</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>currValue <span class="token operator">&gt;</span> rate<span class="token punctuation">)</span> <span class="token keyword">then</span>
+        limitResult <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span>
+        ttlResult <span class="token operator">=</span> redis<span class="token punctuation">.</span><span class="token function">call</span><span class="token punctuation">(</span><span class="token string">'ttl'</span><span class="token punctuation">,</span> rateLimitKey<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">end</span>
+<span class="token keyword">end</span>
+<span class="token keyword">return</span> <span class="token punctuation">{</span> limitResult<span class="token punctuation">,</span> ttlResult <span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br></div></div><ul><li><strong>starter自动装配</strong></li></ul> <p>RateLimiterAutoConfiguration + RateLimiterProperties + spring.factories</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>taptap<span class="token punctuation">.</span>ratelimiter<span class="token punctuation">.</span>configuration</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>taptap<span class="token punctuation">.</span>ratelimiter<span class="token punctuation">.</span>core<span class="token punctuation">.</span></span><span class="token class-name">BizKeyProvider</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>taptap<span class="token punctuation">.</span>ratelimiter<span class="token punctuation">.</span>core<span class="token punctuation">.</span></span><span class="token class-name">RateLimitAspectHandler</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>taptap<span class="token punctuation">.</span>ratelimiter<span class="token punctuation">.</span>core<span class="token punctuation">.</span></span><span class="token class-name">RateLimiterService</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>taptap<span class="token punctuation">.</span>ratelimiter<span class="token punctuation">.</span>web<span class="token punctuation">.</span></span><span class="token class-name">RateLimitExceptionHandler</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">io<span class="token punctuation">.</span>netty<span class="token punctuation">.</span>channel<span class="token punctuation">.</span>nio<span class="token punctuation">.</span></span><span class="token class-name">NioEventLoopGroup</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>redisson<span class="token punctuation">.</span></span><span class="token class-name">Redisson</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>redisson<span class="token punctuation">.</span>api<span class="token punctuation">.</span></span><span class="token class-name">RedissonClient</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>redisson<span class="token punctuation">.</span>codec<span class="token punctuation">.</span></span><span class="token class-name">JsonJacksonCodec</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>redisson<span class="token punctuation">.</span>config<span class="token punctuation">.</span></span><span class="token class-name">Config</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>boot<span class="token punctuation">.</span>autoconfigure<span class="token punctuation">.</span></span><span class="token class-name">AutoConfigureAfter</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>boot<span class="token punctuation">.</span>autoconfigure<span class="token punctuation">.</span>condition<span class="token punctuation">.</span></span><span class="token class-name">ConditionalOnMissingBean</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>boot<span class="token punctuation">.</span>autoconfigure<span class="token punctuation">.</span>condition<span class="token punctuation">.</span></span><span class="token class-name">ConditionalOnProperty</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>boot<span class="token punctuation">.</span>autoconfigure<span class="token punctuation">.</span>data<span class="token punctuation">.</span>redis<span class="token punctuation">.</span></span><span class="token class-name">RedisAutoConfiguration</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>boot<span class="token punctuation">.</span>context<span class="token punctuation">.</span>properties<span class="token punctuation">.</span></span><span class="token class-name">EnableConfigurationProperties</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>context<span class="token punctuation">.</span>annotation<span class="token punctuation">.</span></span><span class="token class-name">Bean</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>context<span class="token punctuation">.</span>annotation<span class="token punctuation">.</span></span><span class="token class-name">Configuration</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>context<span class="token punctuation">.</span>annotation<span class="token punctuation">.</span></span><span class="token class-name">Import</span><span class="token punctuation">;</span>
+
+<span class="token comment">/**
+ * @author kl (http://kailing.pub)
+ * @since 2021/3/16
+ */</span>
+<span class="token annotation punctuation">@Configuration</span>
+<span class="token annotation punctuation">@ConditionalOnProperty</span><span class="token punctuation">(</span>prefix <span class="token operator">=</span> <span class="token class-name">RateLimiterProperties</span><span class="token punctuation">.</span>PREFIX<span class="token punctuation">,</span> name <span class="token operator">=</span> <span class="token string">&quot;enabled&quot;</span><span class="token punctuation">,</span> havingValue <span class="token operator">=</span> <span class="token string">&quot;true&quot;</span><span class="token punctuation">)</span>
+<span class="token annotation punctuation">@AutoConfigureAfter</span><span class="token punctuation">(</span><span class="token class-name">RedisAutoConfiguration</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span>
+<span class="token annotation punctuation">@EnableConfigurationProperties</span><span class="token punctuation">(</span><span class="token class-name">RateLimiterProperties</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span>
+<span class="token annotation punctuation">@Import</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token class-name">RateLimitAspectHandler</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">,</span> <span class="token class-name">RateLimitExceptionHandler</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">RateLimiterAutoConfiguration</span> <span class="token punctuation">{</span>
+
+    <span class="token keyword">private</span> <span class="token keyword">final</span> <span class="token class-name">RateLimiterProperties</span> limiterProperties<span class="token punctuation">;</span>
+
+    <span class="token keyword">public</span> <span class="token class-name">RateLimiterAutoConfiguration</span><span class="token punctuation">(</span><span class="token class-name">RateLimiterProperties</span> limiterProperties<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>limiterProperties <span class="token operator">=</span> limiterProperties<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token annotation punctuation">@Bean</span><span class="token punctuation">(</span>destroyMethod <span class="token operator">=</span> <span class="token string">&quot;shutdown&quot;</span><span class="token punctuation">)</span>
+    <span class="token annotation punctuation">@ConditionalOnMissingBean</span>
+    <span class="token class-name">RedissonClient</span> <span class="token function">redisson</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token class-name">Config</span> config <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Config</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>limiterProperties<span class="token punctuation">.</span><span class="token function">getRedisClusterServer</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            config<span class="token punctuation">.</span><span class="token function">useClusterServers</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">setPassword</span><span class="token punctuation">(</span>limiterProperties<span class="token punctuation">.</span><span class="token function">getRedisPassword</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                    <span class="token punctuation">.</span><span class="token function">addNodeAddress</span><span class="token punctuation">(</span>limiterProperties<span class="token punctuation">.</span><span class="token function">getRedisClusterServer</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getNodeAddresses</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+            config<span class="token punctuation">.</span><span class="token function">useSingleServer</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">setAddress</span><span class="token punctuation">(</span>limiterProperties<span class="token punctuation">.</span><span class="token function">getRedisAddress</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                    <span class="token punctuation">.</span><span class="token function">setDatabase</span><span class="token punctuation">(</span>limiterProperties<span class="token punctuation">.</span><span class="token function">getRedisDatabase</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                    <span class="token punctuation">.</span><span class="token function">setPassword</span><span class="token punctuation">(</span>limiterProperties<span class="token punctuation">.</span><span class="token function">getRedisPassword</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        config<span class="token punctuation">.</span><span class="token function">setCodec</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">JsonJacksonCodec</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        config<span class="token punctuation">.</span><span class="token function">setEventLoopGroup</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">NioEventLoopGroup</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> <span class="token class-name">Redisson</span><span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span>config<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token annotation punctuation">@Bean</span>
+    <span class="token keyword">public</span> <span class="token class-name">RateLimiterService</span> <span class="token function">rateLimiterInfoProvider</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> <span class="token keyword">new</span> <span class="token class-name">RateLimiterService</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token annotation punctuation">@Bean</span>
+    <span class="token keyword">public</span> <span class="token class-name">BizKeyProvider</span> <span class="token function">bizKeyProvider</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> <span class="token keyword">new</span> <span class="token class-name">BizKeyProvider</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br><span class="line-number">35</span><br><span class="line-number">36</span><br><span class="line-number">37</span><br><span class="line-number">38</span><br><span class="line-number">39</span><br><span class="line-number">40</span><br><span class="line-number">41</span><br><span class="line-number">42</span><br><span class="line-number">43</span><br><span class="line-number">44</span><br><span class="line-number">45</span><br><span class="line-number">46</span><br><span class="line-number">47</span><br><span class="line-number">48</span><br><span class="line-number">49</span><br><span class="line-number">50</span><br><span class="line-number">51</span><br><span class="line-number">52</span><br><span class="line-number">53</span><br><span class="line-number">54</span><br><span class="line-number">55</span><br><span class="line-number">56</span><br><span class="line-number">57</span><br><span class="line-number">58</span><br><span class="line-number">59</span><br><span class="line-number">60</span><br><span class="line-number">61</span><br><span class="line-number">62</span><br><span class="line-number">63</span><br><span class="line-number">64</span><br><span class="line-number">65</span><br></div></div><h3 id="1、快速开始"><a href="#1、快速开始" class="header-anchor">¶</a> 1、快速开始</h3> <blockquote><p>来看下作者kailing是如何提供的ratelimiter-spring-boot-starter使用文档。</p></blockquote> <h4 id="11、添加组件依赖已上传到maven中央仓库"><a href="#11、添加组件依赖已上传到maven中央仓库" class="header-anchor">¶</a> 1.1、添加组件依赖，已上传到maven中央仓库</h4> <p>maven</p> <div class="language-xml line-numbers-mode"><pre class="language-xml"><code><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">&gt;</span></span>com.github.taptap<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">&gt;</span></span>ratelimiter-spring-boot-starter<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">&gt;</span></span>1.2<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">&gt;</span></span>
+
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br></div></div><p>gradle</p> <div class="language-groovy line-numbers-mode"><pre class="language-groovy"><code>implementation <span class="token string">'com.github.taptap:ratelimiter-spring-boot-starter:1.2'</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><h4 id="12、applicationproperties-配置"><a href="#12、applicationproperties-配置" class="header-anchor">¶</a> 1.2、application.properties 配置</h4> <div class="language-properties line-numbers-mode"><pre class="language-properties"><code><span class="token attr-name">spring.ratelimiter.enabled</span> <span class="token punctuation">=</span> <span class="token attr-value">true</span>
+
+<span class="token attr-name">spring.ratelimiter.redis-address</span> <span class="token punctuation">=</span> <span class="token attr-value">redis://127.0.0.1:6379</span>
+<span class="token attr-name">spring.ratelimiter.redis-password</span> <span class="token punctuation">=</span> <span class="token attr-value">xxx</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br></div></div><p>启用 ratelimiter 的配置必须加，默认不会加载。redis 相关的连接是非必须的，如果你的项目里已经使用了 <code>Redisson</code> ，则不用配置限流框架的 redis 连接</p> <h4 id="13、在需要加限流逻辑的方法上添加注解-ratelimit如："><a href="#13、在需要加限流逻辑的方法上添加注解-ratelimit如：" class="header-anchor">¶</a> 1.3、在需要加限流逻辑的方法上，添加注解 @RateLimit，如：</h4> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token annotation punctuation">@RestController</span>
+<span class="token annotation punctuation">@RequestMapping</span><span class="token punctuation">(</span><span class="token string">&quot;/test&quot;</span><span class="token punctuation">)</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">TestController</span> <span class="token punctuation">{</span>
+
+    <span class="token annotation punctuation">@GetMapping</span><span class="token punctuation">(</span><span class="token string">&quot;/get&quot;</span><span class="token punctuation">)</span>
+    <span class="token annotation punctuation">@RateLimit</span><span class="token punctuation">(</span>rate <span class="token operator">=</span> <span class="token number">5</span><span class="token punctuation">,</span> rateInterval <span class="token operator">=</span> <span class="token string">&quot;10s&quot;</span><span class="token punctuation">)</span>
+    <span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">get</span><span class="token punctuation">(</span><span class="token class-name">String</span> name<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> <span class="token string">&quot;hello&quot;</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br></div></div><h5 id="131-ratelimit-注解说明"><a href="#131-ratelimit-注解说明" class="header-anchor">¶</a> 1.3.1 @RateLimit 注解说明</h5> <p>@RateLimit 注解可以添加到任意被 spring 管理的 bean 上，不局限于 controller ,service 、repository 也可以。在最基础限流功能使用上，以上三个步骤就已经完成了。@RateLimit 有两个最基础的参数，rateInterval 设置了时间窗口，rate 设置了时间窗口内允许通过的请求数量</p> <h5 id="132-限流的粒度限流-key"><a href="#132-限流的粒度限流-key" class="header-anchor">¶</a> 1.3.2 限流的粒度，限流 key</h5> <p>。限流的粒度是通过限流的 key 来做的，在最基础的设置下，限流的 key 默认是通过方法名称拼出来的，规则如下：</p> <div class="language-properties line-numbers-mode"><pre class="language-properties"><code><span class="token attr-name">key</span> <span class="token punctuation">=</span> <span class="token attr-value">RateLimiter_ + 类名 + 方法名</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><p>除了默认的 key 策略，ratelimiter-spring-boot-starter 充分考虑了业务限流时的复杂性，提供了多种方式。结合业务特征，达到更细粒度的限流控制。</p> <h5 id="133-触发限流后的行为"><a href="#133-触发限流后的行为" class="header-anchor">¶</a> 1.3.3 触发限流后的行为</h5> <p>默认触发限流后 程序会返回一个 http 状态码为 429 的响应，响应值如下：</p> <div class="language-json line-numbers-mode"><pre class="language-json"><code><span class="token punctuation">{</span>
+  <span class="token property">&quot;code&quot;</span><span class="token operator">:</span><span class="token number">429</span><span class="token punctuation">,</span>
+  <span class="token property">&quot;msg&quot;</span><span class="token operator">:</span><span class="token string">&quot;Too Many Requests&quot;</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br></div></div><p>同时，响应的 header 里会携带一个 Retry-After 的时间值，单位 s，用来告诉调用方多久后可以重试。当然这一切都是可以自定义的，进阶用法可以继续往下看</p> <h3 id="2、进阶用法"><a href="#2、进阶用法" class="header-anchor">¶</a> 2、进阶用法</h3> <h4 id="21、自定义限流的-key"><a href="#21、自定义限流的-key" class="header-anchor">¶</a> 2.1、自定义限流的 key</h4> <p>自定义限流 key 有三种方式，当自定义限流的 key 生效时，限流的 key 就变成了（默认的 key + 自定义的 key）。下面依次给出示例</p> <h5 id="211、ratelimitkey-的方式"><a href="#211、ratelimitkey-的方式" class="header-anchor">¶</a> 2.1.1、@RateLimitKey 的方式</h5> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token annotation punctuation">@RestController</span>
+<span class="token annotation punctuation">@RequestMapping</span><span class="token punctuation">(</span><span class="token string">&quot;/test&quot;</span><span class="token punctuation">)</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">TestController</span> <span class="token punctuation">{</span>
+
+    <span class="token annotation punctuation">@GetMapping</span><span class="token punctuation">(</span><span class="token string">&quot;/get&quot;</span><span class="token punctuation">)</span>
+    <span class="token annotation punctuation">@RateLimit</span><span class="token punctuation">(</span>rate <span class="token operator">=</span> <span class="token number">5</span><span class="token punctuation">,</span> rateInterval <span class="token operator">=</span> <span class="token string">&quot;10s&quot;</span><span class="token punctuation">)</span>
+    <span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">get</span><span class="token punctuation">(</span><span class="token annotation punctuation">@RateLimitKey</span> <span class="token class-name">String</span> name<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> <span class="token string">&quot;get&quot;</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br></div></div><p>@RateLimitKey 注解可以放在方法的入参上，要求入参是基础数据类型，上面的例子，如果 name = kl。那么最终限流的 key 如下：</p> <div class="language-properties line-numbers-mode"><pre class="language-properties"><code><span class="token attr-name">key</span> <span class="token punctuation">=</span> <span class="token attr-value">RateLimiter_com.taptap.ratelimiter.web.TestController.get-kl</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><h5 id="212、指定-keys-的方式"><a href="#212、指定-keys-的方式" class="header-anchor">¶</a> 2.1.2、指定 keys 的方式</h5> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token annotation punctuation">@RestController</span>
+<span class="token annotation punctuation">@RequestMapping</span><span class="token punctuation">(</span><span class="token string">&quot;/test&quot;</span><span class="token punctuation">)</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">TestController</span> <span class="token punctuation">{</span>
+
+    <span class="token annotation punctuation">@GetMapping</span><span class="token punctuation">(</span><span class="token string">&quot;/get&quot;</span><span class="token punctuation">)</span>
+    <span class="token annotation punctuation">@RateLimit</span><span class="token punctuation">(</span>rate <span class="token operator">=</span> <span class="token number">5</span><span class="token punctuation">,</span> rateInterval <span class="token operator">=</span> <span class="token string">&quot;10s&quot;</span><span class="token punctuation">,</span>keys <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token string">&quot;#name&quot;</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+    <span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">get</span><span class="token punctuation">(</span><span class="token class-name">String</span> name<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> <span class="token string">&quot;get&quot;</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token annotation punctuation">@GetMapping</span><span class="token punctuation">(</span><span class="token string">&quot;/hello&quot;</span><span class="token punctuation">)</span>
+    <span class="token annotation punctuation">@RateLimit</span><span class="token punctuation">(</span>rate <span class="token operator">=</span> <span class="token number">5</span><span class="token punctuation">,</span> rateInterval <span class="token operator">=</span> <span class="token string">&quot;10s&quot;</span><span class="token punctuation">,</span>keys <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token string">&quot;#user.name&quot;</span><span class="token punctuation">,</span><span class="token string">&quot;user.id&quot;</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+    <span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">hello</span><span class="token punctuation">(</span><span class="token class-name">User</span> user<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> <span class="token string">&quot;hello&quot;</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br></div></div><p>keys 这个参数比 @RateLimitKey 注解更智能，基本可以包含 @RateLimitKey 的能力，只是简单场景下，使用起来没有 @RateLimitKey 那么便捷。keys 的语法来自 spring 的 <code>Spel</code>，可以获取对象入参里的属性，支持获取多个，最后会拼接起来。使用过 spring-cache 的同学可能会更加熟悉 如果不清楚 <code>Spel</code> 的用法，可以参考 spring-cache 的注解文档</p> <h5 id="213、自定义-key-获取函数"><a href="#213、自定义-key-获取函数" class="header-anchor">¶</a> 2.1.3、自定义 key 获取函数</h5> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token annotation punctuation">@RestController</span>
+<span class="token annotation punctuation">@RequestMapping</span><span class="token punctuation">(</span><span class="token string">&quot;/test&quot;</span><span class="token punctuation">)</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">TestController</span> <span class="token punctuation">{</span>
+
+    <span class="token annotation punctuation">@GetMapping</span><span class="token punctuation">(</span><span class="token string">&quot;/get&quot;</span><span class="token punctuation">)</span>
+    <span class="token annotation punctuation">@RateLimit</span><span class="token punctuation">(</span>rate <span class="token operator">=</span> <span class="token number">5</span><span class="token punctuation">,</span> rateInterval <span class="token operator">=</span> <span class="token string">&quot;10s&quot;</span><span class="token punctuation">,</span>customKeyFunction <span class="token operator">=</span> <span class="token string">&quot;keyFunction&quot;</span><span class="token punctuation">)</span>
+    <span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">get</span><span class="token punctuation">(</span><span class="token class-name">String</span> name<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> <span class="token string">&quot;get&quot;</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">keyFunction</span><span class="token punctuation">(</span><span class="token class-name">String</span> name<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> <span class="token string">&quot;keyFunction&quot;</span> <span class="token operator">+</span> name<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br></div></div><p>当 @RateLimitKey 和 keys 参数都没法满足时，比如入参的值是一个加密的值，需要解密后根据相关明文内容限流。可以通过在同一类里自定义获取 key 的函数，这个函数要求和被限流的方法入参一致，返回值为 String 类型。返回值不能为空，为空时，会回退到默认的 key 获取策略。</p> <h4 id="22、自定义限流后的行为"><a href="#22、自定义限流后的行为" class="header-anchor">¶</a> 2.2、自定义限流后的行为</h4> <h5 id="221、配置响应内容"><a href="#221、配置响应内容" class="header-anchor">¶</a> 2.2.1、配置响应内容</h5> <div class="language-properties line-numbers-mode"><pre class="language-properties"><code><span class="token attr-name">spring.ratelimiter.enabled</span><span class="token punctuation">=</span><span class="token attr-value">true</span>
+<span class="token attr-name">spring.ratelimiter.response-body</span><span class="token punctuation">=</span><span class="token attr-value">Too Many Requests</span>
+<span class="token attr-name">spring.ratelimiter.status-code</span><span class="token punctuation">=</span><span class="token attr-value">509</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br></div></div><p>添加如上配置后，触发限流时，http 的状态码就变成了 509 。响应的内容变成了 Too Many Requests 了</p> <h5 id="222、自定义限流触发异常处理器"><a href="#222、自定义限流触发异常处理器" class="header-anchor">¶</a> 2.2.2、自定义限流触发异常处理器</h5> <p>默认的触发限流后，限流器会抛出一个异常，限流器框架内定义了一个异常处理器来处理。自定义限流触发处理器，需要先禁用系统默认的限流触发处理器，禁用方式如下：</p> <div class="language-properties line-numbers-mode"><pre class="language-properties"><code><span class="token attr-name">spring.ratelimiter.exceptionHandler.enable</span><span class="token punctuation">=</span><span class="token attr-value">false</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><p>然后在项目里添加自定义处理器，如下：</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token annotation punctuation">@ControllerAdvice</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">RateLimitExceptionHandler</span> <span class="token punctuation">{</span>
+
+    <span class="token keyword">private</span> <span class="token keyword">final</span>  <span class="token class-name">RateLimiterProperties</span> limiterProperties<span class="token punctuation">;</span>
+
+    <span class="token keyword">public</span> <span class="token class-name">RateLimitExceptionHandler</span><span class="token punctuation">(</span><span class="token class-name">RateLimiterProperties</span> limiterProperties<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>limiterProperties <span class="token operator">=</span> limiterProperties<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token annotation punctuation">@ExceptionHandler</span><span class="token punctuation">(</span>value <span class="token operator">=</span> <span class="token class-name">RateLimitException</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span>
+    <span class="token annotation punctuation">@ResponseBody</span>
+    <span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">exceptionHandler</span><span class="token punctuation">(</span><span class="token class-name">HttpServletResponse</span> response<span class="token punctuation">,</span> <span class="token class-name">RateLimitException</span> e<span class="token punctuation">)</span><span class="token punctuation">{</span>
+        response<span class="token punctuation">.</span><span class="token function">setStatus</span><span class="token punctuation">(</span>limiterProperties<span class="token punctuation">.</span><span class="token function">getStatusCode</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        response<span class="token punctuation">.</span><span class="token function">setHeader</span><span class="token punctuation">(</span><span class="token string">&quot;Retry-After&quot;</span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token punctuation">.</span><span class="token function">valueOf</span><span class="token punctuation">(</span>e<span class="token punctuation">.</span><span class="token function">getRetryAfter</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> limiterProperties<span class="token punctuation">.</span><span class="token function">getResponseBody</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br></div></div><h5 id="223、自定义触发限流处理函数限流降级"><a href="#223、自定义触发限流处理函数限流降级" class="header-anchor">¶</a> 2.2.3、自定义触发限流处理函数，限流降级</h5> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token annotation punctuation">@RequestMapping</span><span class="token punctuation">(</span><span class="token string">&quot;/test&quot;</span><span class="token punctuation">)</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">TestController</span> <span class="token punctuation">{</span>
+
+    <span class="token annotation punctuation">@GetMapping</span><span class="token punctuation">(</span><span class="token string">&quot;/get&quot;</span><span class="token punctuation">)</span>
+    <span class="token annotation punctuation">@RateLimit</span><span class="token punctuation">(</span>rate <span class="token operator">=</span> <span class="token number">5</span><span class="token punctuation">,</span> rateInterval <span class="token operator">=</span> <span class="token string">&quot;10s&quot;</span><span class="token punctuation">,</span>fallbackFunction <span class="token operator">=</span> <span class="token string">&quot;getFallback&quot;</span><span class="token punctuation">)</span>
+    <span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">get</span><span class="token punctuation">(</span><span class="token class-name">String</span> name<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> <span class="token string">&quot;get&quot;</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">getFallback</span><span class="token punctuation">(</span><span class="token class-name">String</span> name<span class="token punctuation">)</span><span class="token punctuation">{</span>
+        <span class="token keyword">return</span> <span class="token string">&quot;Too Many Requests&quot;</span> <span class="token operator">+</span> name<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br></div></div><p>这种方式实现和使用和 2.1.3、自定义 key 获取函数类似。但是多一个要求，返回值的类型需要和原限流函数的返回值类型一致，当触发限流时，框架会调用 fallbackFunction 配置的函数执行并返回，达到限流降级的效果</p> <h4 id="23-动态设置限流大小"><a href="#23-动态设置限流大小" class="header-anchor">¶</a> 2.3 动态设置限流大小</h4> <h5 id="231、rateexpression-的使用"><a href="#231、rateexpression-的使用" class="header-anchor">¶</a> 2.3.1、rateExpression 的使用</h5> <p>从 <code>v1.2</code> 版本开始，在 <code>@RateLimit</code> 注解里新增了属性 rateExpression。该属性支持 <code>Spel</code> 表达式从 Spring 的配置上下文中获取值。
+当配置了 rateExpression 后，rate 属性的配置就不生效了。使用方式如下：</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code>    <span class="token annotation punctuation">@GetMapping</span><span class="token punctuation">(</span><span class="token string">&quot;/get2&quot;</span><span class="token punctuation">)</span>
+    <span class="token annotation punctuation">@RateLimit</span><span class="token punctuation">(</span>rate <span class="token operator">=</span> <span class="token number">2</span><span class="token punctuation">,</span> rateInterval <span class="token operator">=</span> <span class="token string">&quot;10s&quot;</span><span class="token punctuation">,</span>rateExpression <span class="token operator">=</span> <span class="token string">&quot;${spring.ratelimiter.max}&quot;</span><span class="token punctuation">)</span>
+    <span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">get2</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> <span class="token string">&quot;get&quot;</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br></div></div><p>集成 apollo 等配置中心后，可以做到限流大小的动态调整在线热更。</p> <h3 id="3、集成示例、测验"><a href="#3、集成示例、测验" class="header-anchor">¶</a> 3、集成示例、测验</h3> <h4 id="31、集成测验"><a href="#31、集成测验" class="header-anchor">¶</a> 3.1、集成测验</h4> <p>启动 src/test/java/com/taptap/ratelimiter/Application.java 后，访问 http://localhost:8080/swagger-ui.html</p> <h4 id="32、压力测试"><a href="#32、压力测试" class="header-anchor">¶</a> 3.2、压力测试</h4> <ul><li>压测工具 wrk： https://github.com/wg/wrk</li> <li>测试环境: 8 核心 cpu ，jvm 内存给的 -Xms2048m -Xmx2048m ，链接的本地的 redis</li></ul> <div class="language-shell line-numbers-mode"><pre class="language-shell"><code><span class="token comment">#压测数据</span>
+kldeMacBook-Pro-6:ratelimiter-spring-boot-starter kl$ wrk -t16 -c100 -d15s --latency http://localhost:8080/test/wrk
+Running 15s <span class="token builtin class-name">test</span> @ http://localhost:8080/test/wrk
+  <span class="token number">16</span> threads and <span class="token number">100</span> connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     <span class="token number">6</span>.18ms   <span class="token number">20</span>.70ms <span class="token number">281</span>.21ms   <span class="token number">98.17</span>%
+    Req/Sec     <span class="token number">1</span>.65k   <span class="token number">307.06</span>     <span class="token number">2</span>.30k    <span class="token number">76.44</span>%
+  Latency Distribution
+     <span class="token number">50</span>%    <span class="token number">3</span>.57ms
+     <span class="token number">75</span>%    <span class="token number">4</span>.11ms
+     <span class="token number">90</span>%    <span class="token number">5</span>.01ms
+     <span class="token number">99</span>%  <span class="token number">115</span>.48ms
+  <span class="token number">389399</span> requests <span class="token keyword">in</span> <span class="token number">15</span>.03s, <span class="token number">43</span>.15MB <span class="token builtin class-name">read</span>
+Requests/sec:  <span class="token number">25915.91</span>
+Transfer/sec:      <span class="token number">2</span>.87MB
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br></div></div><p>压测下，所有流量都过限流器，qps 可以达到 2w+。</p> <h3 id="4、版本更新"><a href="#4、版本更新" class="header-anchor">¶</a> 4、版本更新</h3> <h4 id="41、v111版本更新内容"><a href="#41、v111版本更新内容" class="header-anchor">¶</a> 4.1、（v1.1.1）版本更新内容</h4> <ul><li>1、触发限流时，header 的 Retry-After 值，单位由 ms ，调整成了 s</li></ul> <h4 id="42、v12版本更新内容"><a href="#42、v12版本更新内容" class="header-anchor">¶</a> 4.2、（v1.2）版本更新内容</h4> <ul><li>1、触发限流时，响应的类型从 <code>text/plain</code> 变成了 <code>application/json</code></li> <li>2、优化了限流的 lua 脚本，将原来的两步 lua 脚本请求，合并成了一个，减少了和 redis 的交互</li> <li>3、限流的时间窗口大小，支持 <code>Spel</code> 从 Spring 的配置上下文中获取，结合 <code>apollo</code> 等配置中心后，支持规则的动态下发热更新</li></ul> <h2 id="示例源码"><a href="#示例源码" class="header-anchor">¶</a> 示例源码</h2> <p>https://gitee.com/kailing/ratelimiter-spring-boot-starter</p> <p>https://github.dev/realpdai/tech-pdai-spring-demos</p></div> <div class="page-contract"><h2>联系我</h2> <div class="c-content"><span style="font-size:1rem;font-weight:bold;">添加@pdai微信</span><br> <img src="../../../pdai.jpg" height="280px" style="margin:10px;"><br>
+        PS：添加时请备注<b>Java全栈</b>，谢谢！
+      </div></div> <footer class="page-edit"><div class="edit-link"><a href="https://github.com/realpdai/tech-arch-doc/edit/master/md/spring/springboot/springboot-x-interface-xianliu-dist.md" target="_blank" rel="noopener noreferrer">在 GitHub 上编辑此页</a> <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></div> <div class="last-updated"><span class="prefix">上次更新: </span> <span class="time">10/13/2021,</span></div></footer> <div class="page-nav"><p class="inner"><span class="prev">
+        ←
+        <a href="springboot-x-interface-xianliu.html" class="prev">
+          SpringBoot接口 - 如何实现接口限流之单实例
+        </a></span> <span class="next"><a href="springboot-x-mysql-jpa.html">
+          SpringBoot集成MySQL - 基于JPA的封装
+        </a>
+        →
+      </span></p></div> <div class="google_ad_bottom"><ins data-ad-client="ca-pub-5088193899865249" data-ad-slot="6822031208" data-ad-format="auto" data-full-width-responsive="true" class="adsbygoogle" style="display:block"></ins> <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script></div> </main></div> <aside class="page-sidebar"> <div class="page-side-toolbar"><div class="option-box-toc-fixed"><div class="toc-container-sidebar"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:650px"><div style="font-weight:bold;text-align:center;">SpringBoot接口 - 如何实现接口限流之分布式</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="springboot-x-interface-xianliu-dist.html#准备知识点" class="toc-sidebar-link">准备知识点</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="springboot-x-interface-xianliu-dist.html#实现思路之redislua封装" class="toc-sidebar-link">实现思路之redis+lua封装</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="springboot-x-interface-xianliu-dist.html#使用场景：为什么有些分布式场景下还会在代码层进行控制限流" class="toc-sidebar-link">使用场景：为什么有些分布式场景下，还会在代码层进行控制限流？</a></li><li class="toc-sidebar-sub-header"><a href="springboot-x-interface-xianliu-dist.html#源代码的要点" class="toc-sidebar-link">源代码的要点</a></li><li class="toc-sidebar-sub-header"><a href="springboot-x-interface-xianliu-dist.html#1、快速开始" class="toc-sidebar-link">1、快速开始</a></li><li class="toc-sidebar-sub-header"><a href="springboot-x-interface-xianliu-dist.html#2、进阶用法" class="toc-sidebar-link">2、进阶用法</a></li><li class="toc-sidebar-sub-header"><a href="springboot-x-interface-xianliu-dist.html#3、集成示例、测验" class="toc-sidebar-link">3、集成示例、测验</a></li><li class="toc-sidebar-sub-header"><a href="springboot-x-interface-xianliu-dist.html#4、版本更新" class="toc-sidebar-link">4、版本更新</a></li></ul></li><li><a href="springboot-x-interface-xianliu-dist.html#示例源码" class="toc-sidebar-link">示例源码</a><ul class="toc-sidebar-sub-headers"></ul></li></ul></div></div></div></div></div> <div class="option-box-toc-over"><img src="../../../toc.png" class="nozoom"> <span class="show-txt">目录</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:550px"><div style="font-weight:bold;text-align:center;">SpringBoot接口 - 如何实现接口限流之分布式</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="springboot-x-interface-xianliu-dist.html#准备知识点" class="toc-sidebar-link">准备知识点</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="springboot-x-interface-xianliu-dist.html#实现思路之redislua封装" class="toc-sidebar-link">实现思路之redis+lua封装</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="springboot-x-interface-xianliu-dist.html#使用场景：为什么有些分布式场景下还会在代码层进行控制限流" class="toc-sidebar-link">使用场景：为什么有些分布式场景下，还会在代码层进行控制限流？</a></li><li class="toc-sidebar-sub-header"><a href="springboot-x-interface-xianliu-dist.html#源代码的要点" class="toc-sidebar-link">源代码的要点</a></li><li class="toc-sidebar-sub-header"><a href="springboot-x-interface-xianliu-dist.html#1、快速开始" class="toc-sidebar-link">1、快速开始</a></li><li class="toc-sidebar-sub-header"><a href="springboot-x-interface-xianliu-dist.html#2、进阶用法" class="toc-sidebar-link">2、进阶用法</a></li><li class="toc-sidebar-sub-header"><a href="springboot-x-interface-xianliu-dist.html#3、集成示例、测验" class="toc-sidebar-link">3、集成示例、测验</a></li><li class="toc-sidebar-sub-header"><a href="springboot-x-interface-xianliu-dist.html#4、版本更新" class="toc-sidebar-link">4、版本更新</a></li></ul></li><li><a href="springboot-x-interface-xianliu-dist.html#示例源码" class="toc-sidebar-link">示例源码</a><ul class="toc-sidebar-sub-headers"></ul></li></ul></div></div></div></div></div> <div class="option-box"><img src="../../../wechat.png" class="nozoom"> <span class="show-txt">手机看</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.9rem">微信扫一扫</span> <img height="180px" src="https://api.qrserver.com/v1/create-qr-code/?data=https://www.pdai.tech/md/spring/springboot/springboot-x-interface-xianliu-dist.html" style="margin:10px;">
+              可以<b>手机看</b>或分享至<b>朋友圈</b></div></div></div></div> <div class="option-box"><a title="点击切换全屏" style="text-align:center;padding-left:2px;"><img src="../../../full.png" width="30px" class="nozoom"> <span style="color:gray;font-size:11px;font-weight:400;">全屏看</span></a></div> <div class="option-box"><img src="../../../toggle.png" width="30px" class="nozoom"> <span class="show-txt">左栏</span></div> <div class="option-box"><img src="../../../wexin2.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:yellow">交流圈</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">添加pdai微信进《Java全栈知识体系》学习交流圈「无任何套路」</span> <img src="../../../pdai.jpg" height="180px" style="margin:10px;">
+              PS：添加时请备注<b>Java全栈</b>，谢谢！
+            </div></div></div></div> <div class="option-box"><img src="../../../download.jpg" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:#a6f792">下资料</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">扫描公众号，回复“资料”下载<font style="color:red;">10GB+</font>书籍资料「无任何套路」</span> <img src="../../../pdai_gzh.jpg" height="180px" style="margin:10px;"> <b>公众号:</b> Java全栈知识体系
+            </div></div></div></div> <div class="option-box"><img src="../../../heart.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;background-color:#gray">支持我</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">鼓励/支持/赞赏我</span> <img src="../../../pdai-guli.png" height="180px" width="200px" style="margin:5px;">
+              1. 不靠它生存但仍希望得到你的鼓励；<br> 2. 时刻警醒自己保持技术人的初心，恒心，简单，利他；
+            </div></div></div></div> <div title="SpringBoot接口 - 如何实现接口限流之单实例" class="option-box" style="padding-left:2px;text-align:center;"><a href="springboot-x-interface-xianliu.html"><img src="../../../pre2.png" width="30px" class="nozoom"> <span class="show-txt">上一篇</span></a></div> <div title="SpringBoot集成MySQL - 基于JPA的封装" class="option-box" style="padding-left:2px;text-align:center;"><a href="springboot-x-mysql-jpa.html"><img src="../../../next2.png" width="30px" class="nozoom"> <span class="show-txt">下一篇</span></a></div></div>  <div class="page-side-sitemap"><div class="option-box"><img src="../../../sitemap.png" class="nozoom img"> <span class="show-txt">站点图</span> <div class="sitemap-container"><h4>站点导航图
+            <a href="../../about/me/about-me.html" class="sitemap-top-link"> 关于我</a> <a href="../../about/blog/blog-build-vuepress.html" class="sitemap-top-link"> 关于站点</a> <a href="../../about/me/blog-changelist.html" class="sitemap-top-link"> 最近更新记录</a> <a href="../../about/me/blog-question.html" class="sitemap-top-link"><font style="color:red;background-color:yellow;">问题反馈</font></a></h4> <table class="sitemap-table"><tr><td nowrap="nowrap"><div class="sitemap-col-group">常用搜索</div></td> <td><div class="sitemap-col-item"><a href="http://www.baidu.com/" target="_blank" title="百度">  
+            百度
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.google.com/" target="_blank" title="Google">  
+            Google
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.bing.com/" target="_blank" title="Bing">  
+            Bing
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://github.com/" target="_blank" title="Github">  
+            Github
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.programcreek.com/java-api-examples/index.php" target="_blank" title="搜代码">  
+            搜代码
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">技术社区</div></td> <td><div class="sitemap-col-item"><a href="http://www.csdn.net/" target="_blank" title="CDSN">  
+            CDSN
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.cnblogs.com/" target="_blank" title="博客园">  
+            博客园
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.oschina.net/" target="_blank" title="OSChina">  
+            OSChina
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://segmentfault.com/" target="_blank" title="知否">  
+            知否
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://juejin.im/" target="_blank" title="掘金">  
+            掘金
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.linuxidc.com/" target="_blank" title="Linux公社">  
+            Linux公社
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.ibm.com/developerworks/cn/" target="_blank" title="IBM 开发者">  
+            IBM 开发者
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://stackoverflow.com/" target="_blank" title="StackOverflow">  
+            StackOverflow
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">Java相关</div></td> <!----> <td><a href="../../java/basic/java-basic-oop.html" class="sitemap-col-item">
+            面向对象基础
+          </a><a href="../../java/basic/java-basic-lan-basic.html" class="sitemap-col-item">
+            语法基础
+          </a><a href="../../java/collection/java-collection-all.html" class="sitemap-col-item">
+            集合框架
+          </a><a href="../../java/thread/java-thread-x-overview.html" class="sitemap-col-item">
+            并发基础
+          </a><a href="../../java/thread/java-thread-x-key-synchronized.html" class="sitemap-col-item">
+            并发关键字
+          </a><a href="../../java/thread/java-thread-x-juc-overview.html" class="sitemap-col-item">
+            JUC并发框架
+          </a><a href="../../java/io/java-io-overview.html" class="sitemap-col-item">
+            IO框架
+          </a><a href="../../java/java8/java8.html" class="sitemap-col-item">
+            Java8 特性
+          </a><a href="../../java/jvm/java-jvm-x-overview.html" class="sitemap-col-item">
+            JVM基础
+          </a><a href="../../java/jvm/java-jvm-param.html" class="sitemap-col-item">
+            调试排错
+          </a><a href="../../java/others/java-others-awesome-java.html" class="sitemap-col-item">
+            更多资源
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">算法相关</div></td> <!----> <td><a href="../../algorithm/alg-basic-array.html" class="sitemap-col-item">
+            数组与线性表
+          </a><a href="../../algorithm/alg-basic-tree.html" class="sitemap-col-item">
+            树详解
+          </a><a href="../../algorithm/alg-basic-graph.html" class="sitemap-col-item">
+            图详解
+          </a><a href="../../algorithm/alg-sort-overview.html" class="sitemap-col-item">
+            内部排序
+          </a><a href="../../algorithm/alg-core-divide-and-conquer.html" class="sitemap-col-item">
+            算法思想
+          </a><a href="../../algorithm/alg-domain-security-degist.html" class="sitemap-col-item">
+            安全算法
+          </a><a href="../../algorithm/alg-domain-bigdata-overview.html" class="sitemap-col-item">
+            大数据处理
+          </a><a href="../../algorithm/alg-domain-distribute-overview.html" class="sitemap-col-item">
+            分布式算法
+          </a><a href="../../algorithm/alg-domain-load-balance.html" class="sitemap-col-item">
+            负载均衡算法
+          </a><a href="../../algorithm/alg-domain-suggest.html" class="sitemap-col-item">
+            推荐算法
+          </a><a href="../../algorithm/alg-other-mind.html" class="sitemap-col-item">
+            头脑风暴
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">数据库相关</div></td> <!----> <td><a href="../../db/sql/sql-db-howitworks.html" class="sitemap-col-item">
+            数据库原理
+          </a><a href="../../db/sql-lan/sql-lan.html" class="sitemap-col-item">
+            SQL语言
+          </a><a href="../../db/sql-mysql/sql-mysql-theory.html" class="sitemap-col-item">
+            MySQL相关
+          </a><a href="../../db/nosql-mongo/mongo-performance-improve.html" class="sitemap-col-item">
+            MongoDB
+          </a><a href="../../db/nosql-es/elasticsearch.html" class="sitemap-col-item">
+            ElasticSearch
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">开发基础相关</div></td> <!----> <td><a href="../../develop/package/dev-package-x-apache-common.html" class="sitemap-col-item">
+            常用类库
+          </a><a href="../../develop/ut/dev-ut-x-junit.html" class="sitemap-col-item">
+            单元测试
+          </a><a href="../../develop/regex/dev-regex-all.html" class="sitemap-col-item">
+            正则表达式
+          </a><a href="../../develop/protocol/dev-protocol-overview.html" class="sitemap-col-item">
+            网络协议
+          </a><a href="../../develop/security/dev-security-overview.html" class="sitemap-col-item">
+            安全相关
+          </a><a href="../../develop/refactor/dev-refactor-if-else.html" class="sitemap-col-item">
+            常见重构技巧
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">架构相关</div></td> <!----> <td><a href="../../arch/arch-x-basic.html" class="sitemap-col-item">
+            架构基础
+          </a><a href="../../arch/arch-x-view.html" class="sitemap-col-item">
+            架构视角
+          </a><a href="../../arch/arch-x-evolution.html" class="sitemap-col-item">
+            架构演进
+          </a><a href="../../arch/arch-x-pattern.html" class="sitemap-col-item">
+            架构模式和要素
+          </a><a href="../../arch/arch-y-cache.html" class="sitemap-col-item">
+            高并发之缓存
+          </a><a href="../../arch/arch-y-ratelimit.html" class="sitemap-col-item">
+            高并发之限流
+          </a><a href="../../arch/arch-y-reduce.html" class="sitemap-col-item">
+            高并发之降级
+          </a><a href="../../arch/arch-y-loadbalance.html" class="sitemap-col-item">
+            负载均衡
+          </a><a href="../../arch/arch-y-backup.html" class="sitemap-col-item">
+            容灾备份
+          </a><a href="../../arch/arch-x-security.html" class="sitemap-col-item">
+            架构安全
+          </a><a href="../../arch/arch-example-seckill.html" class="sitemap-col-item">
+            秒杀系统设计
+          </a><a href="../../arch/arch-example-goods-detail.html" class="sitemap-col-item">
+            架构案例
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">工具和部署</div></td> <!----> <td><a href="../../devops/tool/tool-list-overview.html" class="sitemap-col-item">
+            工具集合
+          </a><a href="../../devops/tool/tool-ide.html" class="sitemap-col-item">
+            IDE相关
+          </a><a href="../../devops/tool/tool-git.html" class="sitemap-col-item">
+            Git
+          </a><a href="../../devops/tool/tool-maven.html" class="sitemap-col-item">
+            Maven
+          </a><a href="../../devops/linux/linux.html" class="sitemap-col-item">
+            Linux
+          </a><a href="../../devops/docker/docker-00-overview.html" class="sitemap-col-item">
+            Docker
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">方法论</div></td> <!----> <td><a href="../../dev-spec/spec/dev-th-solid.html" class="sitemap-col-item">
+            SOLID
+          </a><a href="../../dev-spec/spec/dev-th-cap.html" class="sitemap-col-item">
+            CAP
+          </a><a href="../../dev-spec/spec/dev-th-base.html" class="sitemap-col-item">
+            BASE
+          </a><a href="../../dev-spec/spec/dev-opensource.html" class="sitemap-col-item">
+            开源协议
+          </a><a href="../../dev-spec/code-style/code-style-alibaba.html" class="sitemap-col-item">
+            代码规范
+          </a><a href="../../dev-spec/pattern/1_overview.html" class="sitemap-col-item">
+            设计模式
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">产品和团队</div></td> <!----> <td><a href="../../team/team-z-wechat.html" class="sitemap-col-item">
+            产品相关
+          </a><a href="../../team/team-z-task-emergency.html" class="sitemap-col-item">
+            团队相关
+          </a><a href="../../team/team-z-arch-future.html" class="sitemap-col-item">
+            其它分享
+          </a></td></tr></table></div></div></div> <!----> </aside></div><div class="global-ui"></div></div>
+    <script src="../../../assets/js/app.691e72ae.js" defer></script><script src="../../../assets/js/4.2e3efdf6.js" defer></script><script src="../../../assets/js/3.d77b006c.js" defer></script><script src="../../../assets/js/610.4a071975.js" defer></script>
+  </body>
+
+<!-- Mirrored from www.pdai.tech/md/spring/springboot/springboot-x-interface-xianliu-dist.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:33:12 GMT -->
+</html>

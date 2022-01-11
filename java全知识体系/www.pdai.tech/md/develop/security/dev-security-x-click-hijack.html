@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  
+<!-- Mirrored from www.pdai.tech/md/develop/security/dev-security-x-click-hijack.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:31:27 GMT -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>开发安全 - 点击劫持详解 | Java 全栈知识体系</title>
+    <meta name="generator" content="VuePress 1.8.2">
+    <link rel="icon" href="../../../favicon.ico">
+    <script src="../../../../hm.baidu.com/hma448.js?525d4abc4a8675472736969f817ceb47"></script>
+    <script defer="defer" async="async" src="../../../../pagead2.googlesyndication.com/pagead/js/f.txt"></script>
+    <meta name="description" content="包含: Java 基础, Java 部分源码, JVM, Spring, Spring Boot, Spring Cloud, 数据库原理, MySQL, ElasticSearch, MongoDB, Docker, k8s, CI&CD, Linux, DevOps, 分布式, 中间件, 开发工具, Git, IDE, 源码阅读，读书笔记, 开源项目...">
+    <meta property="article:modified_time" content="2021-09-27T13:15:21.000Z">
+    <meta property="og:title" content="开发安全 - 点击劫持详解">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="/md/develop/security/dev-security-x-click-hijack.html">
+    <meta name="twitter:title" content="开发安全 - 点击劫持详解">
+    <meta name="twitter:url" content="/md/develop/security/dev-security-x-click-hijack.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="robots" content="all">
+    <meta name="author" content="pdai">
+    <meta name="keywords" content="Java 全栈知识体系, java体系, java知识体系, java框架,java全栈,java学习路线,java全栈知识, java面试, 知识体系, java技术体系, java编程, java编程指南,java开发体系, java开发,java教程,java,java数据结构, 算法, 开发基础">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <link rel="preload" href="../../../assets/css/0.styles.d4bb5489.css" as="style"><link rel="preload" href="../../../assets/js/app.691e72ae.js" as="script"><link rel="preload" href="../../../assets/js/4.2e3efdf6.js" as="script"><link rel="preload" href="../../../assets/js/3.d77b006c.js" as="script"><link rel="preload" href="../../../assets/js/310.2d9bc9a8.js" as="script">
+    <link rel="stylesheet" href="../../../assets/css/0.styles.d4bb5489.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="../../../index.html" class="home-link router-link-active"><!----> <span class="site-name">Java 全栈知识体系</span></a> <div class="links"><form id="search-form" role="search" class="algolia-search-wrapper search-box"><input id="algolia-search-input" class="search-query"></form> <nav class="nav-links can-hide"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav>  <ul class="sidebar-links"><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>开发之常用类库</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../package/dev-package-x-overview.html" class="sidebar-link">♥常用开发库知识体系详解♥</a></li><li><a href="../package/dev-package-x-apache-common.html" class="sidebar-link">常用开发库 - Apache Common包</a></li><li><a href="../package/dev-package-x-google-guava.html" class="sidebar-link">常用开发库 - Google Guava包</a></li><li><a href="../package/dev-package-x-hu-tool.html" class="sidebar-link">常用开发库 - Hutool包</a></li><li><a href="../package/dev-package-x-spring-util.html" class="sidebar-link">常用开发库 - Spring常用工具类</a></li><li><a href="../package/dev-package-x-log.html" class="sidebar-link">常用开发库 - 日志类库详解</a></li><li><a href="../package/dev-package-x-json.html" class="sidebar-link">常用开发库 - JSON库详解</a></li><li><a href="../package/dev-package-x-lombok-2.html" class="sidebar-link">常用开发库 - Lombok工具库详解</a></li><li><a href="../package/dev-package-x-mapstruct.html" class="sidebar-link">常用开发库 - MapStruct工具库详解</a></li><li><a href="../package/dev-package-x-others.html" class="sidebar-link">常用开发库 - 其它常用类库</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>开发之代码质量</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../ut/dev-qt-overview.html" class="sidebar-link">♥代码质量保障知识体系详解♥</a></li><li><a href="../ut/dev-ut-unit-test.html" class="sidebar-link">单元测试 - 浅谈单元测试</a></li><li><a href="../ut/dev-ut-x-junit.html" class="sidebar-link">单元测试 - JUnit4 详解</a></li><li><a href="../ut/dev-ut-x-junit5.html" class="sidebar-link">单元测试 - Junit5 详解</a></li><li><a href="../ut/dev-ut-x-mockito.html" class="sidebar-link">单元测试 - Mockito 详解</a></li><li><a href="../ut/dev-ut-x-junit-idea.html" class="sidebar-link">单元测试 - IDEA下单元测试详解</a></li><li><a href="../ut/dev-ut-springboot2.html" class="sidebar-link">单元测试 - SpringBoot2+H2+Mockito实战</a></li><li><a href="../ut/dev-qt-code-style.html" class="sidebar-link">代码质量 - 统一风格：统一代码格式化详解</a></li><li><a href="../ut/dev-qt-code-style-2.html" class="sidebar-link">代码质量 - 统一风格：统一命名规范详解</a></li><li><a href="../ut/dev-qt-code-style-1.html" class="sidebar-link">代码质量 - 统一风格：静态样式检查详解</a></li><li><a href="../ut/dev-qt-sonarlint.html" class="sidebar-link">代码质量 - 代码质量管理: Sonarlint插件详解</a></li><li><a href="../ut/dev-qt-spotbugs.html" class="sidebar-link">代码质量 - 代码质量管理: SpotBugs插件详解</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>开发之网络协议</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../protocol/dev-protocol-overview.html" class="sidebar-link">♥网络协议和工具知识体系详解♥</a></li><li><a href="../protocol/dev-protocol-network-basic.html" class="sidebar-link">网络基础(1) - 计算机网络基础部分梳理</a></li><li><a href="../protocol/dev-protocol-osi7.html" class="sidebar-link">网络基础(2) - 7层协议，4层，5层</a></li><li><a href="../protocol/dev-protocol-ip.html" class="sidebar-link">网络基础(3) - IP相关协议详解</a></li><li><a href="../protocol/dev-protocol-tcpip.html" class="sidebar-link">网络协议 - TCP 协议详解</a></li><li><a href="../protocol/dev-protocol-udp.html" class="sidebar-link">网络协议 - UDP 协议详解</a></li><li><a href="../protocol/dev-protocol-http.html" class="sidebar-link">网络协议 - HTTP 协议详解</a></li><li><a href="../protocol/dev-protocol-dns.html" class="sidebar-link">网络协议 - DNS 相关详解</a></li><li><a href="../protocol/dev-protocol-url.html" class="sidebar-link">知识点串联：输入URL 到页面加载过程详解</a></li><li><a href="../protocol/dev-protocol-tool-netstat.html" class="sidebar-link">工具: netstat查看服务及监听端口详解</a></li><li><a href="../protocol/dev-protocol-tool-tcpdump.html" class="sidebar-link">工具: 网络抓包神器 tcpdump 使用详解</a></li><li><a href="../protocol/dev-protocol-tool-wireshark.html" class="sidebar-link">工具: Wireshark介绍及抓包分析</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading open"><span>开发之安全相关</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="dev-security-overview.html" class="sidebar-link">♥开发安全相关知识体系详解♥</a></li><li><a href="dev-security-x-owasp.html" class="sidebar-link">开发安全 - OWASP Top 10</a></li><li><a href="dev-security-x-injection.html" class="sidebar-link">开发安全 - 注入攻击详解</a></li><li><a href="dev-security-x-csrf.html" class="sidebar-link">开发安全 - CSRF 详解</a></li><li><a href="dev-security-x-xss.html" class="sidebar-link">开发安全 - XSS 详解</a></li><li><a href="dev-security-x-ddos.html" class="sidebar-link">开发安全 - DDoS 详解</a></li><li><a href="dev-security-x-click-hijack.html" aria-current="page" class="active sidebar-link">开发安全 - 点击劫持详解</a></li><li><a href="dev-security-y-pratice.html" class="sidebar-link">开发安全实战 - Web安全测试平台(DVWA)</a></li><li><a href="dev-security-y-pentest-workflow.html" class="sidebar-link">开发安全实战 - 渗透测试流程示例</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>开发之正则表达式</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../regex/dev-regex-all.html" class="sidebar-link">正则表达式 - 知识点学习</a></li><li><a href="../regex/dev-regex-usage.html" class="sidebar-link">正则表达式 - 常用正则表达式</a></li><li><a href="../regex/dev-regex-tools.html" class="sidebar-link">正则表达式 - 在线工具汇总</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>开发之CRON表达式</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../cron/dev-cron-x-usage.html" class="sidebar-link">CRON表达式 - CRON表达式介绍和使用</a></li><li><a href="../cron/dev-cron-x-tools.html" class="sidebar-link">CRON表达式 - CRON生成和校验工具</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>开发之常见重构技巧</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../refactor/dev-refactor-if-else.html" class="sidebar-link">常见重构技巧 - 去除多余的if else</a></li><li><a href="../refactor/dev-refactor-not-null.html" class="sidebar-link">常见重构技巧 - 去除不必要的!=</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>开发之随手记</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../usage/dev-usage-overview.html" class="sidebar-link">开发随手记 - Overview</a></li><li><a href="../usage/dev-usage-newObj.html" class="sidebar-link">Java 创建对象的四种方法</a></li><li><a href="../usage/dev-usage-exe-package.html" class="sidebar-link">Windows 打包EXE部署</a></li><li><a href="../usage/dev-usage-jar-readfile.html" class="sidebar-link">从jar包中读取资源文件</a></li><li><a href="../usage/dev-usage-input-password.html" class="sidebar-link">Input Password防止自动填充</a></li><li><a href="../usage/dev-usage-export-pdf.html" class="sidebar-link">Itext PDF 导出</a></li><li><a href="../usage/dev-usage-flotjs.html" class="sidebar-link">FlotJS 画图</a></li><li><a href="../usage/dev-usage-zkfinger.html" class="sidebar-link">指纹自动登录实战</a></li></ul></section></li></ul> </aside> <div><main class="page"> <div class="theme-default-content content__default"><h1 id="开发安全---点击劫持详解"><a href="#开发安全---点击劫持详解" class="header-anchor">¶</a> 开发安全 - 点击劫持详解</h1> <blockquote><p>点击劫持其实是一种视觉上的欺骗手段，攻击者将一个透明的、不可见的iframe覆盖在一个网页上，通过调整iframe页面位置，诱使用户在页面上进行操作，在不知情的情况下用户的点击恰好是点击在iframe页面的一些功能按钮上。@pdai</p></blockquote> <ul><li><a href="#%e5%bc%80%e5%8f%91%e5%ae%89%e5%85%a8---%e7%82%b9%e5%87%bb%e5%8a%ab%e6%8c%81%e8%af%a6%e8%a7%a3">开发安全 - 点击劫持详解</a> <ul><li><a href="#%e7%82%b9%e5%87%bb%e5%8a%ab%e6%8c%81%e7%ae%80%e4%bb%8b">点击劫持简介</a></li> <li><a href="#%e6%94%bb%e5%87%bb%e6%96%b9%e5%bc%8f">攻击方式</a> <ul><li><a href="#%e5%9b%be%e7%89%87%e8%a6%86%e7%9b%96%e6%94%bb%e5%87%bbxsio">图片覆盖攻击（XSIO）</a></li> <li><a href="#flash%e7%82%b9%e5%87%bb%e5%8a%ab%e6%8c%81">Flash点击劫持</a></li> <li><a href="#%e6%8b%96%e6%8b%bd%e5%8a%ab%e6%8c%81%e4%b8%8e%e6%95%b0%e6%8d%ae%e7%aa%83%e5%8f%96">拖拽劫持与数据窃取</a></li> <li><a href="#%e8%a7%a6%e5%b1%8f%e5%8a%ab%e6%8c%81tapjacking">触屏劫持（TapJacking）</a></li></ul></li> <li><a href="#%e6%94%bb%e5%87%bb%e7%a4%ba%e4%be%8b">攻击示例</a> <ul><li><a href="#iframe%e8%a6%86%e7%9b%96%e5%b5%8c%e5%85%a5iframe%e6%a1%86">iframe覆盖（嵌入iframe框）</a></li> <li><a href="#%e7%b2%98%e8%b4%b4%e5%8a%ab%e6%8c%81">粘贴劫持</a></li> <li><a href="#%e6%8b%96%e6%94%be%e5%8a%ab%e6%8c%81">拖放劫持</a></li> <li><a href="#%e7%bb%84%e5%90%88%e5%88%a9%e7%94%a8%e6%96%b9%e5%bc%8f">组合利用方式</a></li></ul></li> <li><a href="#%e7%82%b9%e5%87%bb%e5%8a%ab%e6%8c%81%e5%88%a9%e7%94%a8%e6%a1%86%e6%9e%b6">点击劫持利用框架</a></li> <li><a href="#%e7%82%b9%e5%87%bb%e5%8a%ab%e6%8c%81%e9%98%b2%e5%be%a1">点击劫持防御</a></li> <li><a href="#%e5%8f%82%e8%80%83%e6%96%87%e7%ab%a0">参考文章</a></li></ul></li></ul> <h2 id="点击劫持简介"><a href="#点击劫持简介" class="header-anchor">¶</a> 点击劫持简介</h2> <blockquote><p>点击劫持是一种恶意技术，欺骗网络用户点击与用户认为他们点击的内容不同的内容，从而可能在点击看似无害的网页时泄露机密信息。〜维基百科</p></blockquote> <p>点击劫持攻击基本上意味着欺骗用户通过框架页面点击某些东西来执行一些恶意攻击，比如，当攻击者在窗口中使用透明iframe诱骗用户点击CTA（例如按钮或链接）到另一个具有相同外观窗口的服务器时发生攻击。从某种意义上说，攻击者劫持了原始服务器的点击并将其发送到另一台服务器。这是对访问者本身和服务器的攻击。</p> <p>以下是点击劫持的几种可能漏洞或用图。</p> <ul><li>诱骗用户公开其社交网络个人资料信息</li> <li>在Facebook上分享或喜欢链接</li> <li>点击Google Adsense广告即可生成每次点击付费收入</li> <li>让用户在Twitter或Facebook上关注某人</li> <li>下载并运行恶意软件（恶意软件），允许远程攻击者控制其他计算机</li> <li>在Facebook粉丝页面上获得喜欢或在Google Plus上获得+1</li> <li>播放YouTube视频以获取观看次数</li></ul> <p>点击劫持很容易实现，如果您的网站只需单击即可完成操作，那么很可能是点击劫持。它可能不像跨站点脚本或代码注入攻击那样常见，但它仍然存在另一个漏洞。有时看到视觉效果会很有帮助。</p> <h2 id="攻击方式"><a href="#攻击方式" class="header-anchor">¶</a> 攻击方式</h2> <h3 id="图片覆盖攻击xsio"><a href="#图片覆盖攻击xsio" class="header-anchor">¶</a> 图片覆盖攻击（XSIO）</h3> <p>点击劫持的本质就是一种视觉欺骗，通过这种思想，黑客可以完成很多劫持，例如：钓鱼网站的实现，通过图片覆盖导致链接到一些未知的网站，从而达到黑客正真的目的。原理：通过调整图片的style使得图片能够覆盖在他所指定的任意位置。</p> <p>XSIO不同于XSS，它利用的是图片的style，或者能够控制CSS。如果应用没有限制style的position为absolute的话，图片就可以覆盖到页面上的任意位置，形成点击劫持。</p> <h3 id="flash点击劫持"><a href="#flash点击劫持" class="header-anchor">¶</a> Flash点击劫持</h3> <p>攻击者通过Flash构造出了点击劫持，在完成一系列复杂的动作之后，最终控制了用户的摄像头，原理：黑客在Flash游戏页面内嵌了一个iframe，通过游戏选项按钮诱导用户去点击按钮，从而最终实现Flash点击劫持！每次点击完成之后按钮的位置都是可变化的、移动的。</p> <h3 id="拖拽劫持与数据窃取"><a href="#拖拽劫持与数据窃取" class="header-anchor">¶</a> 拖拽劫持与数据窃取</h3> <p>目前很多浏览器都开始支持Drag&amp;Drop的API。对于用户来说，拖拽他们的操作更加简单。浏览器拖拽的对象可以是一个连接，也可以是一段文字，还可以从一个窗口拖拽到另外一个窗口，因此拖拽不受同源策略的影响。</p> <p>“拖拽劫持”的思路是诱使用户从隐藏的不可见iframe中拖拽出攻击者希望得到的数据，然后放到攻击者能够控制的另外一个页面，从而窃取数据。</p> <h3 id="触屏劫持tapjacking"><a href="#触屏劫持tapjacking" class="header-anchor">¶</a> 触屏劫持（TapJacking）</h3> <p>触屏，从手机OS的角度来看，触屏实际上就是一个事件，手机OS捕捉这些事件，并执行相应的动作。</p> <p>一次触屏操作，可能会对应一下几个事件的发生：</p> <ul><li>touchstart，手指触摸屏幕时发生；</li> <li>Touchend，手指离开屏幕时发生；</li> <li>Touchmove，手指滑动时发生；</li> <li>Touchcancel，系统可取消touch事件</li></ul> <h2 id="攻击示例"><a href="#攻击示例" class="header-anchor">¶</a> 攻击示例</h2> <p>点击劫持（ClickJacking）是一种视觉上的欺骗手段。大概有两种方式，一是攻击者使用一个透明的iframe，覆盖在一个网页上，然后诱使用户在该页面上进行操作，此时用户将在不知情的情况下点击透明的iframe页面；二是攻击者使用一张图片覆盖在网页，遮挡网页原有位置的含义。</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/security/dev-security-clickjack-1.png" loading="lazy" class="lazy"></p> <h3 id="iframe覆盖嵌入iframe框"><a href="#iframe覆盖嵌入iframe框" class="header-anchor">¶</a> iframe覆盖（嵌入iframe框）</h3> <blockquote><p>以下是网上的一个例子，忽略其真实性和意义，只是辅助你理解其思路</p></blockquote> <p>假如我们在百度有个贴吧，想偷偷让别人关注它。于是我们准备一个页面：</p> <div class="language-html line-numbers-mode"><pre class="language-html"><code><span class="token doctype"><span class="token punctuation">&lt;!</span><span class="token doctype-tag">DOCTYPE</span> <span class="token name">HTML</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>html</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>meta</span> <span class="token attr-name">http-equiv</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>Content-Type<span class="token punctuation">&quot;</span></span> <span class="token attr-name">content</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>text/html; charset=gb2312<span class="token punctuation">&quot;</span></span> <span class="token punctuation">/&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>head</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>title</span><span class="token punctuation">&gt;</span></span>点击劫持<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>title</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>style</span><span class="token punctuation">&gt;</span></span><span class="token style"><span class="token language-css">
+        <span class="token selector">html,body,iframe</span><span class="token punctuation">{</span>
+            <span class="token property">display</span><span class="token punctuation">:</span> block<span class="token punctuation">;</span>
+            <span class="token property">height</span><span class="token punctuation">:</span> 100%<span class="token punctuation">;</span>
+            <span class="token property">width</span><span class="token punctuation">:</span> 100%<span class="token punctuation">;</span>
+            <span class="token property">margin</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+            <span class="token property">padding</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+            <span class="token property">border</span><span class="token punctuation">:</span>none<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token selector">iframe</span><span class="token punctuation">{</span>
+            <span class="token property">opacity</span><span class="token punctuation">:</span>0<span class="token punctuation">;</span>
+            <span class="token property">filter</span><span class="token punctuation">:</span><span class="token function">alpha</span><span class="token punctuation">(</span>opacity=0<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token property">position</span><span class="token punctuation">:</span>absolute<span class="token punctuation">;</span>
+            <span class="token property">z-index</span><span class="token punctuation">:</span>2<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token selector">button</span><span class="token punctuation">{</span>
+            <span class="token property">position</span><span class="token punctuation">:</span>absolute<span class="token punctuation">;</span>
+            <span class="token property">top</span><span class="token punctuation">:</span> 315px<span class="token punctuation">;</span>
+            <span class="token property">left</span><span class="token punctuation">:</span> 462px<span class="token punctuation">;</span>
+            <span class="token property">z-index</span><span class="token punctuation">:</span> 1<span class="token punctuation">;</span>
+            <span class="token property">width</span><span class="token punctuation">:</span> 72px<span class="token punctuation">;</span>
+            <span class="token property">height</span><span class="token punctuation">:</span> 26px<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    </span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>style</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>head</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>body</span><span class="token punctuation">&gt;</span></span>
+        那些不能说的秘密
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span><span class="token punctuation">&gt;</span></span>查看详情<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">&gt;</span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>iframe</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>http://tieba.baidu.com/f?kw=%C3%C0%C5%AE<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>iframe</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>body</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>html</span><span class="token punctuation">&gt;</span></span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br><span class="line-number">35</span><br><span class="line-number">36</span><br></div></div><p>网址传播出去后，用户手贱点击了查看详情后，其实就会点到关注按钮。</p> <p>PS：可以把iframe透明设为0.3看下实际点到的东西。</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/security/dev-security-clickjack-2.png" loading="lazy" class="lazy"></p> <p>这样贴吧就多了一个粉丝了。</p> <h3 id="粘贴劫持"><a href="#粘贴劫持" class="header-anchor">¶</a> 粘贴劫持</h3> <p>假设你现在是一个黑客，并且你已经建了一个论坛，在注册页面设置两处常见的要求“Enter your email”栏以及”Retype your email”栏。然后悄悄地在”Retype your email”栏放个隐藏iframe，此位置会加载另一个正常网站的设置页面表单。</p> <p>https://security.love/XSSJacking/index2.html</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/security/dev-security-clickjack-3.png" loading="lazy" class="lazy"></p> <p>当用户在你的网站上注册时，大多数人会先输入一遍邮箱，然后复制第一栏中的邮箱再粘贴到第二栏中（小编默默躺枪）——就在这个过程中，用户剪切板中的内容已经神不知鬼不觉地被插入到那个正常网站设置页面中。如果这家正常网站相应表单字段存在XSS漏洞，则攻击代码就能发挥作用。受害者根本就不知道整个过程是怎么进行、何时进行的。</p> <p>攻击中所利用的粘贴劫持技术，是将XSS payload粘贴到其他域名的文本栏框架。由于这些框架的位置可以改变，并且不可见，因此可以利用点击劫持让用户觉得他还在访问他“正在”访问的那个网站。事实上，他已经触发了Self-XSS漏洞，黑客可得到他的敏感信息。</p> <p>通过XSS劫持攻击，黑客可以盗取该用户的cookie、收件箱信息、配置详情，修改配置文件设置（比如手机号、邮箱号）或是执行其他恶意操作。</p> <h3 id="拖放劫持"><a href="#拖放劫持" class="header-anchor">¶</a> 拖放劫持</h3> <p>实际上就是点击劫持的演进版本。</p> <p>在现在的Web应用中，有一些需要用户采用鼠标拖放完成的操作，而且用户也经常在浏览器中使用鼠标拖放操作来代替复制粘贴。因此，拖放操作劫持很大程度的扩展了</p> <p>点击劫持的攻击范围，也将劫持模式从单纯的鼠标点击扩展到了鼠标拖放行为。</p> <p>例子：通过劫持某个页面的拖放操作实现对其他页面链接的窃取，这些连写中可能会有session key、token、password等信息；或者可以把其他浏览器中的页面内容拖放到富文本编辑器模式中，这样就能够看到页面源代码了，而这些HTML源代码中可能会存在铭感信息。</p> <h3 id="组合利用方式"><a href="#组合利用方式" class="header-anchor">¶</a> 组合利用方式</h3> <p>在挖掘xss时，你可能会遇到self-xss，那么这时你可以考虑self_xss+点击劫持或csrf+self-xss</p> <h2 id="点击劫持利用框架"><a href="#点击劫持利用框架" class="header-anchor">¶</a> 点击劫持利用框架</h2> <ul><li><strong>首先，为了快速生成clickjacking的poc框架</strong></li></ul> <p>https://github.com/samyk/quickjack</p> <ul><li><strong>可以通过截图的方式方便的把需要劫持的部分网页截取出来</strong>，这个工具也提供在线的使用</li></ul> <p>http://samy.pl/quickjack/quickjack.html</p> <p>通过截取之后按下“I‘am done“按钮就会生成对应的截取代码</p> <ul><li><strong>可以使用burp自带的工具进行生成poc</strong>,参考以下链接：</li></ul> <p>https://support.portswigger.net/customer/en/portal/articles/2363105-using-burp-to-find-clickjacking-vulnerabilities</p> <ul><li><strong>可以使用CJExploiter</strong></li></ul> <p>CJExploiter是一个支持拖放的点击劫持漏洞利用辅助工具。首先在本地用浏览器打开“index.html”，输入目标的URL并点击“View Site”。你可以自定义JS，最后点击“Exploit it”，你就能得到POC了。可参考https://www.freebuf.com/sectool/104892.html</p> <h2 id="点击劫持防御"><a href="#点击劫持防御" class="header-anchor">¶</a> 点击劫持防御</h2> <blockquote><p>X-FRAME-OPTIONS是目前最可靠的方法。</p></blockquote> <p>x-frame-options（XFO），是一个HTTP响应头，也称为HTTP安全头，自2008年以来一直存在。在2013年，它正式发布为RFC 7034，但不是互联网标准。此标题告诉您的浏览器在处理您网站的内容时的行为方式。其成立的主要原因是通过不允许在帧中呈现页面来提供点击劫持保护。这可以包括在页面的呈现<code>&lt;frame&gt;</code>，<code>&lt;iframe&gt;</code>或<code>&lt;object&gt;</code>。iframe用于将第三方内容嵌入并隔离到网站中。使用iframe的内容示例可能包括社交媒体共享按钮，Google地图，视频播放器，音频播放器，第三方广告，甚至一些OAuth实施。</p> <p>并且在IE8、Firefox3.6、Chrome4以上的版本均能很好的支持。</p> <p>这个头有三个值：</p> <ul><li><p>DENY // 拒绝任何域加载</p></li> <li><p>SAMEORIGIN // 允许同源域下加载</p></li> <li><p>ALLOW-FROM // 可以定义允许frame加载的页面地址, 比如 <code>x-frame-options: ALLOW-FROM https://domain.com/</code></p></li> <li><p>在Nginx上启用</p></li></ul> <p>要x-frame-options在Nginx上启用标头，只需将其添加到服务器块配置中即可。</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code>add_header x<span class="token operator">-</span>frame<span class="token operator">-</span>options <span class="token string">&quot;SAMEORIGIN&quot;</span> always<span class="token punctuation">;</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><ul><li>在Apache上启用</li></ul> <p>要在Apache上启用，只需将其添加到您的httpd.conf文件（Apache配置文件）。</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code>header always set x<span class="token operator">-</span>frame<span class="token operator">-</span>options <span class="token string">&quot;SAMEORIGIN&quot;</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><ul><li>在IIS上启用</li></ul> <p>要在IIS上启用，只需将其添加到您站点的Web.config文件中即可。</p> <div class="language-xml line-numbers-mode"><pre class="language-xml"><code><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>system.webServer</span><span class="token punctuation">&gt;</span></span>
+    ...
+
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>httpProtocol</span><span class="token punctuation">&gt;</span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>customHeaders</span><span class="token punctuation">&gt;</span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>add</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>X-Frame-Options<span class="token punctuation">&quot;</span></span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>SAMEORIGIN<span class="token punctuation">&quot;</span></span> <span class="token punctuation">/&gt;</span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>customHeaders</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>httpProtocol</span><span class="token punctuation">&gt;</span></span>
+
+    ...
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>system.webServer</span><span class="token punctuation">&gt;</span></span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br></div></div><p>除此之外有的浏览器厂商也增加扩展功能来防御clickjacking，如firefox的&quot;content security policy&quot;和&quot;No-script&quot;</p> <h2 id="参考文章"><a href="#参考文章" class="header-anchor">¶</a> 参考文章</h2> <ul><li>http://www.mchz.com.cn/cn/service/safety-lab/info_26_itemid_2479.html</li> <li>http://qclover.cn/2019/01/27/Clickjacking-attack-and-Combat.html</li> <li>https://www.cnblogs.com/lovesong/p/5248483.html</li> <li>https://blog.csdn.net/wy_97/article/details/100627700</li> <li>https://blog.csdn.net/longgerlee/article/details/53634056</li></ul></div> <div class="page-contract"><h2>联系我</h2> <div class="c-content"><span style="font-size:1rem;font-weight:bold;">添加@pdai微信</span><br> <img src="../../../pdai.jpg" height="280px" style="margin:10px;"><br>
+        PS：添加时请备注<b>Java全栈</b>，谢谢！
+      </div></div> <footer class="page-edit"><div class="edit-link"><a href="https://github.com/realpdai/tech-arch-doc/edit/master/md/develop/security/dev-security-x-click-hijack.md" target="_blank" rel="noopener noreferrer">在 GitHub 上编辑此页</a> <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></div> <div class="last-updated"><span class="prefix">上次更新: </span> <span class="time">9/27/2021,</span></div></footer> <div class="page-nav"><p class="inner"><span class="prev">
+        ←
+        <a href="dev-security-x-ddos.html" class="prev">
+          开发安全 - DDoS 详解
+        </a></span> <span class="next"><a href="dev-security-y-pratice.html">
+          开发安全实战 - Web安全测试平台(DVWA)
+        </a>
+        →
+      </span></p></div> <div class="google_ad_bottom"><ins data-ad-client="ca-pub-5088193899865249" data-ad-slot="6822031208" data-ad-format="auto" data-full-width-responsive="true" class="adsbygoogle" style="display:block"></ins> <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script></div> </main></div> <aside class="page-sidebar"> <div class="page-side-toolbar"><div class="option-box-toc-fixed"><div class="toc-container-sidebar"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:650px"><div style="font-weight:bold;text-align:center;">开发安全 - 点击劫持详解</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="dev-security-x-click-hijack.html#点击劫持简介" class="toc-sidebar-link">点击劫持简介</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="dev-security-x-click-hijack.html#攻击方式" class="toc-sidebar-link">攻击方式</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="dev-security-x-click-hijack.html#图片覆盖攻击xsio" class="toc-sidebar-link">图片覆盖攻击（XSIO）</a></li><li class="toc-sidebar-sub-header"><a href="dev-security-x-click-hijack.html#flash点击劫持" class="toc-sidebar-link">Flash点击劫持</a></li><li class="toc-sidebar-sub-header"><a href="dev-security-x-click-hijack.html#拖拽劫持与数据窃取" class="toc-sidebar-link">拖拽劫持与数据窃取</a></li><li class="toc-sidebar-sub-header"><a href="dev-security-x-click-hijack.html#触屏劫持tapjacking" class="toc-sidebar-link">触屏劫持（TapJacking）</a></li></ul></li><li><a href="dev-security-x-click-hijack.html#攻击示例" class="toc-sidebar-link">攻击示例</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="dev-security-x-click-hijack.html#iframe覆盖嵌入iframe框" class="toc-sidebar-link">iframe覆盖（嵌入iframe框）</a></li><li class="toc-sidebar-sub-header"><a href="dev-security-x-click-hijack.html#粘贴劫持" class="toc-sidebar-link">粘贴劫持</a></li><li class="toc-sidebar-sub-header"><a href="dev-security-x-click-hijack.html#拖放劫持" class="toc-sidebar-link">拖放劫持</a></li><li class="toc-sidebar-sub-header"><a href="dev-security-x-click-hijack.html#组合利用方式" class="toc-sidebar-link">组合利用方式</a></li></ul></li><li><a href="dev-security-x-click-hijack.html#点击劫持利用框架" class="toc-sidebar-link">点击劫持利用框架</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="dev-security-x-click-hijack.html#点击劫持防御" class="toc-sidebar-link">点击劫持防御</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="dev-security-x-click-hijack.html#参考文章" class="toc-sidebar-link">参考文章</a><ul class="toc-sidebar-sub-headers"></ul></li></ul></div></div></div></div></div> <div class="option-box-toc-over"><img src="../../../toc.png" class="nozoom"> <span class="show-txt">目录</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:550px"><div style="font-weight:bold;text-align:center;">开发安全 - 点击劫持详解</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="dev-security-x-click-hijack.html#点击劫持简介" class="toc-sidebar-link">点击劫持简介</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="dev-security-x-click-hijack.html#攻击方式" class="toc-sidebar-link">攻击方式</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="dev-security-x-click-hijack.html#图片覆盖攻击xsio" class="toc-sidebar-link">图片覆盖攻击（XSIO）</a></li><li class="toc-sidebar-sub-header"><a href="dev-security-x-click-hijack.html#flash点击劫持" class="toc-sidebar-link">Flash点击劫持</a></li><li class="toc-sidebar-sub-header"><a href="dev-security-x-click-hijack.html#拖拽劫持与数据窃取" class="toc-sidebar-link">拖拽劫持与数据窃取</a></li><li class="toc-sidebar-sub-header"><a href="dev-security-x-click-hijack.html#触屏劫持tapjacking" class="toc-sidebar-link">触屏劫持（TapJacking）</a></li></ul></li><li><a href="dev-security-x-click-hijack.html#攻击示例" class="toc-sidebar-link">攻击示例</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="dev-security-x-click-hijack.html#iframe覆盖嵌入iframe框" class="toc-sidebar-link">iframe覆盖（嵌入iframe框）</a></li><li class="toc-sidebar-sub-header"><a href="dev-security-x-click-hijack.html#粘贴劫持" class="toc-sidebar-link">粘贴劫持</a></li><li class="toc-sidebar-sub-header"><a href="dev-security-x-click-hijack.html#拖放劫持" class="toc-sidebar-link">拖放劫持</a></li><li class="toc-sidebar-sub-header"><a href="dev-security-x-click-hijack.html#组合利用方式" class="toc-sidebar-link">组合利用方式</a></li></ul></li><li><a href="dev-security-x-click-hijack.html#点击劫持利用框架" class="toc-sidebar-link">点击劫持利用框架</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="dev-security-x-click-hijack.html#点击劫持防御" class="toc-sidebar-link">点击劫持防御</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="dev-security-x-click-hijack.html#参考文章" class="toc-sidebar-link">参考文章</a><ul class="toc-sidebar-sub-headers"></ul></li></ul></div></div></div></div></div> <div class="option-box"><img src="../../../wechat.png" class="nozoom"> <span class="show-txt">手机看</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.9rem">微信扫一扫</span> <img height="180px" src="https://api.qrserver.com/v1/create-qr-code/?data=https://www.pdai.tech/md/develop/security/dev-security-x-click-hijack.html" style="margin:10px;">
+              可以<b>手机看</b>或分享至<b>朋友圈</b></div></div></div></div> <div class="option-box"><a title="点击切换全屏" style="text-align:center;padding-left:2px;"><img src="../../../full.png" width="30px" class="nozoom"> <span style="color:gray;font-size:11px;font-weight:400;">全屏看</span></a></div> <div class="option-box"><img src="../../../toggle.png" width="30px" class="nozoom"> <span class="show-txt">左栏</span></div> <div class="option-box"><img src="../../../wexin2.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:yellow">交流圈</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">添加pdai微信进《Java全栈知识体系》学习交流圈「无任何套路」</span> <img src="../../../pdai.jpg" height="180px" style="margin:10px;">
+              PS：添加时请备注<b>Java全栈</b>，谢谢！
+            </div></div></div></div> <div class="option-box"><img src="../../../download.jpg" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:#a6f792">下资料</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">扫描公众号，回复“资料”下载<font style="color:red;">10GB+</font>书籍资料「无任何套路」</span> <img src="../../../pdai_gzh.jpg" height="180px" style="margin:10px;"> <b>公众号:</b> Java全栈知识体系
+            </div></div></div></div> <div class="option-box"><img src="../../../heart.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;background-color:#gray">支持我</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">鼓励/支持/赞赏我</span> <img src="../../../pdai-guli.png" height="180px" width="200px" style="margin:5px;">
+              1. 不靠它生存但仍希望得到你的鼓励；<br> 2. 时刻警醒自己保持技术人的初心，恒心，简单，利他；
+            </div></div></div></div> <div title="开发安全 - DDoS 详解" class="option-box" style="padding-left:2px;text-align:center;"><a href="dev-security-x-ddos.html"><img src="../../../pre2.png" width="30px" class="nozoom"> <span class="show-txt">上一篇</span></a></div> <div title="开发安全实战 - Web安全测试平台(DVWA)" class="option-box" style="padding-left:2px;text-align:center;"><a href="dev-security-y-pratice.html"><img src="../../../next2.png" width="30px" class="nozoom"> <span class="show-txt">下一篇</span></a></div></div>  <div class="page-side-sitemap"><div class="option-box"><img src="../../../sitemap.png" class="nozoom img"> <span class="show-txt">站点图</span> <div class="sitemap-container"><h4>站点导航图
+            <a href="../../about/me/about-me.html" class="sitemap-top-link"> 关于我</a> <a href="../../about/blog/blog-build-vuepress.html" class="sitemap-top-link"> 关于站点</a> <a href="../../about/me/blog-changelist.html" class="sitemap-top-link"> 最近更新记录</a> <a href="../../about/me/blog-question.html" class="sitemap-top-link"><font style="color:red;background-color:yellow;">问题反馈</font></a></h4> <table class="sitemap-table"><tr><td nowrap="nowrap"><div class="sitemap-col-group">常用搜索</div></td> <td><div class="sitemap-col-item"><a href="http://www.baidu.com/" target="_blank" title="百度">  
+            百度
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.google.com/" target="_blank" title="Google">  
+            Google
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.bing.com/" target="_blank" title="Bing">  
+            Bing
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://github.com/" target="_blank" title="Github">  
+            Github
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.programcreek.com/java-api-examples/index.php" target="_blank" title="搜代码">  
+            搜代码
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">技术社区</div></td> <td><div class="sitemap-col-item"><a href="http://www.csdn.net/" target="_blank" title="CDSN">  
+            CDSN
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.cnblogs.com/" target="_blank" title="博客园">  
+            博客园
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.oschina.net/" target="_blank" title="OSChina">  
+            OSChina
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://segmentfault.com/" target="_blank" title="知否">  
+            知否
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://juejin.im/" target="_blank" title="掘金">  
+            掘金
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.linuxidc.com/" target="_blank" title="Linux公社">  
+            Linux公社
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.ibm.com/developerworks/cn/" target="_blank" title="IBM 开发者">  
+            IBM 开发者
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://stackoverflow.com/" target="_blank" title="StackOverflow">  
+            StackOverflow
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">Java相关</div></td> <!----> <td><a href="../../java/basic/java-basic-oop.html" class="sitemap-col-item">
+            面向对象基础
+          </a><a href="../../java/basic/java-basic-lan-basic.html" class="sitemap-col-item">
+            语法基础
+          </a><a href="../../java/collection/java-collection-all.html" class="sitemap-col-item">
+            集合框架
+          </a><a href="../../java/thread/java-thread-x-overview.html" class="sitemap-col-item">
+            并发基础
+          </a><a href="../../java/thread/java-thread-x-key-synchronized.html" class="sitemap-col-item">
+            并发关键字
+          </a><a href="../../java/thread/java-thread-x-juc-overview.html" class="sitemap-col-item">
+            JUC并发框架
+          </a><a href="../../java/io/java-io-overview.html" class="sitemap-col-item">
+            IO框架
+          </a><a href="../../java/java8/java8.html" class="sitemap-col-item">
+            Java8 特性
+          </a><a href="../../java/jvm/java-jvm-x-overview.html" class="sitemap-col-item">
+            JVM基础
+          </a><a href="../../java/jvm/java-jvm-param.html" class="sitemap-col-item">
+            调试排错
+          </a><a href="../../java/others/java-others-awesome-java.html" class="sitemap-col-item">
+            更多资源
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">算法相关</div></td> <!----> <td><a href="../../algorithm/alg-basic-array.html" class="sitemap-col-item">
+            数组与线性表
+          </a><a href="../../algorithm/alg-basic-tree.html" class="sitemap-col-item">
+            树详解
+          </a><a href="../../algorithm/alg-basic-graph.html" class="sitemap-col-item">
+            图详解
+          </a><a href="../../algorithm/alg-sort-overview.html" class="sitemap-col-item">
+            内部排序
+          </a><a href="../../algorithm/alg-core-divide-and-conquer.html" class="sitemap-col-item">
+            算法思想
+          </a><a href="../../algorithm/alg-domain-security-degist.html" class="sitemap-col-item">
+            安全算法
+          </a><a href="../../algorithm/alg-domain-bigdata-overview.html" class="sitemap-col-item">
+            大数据处理
+          </a><a href="../../algorithm/alg-domain-distribute-overview.html" class="sitemap-col-item">
+            分布式算法
+          </a><a href="../../algorithm/alg-domain-load-balance.html" class="sitemap-col-item">
+            负载均衡算法
+          </a><a href="../../algorithm/alg-domain-suggest.html" class="sitemap-col-item">
+            推荐算法
+          </a><a href="../../algorithm/alg-other-mind.html" class="sitemap-col-item">
+            头脑风暴
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">数据库相关</div></td> <!----> <td><a href="../../db/sql/sql-db-howitworks.html" class="sitemap-col-item">
+            数据库原理
+          </a><a href="../../db/sql-lan/sql-lan.html" class="sitemap-col-item">
+            SQL语言
+          </a><a href="../../db/sql-mysql/sql-mysql-theory.html" class="sitemap-col-item">
+            MySQL相关
+          </a><a href="../../db/nosql-mongo/mongo-performance-improve.html" class="sitemap-col-item">
+            MongoDB
+          </a><a href="../../db/nosql-es/elasticsearch.html" class="sitemap-col-item">
+            ElasticSearch
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">开发基础相关</div></td> <!----> <td><a href="../package/dev-package-x-apache-common.html" class="sitemap-col-item">
+            常用类库
+          </a><a href="../ut/dev-ut-x-junit.html" class="sitemap-col-item">
+            单元测试
+          </a><a href="../regex/dev-regex-all.html" class="sitemap-col-item">
+            正则表达式
+          </a><a href="../protocol/dev-protocol-overview.html" class="sitemap-col-item">
+            网络协议
+          </a><a href="dev-security-overview.html" class="sitemap-col-item">
+            安全相关
+          </a><a href="../refactor/dev-refactor-if-else.html" class="sitemap-col-item">
+            常见重构技巧
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">架构相关</div></td> <!----> <td><a href="../../arch/arch-x-basic.html" class="sitemap-col-item">
+            架构基础
+          </a><a href="../../arch/arch-x-view.html" class="sitemap-col-item">
+            架构视角
+          </a><a href="../../arch/arch-x-evolution.html" class="sitemap-col-item">
+            架构演进
+          </a><a href="../../arch/arch-x-pattern.html" class="sitemap-col-item">
+            架构模式和要素
+          </a><a href="../../arch/arch-y-cache.html" class="sitemap-col-item">
+            高并发之缓存
+          </a><a href="../../arch/arch-y-ratelimit.html" class="sitemap-col-item">
+            高并发之限流
+          </a><a href="../../arch/arch-y-reduce.html" class="sitemap-col-item">
+            高并发之降级
+          </a><a href="../../arch/arch-y-loadbalance.html" class="sitemap-col-item">
+            负载均衡
+          </a><a href="../../arch/arch-y-backup.html" class="sitemap-col-item">
+            容灾备份
+          </a><a href="../../arch/arch-x-security.html" class="sitemap-col-item">
+            架构安全
+          </a><a href="../../arch/arch-example-seckill.html" class="sitemap-col-item">
+            秒杀系统设计
+          </a><a href="../../arch/arch-example-goods-detail.html" class="sitemap-col-item">
+            架构案例
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">工具和部署</div></td> <!----> <td><a href="../../devops/tool/tool-list-overview.html" class="sitemap-col-item">
+            工具集合
+          </a><a href="../../devops/tool/tool-ide.html" class="sitemap-col-item">
+            IDE相关
+          </a><a href="../../devops/tool/tool-git.html" class="sitemap-col-item">
+            Git
+          </a><a href="../../devops/tool/tool-maven.html" class="sitemap-col-item">
+            Maven
+          </a><a href="../../devops/linux/linux.html" class="sitemap-col-item">
+            Linux
+          </a><a href="../../devops/docker/docker-00-overview.html" class="sitemap-col-item">
+            Docker
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">方法论</div></td> <!----> <td><a href="../../dev-spec/spec/dev-th-solid.html" class="sitemap-col-item">
+            SOLID
+          </a><a href="../../dev-spec/spec/dev-th-cap.html" class="sitemap-col-item">
+            CAP
+          </a><a href="../../dev-spec/spec/dev-th-base.html" class="sitemap-col-item">
+            BASE
+          </a><a href="../../dev-spec/spec/dev-opensource.html" class="sitemap-col-item">
+            开源协议
+          </a><a href="../../dev-spec/code-style/code-style-alibaba.html" class="sitemap-col-item">
+            代码规范
+          </a><a href="../../dev-spec/pattern/1_overview.html" class="sitemap-col-item">
+            设计模式
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">产品和团队</div></td> <!----> <td><a href="../../team/team-z-wechat.html" class="sitemap-col-item">
+            产品相关
+          </a><a href="../../team/team-z-task-emergency.html" class="sitemap-col-item">
+            团队相关
+          </a><a href="../../team/team-z-arch-future.html" class="sitemap-col-item">
+            其它分享
+          </a></td></tr></table></div></div></div> <!----> </aside></div><div class="global-ui"></div></div>
+    <script src="../../../assets/js/app.691e72ae.js" defer></script><script src="../../../assets/js/4.2e3efdf6.js" defer></script><script src="../../../assets/js/3.d77b006c.js" defer></script><script src="../../../assets/js/310.2d9bc9a8.js" defer></script>
+  </body>
+
+<!-- Mirrored from www.pdai.tech/md/develop/security/dev-security-x-click-hijack.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:31:28 GMT -->
+</html>

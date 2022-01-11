@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  
+<!-- Mirrored from www.pdai.tech/md/arch/arch-example-xianyu-search.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:32:11 GMT -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>闲鱼: 复杂搜索系统的可靠性优化之路 | Java 全栈知识体系</title>
+    <meta name="generator" content="VuePress 1.8.2">
+    <link rel="icon" href="../../favicon.ico">
+    <script src="../../../hm.baidu.com/hma448.js?525d4abc4a8675472736969f817ceb47"></script>
+    <script defer="defer" async="async" src="../../../pagead2.googlesyndication.com/pagead/js/f.txt"></script>
+    <meta name="description" content="包含: Java 基础, Java 部分源码, JVM, Spring, Spring Boot, Spring Cloud, 数据库原理, MySQL, ElasticSearch, MongoDB, Docker, k8s, CI&CD, Linux, DevOps, 分布式, 中间件, 开发工具, Git, IDE, 源码阅读，读书笔记, 开源项目...">
+    <meta property="article:modified_time" content="2021-09-27T13:15:21.000Z">
+    <meta property="og:title" content="闲鱼: 复杂搜索系统的可靠性优化之路">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="/md/arch/arch-example-xianyu-search.html">
+    <meta name="twitter:title" content="闲鱼: 复杂搜索系统的可靠性优化之路">
+    <meta name="twitter:url" content="/md/arch/arch-example-xianyu-search.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="robots" content="all">
+    <meta name="author" content="pdai">
+    <meta name="keywords" content="Java 全栈知识体系, java体系, java知识体系, java框架,java全栈,java学习路线,java全栈知识, java面试, 知识体系, java技术体系, java编程, java编程指南,java开发体系, java开发,java教程,java,java数据结构, 算法, 开发基础">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <link rel="preload" href="../../assets/css/0.styles.d4bb5489.css" as="style"><link rel="preload" href="../../assets/js/app.691e72ae.js" as="script"><link rel="preload" href="../../assets/js/4.2e3efdf6.js" as="script"><link rel="preload" href="../../assets/js/3.d77b006c.js" as="script"><link rel="preload" href="../../assets/js/118.c1c40ff4.js" as="script">
+    <link rel="stylesheet" href="../../assets/css/0.styles.d4bb5489.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="../../index.html" class="home-link router-link-active"><!----> <span class="site-name">Java 全栈知识体系</span></a> <div class="links"><form id="search-form" role="search" class="algolia-search-wrapper search-box"><input id="algolia-search-input" class="search-query"></form> <nav class="nav-links can-hide"><div class="nav-item"><a href="../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav>  <ul class="sidebar-links"><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>架构基础</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="arch-x-overview.html" class="sidebar-link">架构 - 知识体系</a></li><li><a href="arch-x-basic.html" class="sidebar-link">架构 - 架构基础: 特点,本质...</a></li><li><a href="arch-x-view.html" class="sidebar-link">架构 - 理解构架的视角</a></li><li><a href="arch-x-evolution.html" class="sidebar-link">架构 - 理解架构的演进</a></li><li><a href="arch-x-service.html" class="sidebar-link">架构 - 理解架构的服务演化</a></li><li><a href="arch-x-pattern.html" class="sidebar-link">架构 - 理解架构的模式1</a></li><li><a href="arch-x-pattern-2.html" class="sidebar-link">架构 - 理解架构的模式2</a></li><li><a href="arch-x-core-metrics.html" class="sidebar-link">架构 - 理解架构的核心要素</a></li><li><a href="arch-y-cache.html" class="sidebar-link">架构之高并发：缓存</a></li><li><a href="arch-y-ratelimit.html" class="sidebar-link">架构之高并发：限流</a></li><li><a href="arch-y-reduce.html" class="sidebar-link">架构之高并发：降级和熔断</a></li><li><a href="arch-y-loadbalance.html" class="sidebar-link">架构之高可用：负载均衡</a></li><li><a href="arch-y-backup.html" class="sidebar-link">架构之高可用：容灾备份,故障转移</a></li><li><a href="arch-x-security.html" class="sidebar-link">架构 - 保障架构安全</a></li><li><a href="arch-x-books.html" class="sidebar-link">架构 - 学习资料</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>分布式系统</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="arch-z-overview.html" class="sidebar-link">分布式系统 - 知识体系</a></li><li><a href="arch-z-theory.html" class="sidebar-link">分布式系统 - 理论基础及一致性算法</a></li><li><a href="arch-z-id.html" class="sidebar-link">分布式系统 - 全局唯一ID实现方案</a></li><li><a href="arch-z-lock.html" class="sidebar-link">分布式系统 - 分布式锁及实现方案</a></li><li><a href="arch-z-transection.html" class="sidebar-link">分布式系统 - 分布式事务及实现方案</a></li><li><a href="arch-z-cache.html" class="sidebar-link">分布式系统 - 分布式缓存及方案实现</a></li><li><a href="arch-z-job.html" class="sidebar-link">分布式系统 - 分布式任务及实现方案</a></li><li><a href="arch-z-session.html" class="sidebar-link">分布式系统 - 分布式会话及实现方案</a></li><li><a href="arch-z-trace.html" class="sidebar-link">分布式系统 - 分布式服务链路追踪</a></li><li><a href="arch-z-file.html" class="sidebar-link">分布式系统 - 分布式文件系统</a></li><li><a href="arch-z-store.html" class="sidebar-link">分布式系统 - 分布式存储系统</a></li><li><a href="arch-z-calculate.html" class="sidebar-link">分布式系统 - 分布式计算详解</a></li><li><a href="arch-z-wrong.html" class="sidebar-link">分布式系统 - 分布式系统的8个谬误</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>微服务系统与设计</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="microservice/arch-m-singleton-2.html" class="sidebar-link">走出微服务误区：避免从单体到分布式单体</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading open"><span>系统设计和架构案例</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="arch-example-seckill.html" class="sidebar-link">架构案例 - 秒杀系统设计</a></li><li><a href="arch-example-goods-detail.html" class="sidebar-link">京东: 亿级商品详情页设计</a></li><li><a href="arch-example-xianyu-goods.html" class="sidebar-link">闲鱼: 亿级商品结构化背后的思考和演进</a></li><li><a href="arch-example-xianyu-jiaoyi.html" class="sidebar-link">闲鱼: 多状态多操作的交易链路架构演进</a></li><li><a href="arch-example-xianyu-laxintoufang.html" class="sidebar-link">闲鱼: 拉新投放系统如何设计</a></li><li><a href="arch-example-xianyu-search.html" aria-current="page" class="active sidebar-link">闲鱼: 复杂搜索系统的可靠性优化之路</a></li><li><a href="arch-example-meituan-peisong.html" class="sidebar-link">美团: 配送系统架构演进实践</a></li><li><a href="arch-example-meituan-jishiwuliu.html" class="sidebar-link">美团: 即时物流的分布式系统架构设计</a></li><li><a href="arch-example-meituan-waimai.html" class="sidebar-link">美团: 外卖客户端高可用建设体系</a></li><li><a href="arch-example-meituan-db-hp.html" class="sidebar-link">美团: 数据库高可用架构的演进与设想</a></li><li><a href="arch-example-meituan-db-binlog.html" class="sidebar-link">美团: 数据同步到仓库的架构实践</a></li></ul></section></li></ul> </aside> <div><main class="page"> <div class="theme-default-content content__default"><h1 id="闲鱼-复杂搜索系统的可靠性优化之路"><a href="#闲鱼-复杂搜索系统的可靠性优化之路" class="header-anchor">¶</a> 闲鱼: 复杂搜索系统的可靠性优化之路</h1> <div class="custom-block tip"><p class="custom-block-title">转载说明:</p> <ul><li>版权声明：本文为CSDN博主「闲鱼技术」的原创文章，遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接及本声明。</li> <li>原文链接：https://blog.csdn.net/weixin_38912070/article/details/93857299</li></ul></div> <ul><li><a href="#%e9%97%b2%e9%b1%bc-%e5%a4%8d%e6%9d%82%e6%90%9c%e7%b4%a2%e7%b3%bb%e7%bb%9f%e7%9a%84%e5%8f%af%e9%9d%a0%e6%80%a7%e4%bc%98%e5%8c%96%e4%b9%8b%e8%b7%af">闲鱼: 复杂搜索系统的可靠性优化之路</a> <ul><li><a href="#%e8%83%8c%e6%99%af">背景</a></li> <li><a href="#%e9%97%b2%e9%b1%bc%e6%90%9c%e7%b4%a2%e6%95%b4%e4%bd%93%e6%9e%b6%e6%9e%84">闲鱼搜索整体架构</a> <ul><li><a href="#%e9%97%b2%e9%b1%bc%e6%90%9c%e7%b4%a2%e4%bd%93%e7%b3%bb%e8%bf%90%e8%a1%8c%e6%b5%81%e7%a8%8b">闲鱼搜索体系运行流程</a> <ul><li><a href="#%e7%b4%a2%e5%bc%95%e6%9e%84%e5%bb%ba%e6%b5%81%e7%a8%8b">索引构建流程</a></li> <li><a href="#%e6%90%9c%e7%b4%a2%e6%9f%a5%e8%af%a2%e6%b5%81%e7%a8%8b">搜索查询流程</a></li></ul></li> <li><a href="#%e9%97%b2%e9%b1%bc%e6%90%9c%e7%b4%a2%e4%bd%93%e7%b3%bb%e5%9b%a2%e9%98%9f%e6%9e%84%e6%88%90">闲鱼搜索体系团队构成</a></li></ul></li> <li><a href="#%e7%a8%b3%e5%ae%9a%e6%80%a7%e6%b2%bb%e7%90%86">稳定性治理</a> <ul><li><a href="#%e9%83%a8%e7%bd%b2%e6%9e%b6%e6%9e%84%e4%bc%98%e5%8c%96">部署架构优化</a> <ul><li><a href="#%e7%8b%ac%e7%ab%8b%e7%bd%91%e5%85%b3%e9%83%a8%e7%bd%b2">独立网关部署</a></li> <li><a href="#%e5%a4%9a%e6%9c%ba%e6%88%bf%e5%ae%b9%e7%81%be%e9%83%a8%e7%bd%b2">多机房容灾部署</a></li></ul></li> <li><a href="#%e6%b5%81%e9%87%8f%e9%9a%94%e7%a6%bb">流量隔离</a></li> <li><a href="#%e5%88%86%e7%ba%a7%e7%9b%91%e6%8e%a7%e4%bd%93%e7%b3%bb">分级监控体系</a> <ul><li><a href="#%e5%bc%95%e6%93%8e%e5%9f%ba%e7%a1%80%e6%9c%8d%e5%8a%a1%e7%9b%91%e6%8e%a7">引擎基础服务监控</a></li> <li><a href="#%e6%a8%a1%e6%8b%9f%e7%94%a8%e6%88%b7%e8%a1%8c%e4%b8%ba%e7%9a%84%e5%9c%a8%e7%ba%bf%e4%b8%9a%e5%8a%a1%e7%9b%91%e6%8e%a7">模拟用户行为的在线业务监控</a></li></ul></li> <li><a href="#%e5%8e%8b%e6%b5%8b">压测</a> <ul><li><a href="#%e5%85%a8%e9%93%be%e8%b7%af%e5%8e%8b%e6%b5%8b">全链路压测</a></li> <li><a href="#%e5%bc%95%e6%93%8e%e5%8d%95%e9%93%be%e8%b7%af%e5%8e%8b%e6%b5%8b">引擎单链路压测</a></li></ul></li> <li><a href="#%e7%81%b0%e5%ba%a6%e5%8f%91%e5%b8%83">灰度发布</a></li> <li><a href="#%e5%ba%94%e6%80%a5%e9%a2%84%e6%a1%88">应急预案</a></li> <li><a href="#%e9%97%ae%e9%a2%98%e6%8e%92%e6%9f%a5">问题排查</a></li></ul></li> <li><a href="#%e6%80%bb%e7%bb%93%e4%b8%8e%e5%b1%95%e6%9c%9b">总结与展望</a></li> <li><a href="#%e5%8f%82%e8%80%83%e8%b5%84%e6%96%99">参考资料</a></li></ul></li></ul> <h2 id="背景"><a href="#背景" class="header-anchor">¶</a> 背景</h2> <p>搜索引擎是电商平台成交链路的核心环节，搜索引擎的高可用直接影响成交效率。闲鱼搜索引擎作为闲鱼关键系统，复杂度和系统体量都非常高，再加上闲鱼所有导购场景都依靠搜索赋能，搜索服务的稳定可靠成为了闲鱼大部分业务场景可用能力的衡量标准；如何保障搜索服务的稳定和高可用成为了极大的挑战。</p> <p>闲鱼搜索作为闲鱼核心系统，有以下几个突出的特点： * 数据体量大：对接闲鱼数十亿的商品，引擎有效商品数亿； * 索引庞大：闲鱼非结构化商品需要与算法团队合作，预测抽取有价值的结构化信息，建立索引；已创建数百的索引字段，整个引擎索引数据量为T级别； * 增量消息多：日常增量消息QPS 数十万，峰值QPS可以达到 数百万； * 查询复杂：很多特殊业务场景，查询条件要求苛刻而复杂；比如召回GROUP分组统计，聚合/打散/去重，关键词复合运算查询等； * 实时性性要求高：闲鱼中都是二手商品，卖家商品的库存都是1；商品上下架频繁，对引擎数据的同步更新实时性要求非常高； * 智能化扩展：由于闲鱼商品非结构化特性，为保障召回数据的效果以及相关性；需要引擎具备智能插件扩展的能力，能与算法开发人员协同；</p> <p>鉴于闲鱼商品搜索引擎以上主要特点，本文详细介绍闲鱼搜索在系统高可用上做的各种努力，希望能给读者一些启发。</p> <h2 id="闲鱼搜索整体架构"><a href="#闲鱼搜索整体架构" class="header-anchor">¶</a> 闲鱼搜索整体架构</h2> <p>正式引出搜索稳定性保障方案之前，我们需要对闲鱼搜索技术有一个简单大致的了解；</p> <p>我们比较过很多外部开源的搜索引擎，都不能完美支持背景中所列的需求点；闲鱼使用的是阿里巴巴最新研发的搜索引擎平台Ha3，Ha3是一款非常高效，智能强大的搜索引擎，它完全满足闲鱼搜索的要求；
+Elasticsearch是基于Lucene的准实时搜索引擎，也是比较常用的开源搜索引擎，但是其在算法扩展支撑/绝对实时的能力上与Ha3相差甚远；在同等硬件条件下，基于1200万数据做单机性能对比测试发现，Ha3比ElasticSearch开源系统的QPS高4倍，查询延迟低4倍；Elasticsearch在大规模数据量场景下的性能和稳定性与HA3相比尚有很大的差距。</p> <h3 id="闲鱼搜索体系运行流程"><a href="#闲鱼搜索体系运行流程" class="header-anchor">¶</a> 闲鱼搜索体系运行流程</h3> <p>下图是闲鱼搜索体系系统结构图，主要分在线和离线两个流程；</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/arch-e-search-xianyu-1.png" loading="lazy" class="lazy"></p> <h4 id="索引构建流程"><a href="#索引构建流程" class="header-anchor">¶</a> 索引构建流程</h4> <p>索引构建即我们所谓的离线流程，其执行者BuildService①，负责将不同存储类型的纯文本商品数据构建成搜索引擎格式的索引文件。原始的商品数据有两类，一类是存放在存储上的全量商品数据，这个定期(一般以天为周期)通过DUMP②产出，另一类为实时变更的数据，在商品信息变更后，由业务系统即时同步给消息系统Swift③。最终分发给在线服务的Searcher④更新索引。</p> <h4 id="搜索查询流程"><a href="#搜索查询流程" class="header-anchor">¶</a> 搜索查询流程</h4> <p>搜索查询即我们所谓的在线流程；闲鱼搜索服务应用A发起搜索请求，通过SP⑤进行服务能力编排；首先SP发起QP⑥算法服务调用，进行用户意图预测，并获取排序辅助信息；然后结合QP返回的结果加上业务系统的查询参数，向Ha3搜索引擎发起查询请求；Ha3搜索引擎QueryService⑦中Qrs⑧接收到查询请求后，分发给QueryService中的Searcher进行倒排索引召回、统计、条件过滤、文档打分及排序、摘要生成；最后Qrs将Searcher返回的结果进行整合后返回给SP，SP经过去重再返回给业务系统；</p> <h3 id="闲鱼搜索体系团队构成"><a href="#闲鱼搜索体系团队构成" class="header-anchor">¶</a> 闲鱼搜索体系团队构成</h3> <p>闲鱼搜索的运维体系，是一个相当复杂的构成；其中涉及很多团队的鼎力协作；</p> <p>首先必须有Ha3搜索引擎团队在底层提供核心的搜索引擎能力支持；主要负责Ha3搜索引擎核心能力的建设维护；提供并维护引擎运维操作平台和实时引擎搜索服务。
+然后是算法团队，在Ha3搜索引擎上进行定制，优化用户搜索体验；对闲鱼非结构化的商品通过算法模型进行理解，预测抽取出结构化信息，供搜索引擎商品索引使用；监控维护QP集群服务；开发并使用Ha3引擎排序插件，进行召回数据分桶实验，验证调优。
+最后是我们业务工程团队，串联整个搜索流程，监控维护整个搜索链路的可用性；主要维护搜索对接的数据，Ha3搜索引擎接入管理，进行SP搜索服务编排，制定合理的查询计划；以及闲鱼搜索统一在线查询服务的研发维护工作。
+本文亦是从业务工程团队的工作角度出发，阐述如何对复杂搜索业务系统进行稳定性的保障；</p> <h2 id="稳定性治理"><a href="#稳定性治理" class="header-anchor">¶</a> 稳定性治理</h2> <h3 id="部署架构优化"><a href="#部署架构优化" class="header-anchor">¶</a> 部署架构优化</h3> <h4 id="独立网关部署"><a href="#独立网关部署" class="header-anchor">¶</a> 独立网关部署</h4> <p>Ha3引擎通过SP提供基于HTTP协议的搜索服务API，对类似闲鱼这样复杂的搜索场景，每个闲鱼上层的业务如果都通过拼接SP HTTP接口参数的形式来使用搜索服务，所有上游业务都需要关心SP的拼接语法，会使开发成本剧增，而且如果由于特殊原因SP进行了语法调整或者不兼容升级，那么所有上层业务都需要修正逻辑，这样的设计不合理；为了让业务系统与搜索系统完全解耦，并且提高搜索服务的易用性，闲鱼搜索通过统一的业务搜索网关来提供简单一致的分布式服务，供闲鱼各上层搜索业务使用，并与SP对接，屏蔽掉SP对上游业务系统的穿透；</p> <p>最开始闲鱼搜索服务与其他很多不相关的业务场景共建在一个比较庞大的底层应用中；这种部署方式对稳定性要求很高的业务模块来说有非常大的安全隐患；</p> <ul><li>各业务模块会相互影响；存在一定程度的代码耦合，同时还涉及机器资源的竞争，风险比较高；</li> <li>应用太过庞大，严重影响开发协作的效率和代码质量；</li></ul> <p>于是将闲鱼搜索服务部署到独立的容器分组，新增应用A供闲鱼搜索服务专用，作为各业务使用搜索服务的独立网关，同时对接下游的SP搜索服务；保证服务是隔离和稳定的。
+前后部署图如下所示；</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/arch-e-search-xianyu-2.png" loading="lazy" class="lazy"></p> <h4 id="多机房容灾部署"><a href="#多机房容灾部署" class="header-anchor">¶</a> 多机房容灾部署</h4> <p>在最初，闲鱼商品搜索服务对接的Ha3搜索引擎只部署在一个机房；当此机房出现比较严重的问题时，对上游业务影响非常大，甚至会引发故障；鉴于此，对闲鱼商品搜索引擎的在线离线集群进行双机房部署容灾；在详细展开之前，我们先大致理解下Ha3引擎DUMP流程的原理；</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/arch-e-search-xianyu-3.png" loading="lazy" class="lazy"></p> <p>如上图所示，Ha3引擎DUMP流程大致流程可以简单分为以下几步：</p> <ul><li>准备源数据：评估业务需求，将需要接入引擎的数据准备好；一般业务数据大部分都是DB数据表，也有少数的ODPS⑨离线数据表；算法团队提供的数据绝大部分都是ODPS离线数据表；</li> <li>DUMP拉取数据：通过Ha3引擎团队提供的运维平台，可以将这些表的某些数据字段接入到创建好的搜索引擎中，后续DUMP执行的时候，Ha3离线引擎会拉取这些接入的表字段数据，形成一份引擎自用的镜像数据表，在这一步中，我们可以使用引擎团队提供的UDF工具，对数据进行清洗/过滤等处理；</li> <li>数据Merge：引擎将所有的镜像表数据，通过我们指定的主键进行Join；最终形成一份数据大宽表；供引擎创建索引使用；这一步数据Join后，还可以对最终的数据通过UDF进行进一步的清洗/过滤处理，验证通过的数据才会进入到大宽表；</li> <li>创建更新索引：Ha3离线引擎通过buildService，使用大宽表的数据，与事先我们在Ha3引擎运维平台指定好的索引Schame对齐，重新构建索引；</li></ul> <p>以上流程可以通过Ha3引擎运维平台手动触发执行，执行完上述流程后，会生成一份新的索引；新的索引集群服务可用后，在线实时模块会将查询服务切换到新的索引集群上，完成一次索引的更新；这个完整流程我们将其称之为&quot;全量&quot;；</p> <p>全量完成后，当系统有新的商品信息变动，且相应的数据表有启用实时更新(我们称之为增量功能,DB表是通过binlog/ODPS表是通过Swift消息通知的方式实现)，则离线DUMP引擎会感知到此次变动，进而将相应的镜像数据表中商品数据更新，并会按上述离线DUMP流程中的步骤，将这个改动信息一直向引擎上层投递，直至成功更新引擎索引中的相应数据，或者中途被系统规则丢弃为止；这个实时数据更新的流程我们称之为&quot;增量&quot;；增量更新还有一条通道：算法同学可以使用特殊的方式，通过Swift增量消息的方式直接将需要更新的数据不通过DUMP流程，直接更新到Ha3引擎索引中。</p> <p>闲鱼商品量飞速增长，目前已经达到数十亿；接入了数百的索引字段，由于闲鱼商品非结构化的原因，索引字段中只有一小部分供业务使用；另外大部分都是算法接入的索引，比如大量抽出来的标签数据，向量化数据等，这些向量化数据非常大；最终的情形表现为闲鱼商品搜索引擎的DUMP处理逻辑比较复杂，而且索引数据总量异常庞大，增量消息量也处在非常高的水位，再加上闲鱼商品单库存的现状；因此对数据更新的实时性要求非常高，这些都给稳定性带来了极大的制约。
+索引数据是搜索引擎的内容核心，如果进入引擎的索引数据有问题，或者新变更的数据没有更新到引擎索引中，将直接影响搜索服务的质量；
+搜索引擎单机房部署期间，时常会因为一些不稳定的因素，导致DUMP全量失败，或者增量延迟，甚至停止；一旦引擎DUMP出现问题，需要恢复基本都很困难，很多场景下甚至需要重新跑全量才能解决问题；但是闲鱼商品索引数据体量较大，做一次全量往往要大半天，没有办法快速止血，对业务造成了较大的影响；于是对搜索引擎进行双机房部署容灾(M/N机房)，互为备份；</p> <p>两个离线DUMP机房采用相同的引擎配置和相同的数据源，产出相同的索引数据，分别供两个在线机房使用，两个机房的在线流量比例也可以按需实时调整；当M机房出现不可逆问题时，自动或手动将流量全部切换到N机房，实现线上快速止血，然后再按部就班排查解决M机房的问题。</p> <p>下图为最终的搜索机房部署情况；</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/arch-e-search-xianyu-4.png" loading="lazy" class="lazy"></p> <p>进行引擎双机房部署虽然增大了机器资源成本，但是除了上述业务容灾优点外，还有以下好处； * 引擎需求的发布，之前缺乏有效的灰度流程；当搜索引擎有重大变更/升级，出现高风险的发布时，可以先在单机房小流量beta测试，数据对比验证通过后，再发布到另一个机房； * 平常单机房能支撑全部搜索查询业务的流量，当遇到大促或大型活动时，将两个机房同时挂载提供服务，这样搜索服务能力和容量直接能翻倍；避免了单机房频繁扩缩容的困扰； * 性能评估时，可以单独对未承载流量的机房进行压测，即使由于压测导致宕机也不会对线上业务造成影响；</p> <h3 id="流量隔离"><a href="#流量隔离" class="header-anchor">¶</a> 流量隔离</h3> <p>上文独立网关部署一节中讲到，闲鱼搜索通过统一的业务搜索网关来提供简单一致的分布式服务，供闲鱼各上层搜索业务使用；使用统一的微服务，就必然带来上游不同业务优先级和可靠性保障的问题。
+闲鱼搜索服务支撑了种类繁多的上游业务，为了统一对各业务场景的流量/服务质量进行度量和管理，在上游业务接入闲鱼搜索服务时，需要申请使用相应的业务来源，这个业务来源标示会伴随着整个搜索查询的生命周期；在日志采集时直接使用，从而可以针对业务维度进行监控告警，实时感知业务运行的健康情况(简单监控视图如下图)，也可以对具体业务进行流量管控，降级限流等；</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/arch-e-search-xianyu-5.png" loading="lazy" class="lazy"></p> <p>搜索业务来源生命周期图</p> <h3 id="分级监控体系"><a href="#分级监控体系" class="header-anchor">¶</a> 分级监控体系</h3> <p>对高稳定性系统，当出现问题，或者即将产生问题时，能即时感知，显得尤为重要；方便实时进行跟踪处理，防止继续扩大；目前使用的主要手段是建立健全完善的多维度监控告警体系；</p> <h4 id="引擎基础服务监控"><a href="#引擎基础服务监控" class="header-anchor">¶</a> 引擎基础服务监控</h4> <p>使用监控可以快速发现问题，如果监控的粒度够细还能进行问题的快速定位；不过有时也会存在误报或者漏报的情况，因此真实的监控一定要结合每个业务自身系统的特性，梳理出关键链路，针对关键链路进行多维度360度无死角监控，并且进行合理的预警规则设置，监控预警才会比较有效；</p> <p>闲鱼搜索引擎在线离线流程/各上游重要应用系统的核心链路上，建立了完备的日志数据采集模块，对关键指标进行了精准的监控预警设置；做到任何问题都能及时被感知到。下图是搜索服务相应核心日志以及监控告警情况。</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/arch-e-search-xianyu-6.png" loading="lazy" class="lazy"></p> <h4 id="模拟用户行为的在线业务监控"><a href="#模拟用户行为的在线业务监控" class="header-anchor">¶</a> 模拟用户行为的在线业务监控</h4> <p>上文提到，闲鱼搜索引擎索引体量比较大，需要很多团队共同协作，搜索流程复杂度比较高；而且有算法同学的加入，对闲鱼非结构化的商品做了很多AI识别，加上闲鱼都是单库存商品，对引擎实时性要求非常高；前面已经做了一些容灾的保障方案；但是对实时性的感知上还需要更进一步，才能及时知道数据的准确情况，是否存在更新延迟，以及延迟时间大概是多久等一系列健康度信息；
+解法是从业务层面进行实时性的监控告警；提取出闲鱼商品量比较大更新也比较频繁的类目K，在闲鱼的后台业务系统中，通过jkeins间隔一定时间（时间步长可以实时调整），使用类目K作为关键词和品类，根据商品更新时间索引降序招回，模拟用户轮询的方式发送搜索查询请求，召回满足要求的第一页商品；然后根据引擎召回数据的商品更新时间与当前系统时间进行差值比对，大于阈值时长（可以实时调整）说明存在较严重的数据更新延迟，则进行告警信息发送；</p> <h3 id="压测"><a href="#压测" class="header-anchor">¶</a> 压测</h3> <h4 id="全链路压测"><a href="#全链路压测" class="header-anchor">¶</a> 全链路压测</h4> <p>对搜索服务以及各上游业务系统进行全链路压测改造；并使用线上真实的用户请求构造大批量的压测数据，在保证不影响线上业务正常进行的前提下，验证链路在超大流量模型下系统的容量和资源分配是否合理，找到链路中的性能瓶颈点，验证网络设备和集群容量。</p> <h4 id="引擎单链路压测"><a href="#引擎单链路压测" class="header-anchor">¶</a> 引擎单链路压测</h4> <p>Ha3搜索引擎在线流程，支持通过回放线上高峰时段查询流量的方式，进行引擎在线服务性能压测。
+Ha3搜索引擎离线流程，支持通过回放一段时间Swift增量消息的方式，进行引擎DUMP增量性能压测。</p> <h3 id="灰度发布"><a href="#灰度发布" class="header-anchor">¶</a> 灰度发布</h3> <p>闲鱼商品的非结构化特性，离不开算法赋能；在我们的研发周期中，与两个算法团队，相当多的算法同学保持着深度合作；给闲鱼搜索带来了跨越式的发展，但是在团队协作和研发效率上也给我们带来了极大的挑战。</p> <p>算法团队、引擎团队、加上业务工程团队，非常大的搜索项目开发小组，每周都有非常多的新算法模型，新的引擎改造，新的业务模块需要上线。
+大量的新增逻辑改动直接上线，会带来很多问题；首先是代码层面，虽然预发环境有做充分测试，但也难保没有边缘逻辑存在测试遗漏的情况；即使预发测试都完全覆盖，但线上和预发终究环境不同，线上大流量环境及有可能会暴露一些隐藏的代码问题；第二方面，假使代码没有任何质量问题，但所有功能全部绑定上线，所有逻辑都混杂在一起，如何评定某个模块上线后的效果成为极大的困扰，特别是算法模型的优化，和业务上新模式的尝试，都需要根据详细的效果反馈数据指标来指导进行下一步的优化方向；
+因此急需一套灰度实验保障体系，不仅可以用来协调和隔离整个搜索业务中各个模块，做到对各模块进行单独的效果评估；并且还能提高大家的协作效率，让各模块能进行快速试错，快速迭代；</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/arch-e-search-xianyu-7.png" loading="lazy" class="lazy"></p> <p>为了解决以上非常重要的问题，业务工程团队开发了一套实验管理系统，用来进行搜索实验灰度调度管理，系统功能如上图所示；其具有以下特点。 * 实验灵活方便，一个实验可以包含多个实验组件，一个实验组件可供多个实验使用；一个实验组件又可以包含多个实验分桶； * 各页面模块的实验都可以在系统中实时调控，包括实验的开/关；以及实验之间的关系处理； * 搜索实验埋点全链路打通，统计各种实验数据报表； * 统计数据接入了闲鱼门户和通天塔，可查看各个指标不同分桶的实验曲线； * 提升实验迭代速度，提升算法/业务效率，快速试错，加速搜索成交转化的增长；</p> <h3 id="应急预案"><a href="#应急预案" class="header-anchor">¶</a> 应急预案</h3> <p>根据评估分析或经验，对搜索服务中潜在的或可能发生的突发事件的关键点，事先制定好应急处置方案；当满足一定的条件时进行多维度多层级的自动降级限流，或者配置手动预案进行人工干预；</p> <p>任何时候发现线上问题，首先需要快速止血，避免问题的扩大；具有自动预案会自动发现问题，自动熔断，我们需要密切关注系统的运行情况，防止反弹；若出现反弹，并且对业务有较大影响时，快速人工介入执行降级预案；完成止血后再详细排查具体原因，当短时间无法确定问题根源时，如在问题出现时有过变更或发布，则第一时间回滚变更或发布。</p> <p><img alt="" data-src="https://pdai-1257820000.cos.ap-beijing.myqcloud.com/pdai.tech/public/_images/arch/arch-e-search-xianyu-8.png" loading="lazy" class="lazy"></p> <p>对系统中各级的依赖服务，熔断降级已经系统负载保护，我们使用的是阿里巴巴自主研发的资源调用控制组件Sentinel[4]，目前已经开源；或者也可以使用Hytrix降级限流工具；</p> <h3 id="问题排查"><a href="#问题排查" class="header-anchor">¶</a> 问题排查</h3> <p>将闲鱼搜索链路接入阿里搜索问题排查平台，搜索实时查询请求的各个步骤输入的参数信息/产出的数据信息都会在此工具平台详细展示，方便各种问题的排查跟进，以及数据信息对比；</p> <p>可以对各查询条件下各个分桶的实验召回数据进行可视化显示，方便各个实验间的效果对比；以及每个召回商品的各类细节信息查看，包括业务数据和算法标签数据，还包含每个商品对应的各引擎插件算分情况，都能详细阅览；
+还可以根据商品Id，卖家Id，卖家Nick进行商品索引信息的披露；可以排查相应商品在引擎索引中的详细数据，如果数据和预想的有出入，具体是离线DUMP哪一步的处理逻辑导致的状态异常，都能一键查询。
+接入此问题排查平台后，能非常直观的掌握引擎的运行状况，搜索召回的链路状态；对快速发现问题根源，即时修复问题都有非常重大的作用！</p> <h2 id="总结与展望"><a href="#总结与展望" class="header-anchor">¶</a> 总结与展望</h2> <p>本文主要介绍闲鱼如何保障复杂场景下搜索引擎服务的稳定性，主要从架构部署，隔离性，容量评估，风险感知&amp;管控等方面进行阐述，介绍了如何稳定支撑20+线上搜索业务场景，做到了快速发现恢复线上问题，高效提前预知规避风险案例50+，极大程度提升了搜索服务的用户体验，保障了闲鱼搜索全年无故障；</p> <p>经过上述治理方案后，闲鱼搜索系统稳定性得到了极大的保障，同时我们也会继续深耕，在搜索能力的高可用、更易用上更进一步，让上游业务更加顺滑；
+希望给各位读者带来一些思考和启发。</p> <h2 id="参考资料"><a href="#参考资料" class="header-anchor">¶</a> 参考资料</h2> <p>Ha3: https://yq.aliyun.com/articles/585400</p> <p>ODPS：https://www.aliyun.com/product/odps/</p> <p>Sentinel：https://github.com/alibaba/Sentinel</p> <p><strong>注解</strong></p> <ul><li>① BuildService：为 Ha3 提供全量、增量、实时索引 build 服务的系统。</li> <li>② DUMP： 我们把索引数据的生成过程称作离线DUMP。搜索引擎的全量/增量索引是通过BuildService系统生成的，然后分发给在线部分的Searcher。</li> <li>③ Swift： Swift是一个高效可靠的计算与存储分离的消息系统。</li> <li>④ Searcher： Searcher是搜索引擎查询的执行者，倒排索引召回、统计、条件过滤、文档打分及排序及摘要生成的过程都是在Searcher上完成的。根据业务的需要，有时也会把摘要(Summary)单独分出来，搭建一套独立的摘要集群。</li> <li>⑤ SP： Search Planner，是一个统一的搜索服务接口。它的职责是根据用户指定的查询条件（关键词、类目等），得到Query Plan的结果，制定查询计划，查询搜索的各大系统，直接得到最终结果返回给上游业务。</li> <li>⑥ QP： Query Planner，是用来预测用户query的搜索意图的查询服务。它的职责是通过预测用户query的搜索意图和收集相关信息来决定去哪个数据集合(引擎)检索数据、检索什么样的数据、对检索的数据辅助排序。</li> <li>⑦ QueryService： QueryService是搜索在线查询部分，在其系统内部，包含Qrs和Searcher两种基本的角色。</li> <li>⑧ Qrs： Query result searcher，是用于接收用户查询，将用户查询分发给Searcher，收集Searcher返回的结果作整合，最终返回给上游业务。</li> <li>⑨ ODPS： Open Data Processing Service，开放数据处理服务；ODPS是阿里巴巴自主研发的分布式海量数据处理平台，提供了丰富的数据处理功能和灵活的编程框架。主要服务于批量结构化数据的存储和计算，可以提供海量数据仓库的解决方案以及针对大数据的分析建模服务。本文中的ODPS特指其中存储的离线表数据。</li></ul></div> <div class="page-contract"><h2>联系我</h2> <div class="c-content"><span style="font-size:1rem;font-weight:bold;">添加@pdai微信</span><br> <img src="../../pdai.jpg" height="280px" style="margin:10px;"><br>
+        PS：添加时请备注<b>Java全栈</b>，谢谢！
+      </div></div> <footer class="page-edit"><div class="edit-link"><a href="https://github.com/realpdai/tech-arch-doc/edit/master/md/arch/arch-example-xianyu-search.md" target="_blank" rel="noopener noreferrer">在 GitHub 上编辑此页</a> <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></div> <div class="last-updated"><span class="prefix">上次更新: </span> <span class="time">9/27/2021,</span></div></footer> <div class="page-nav"><p class="inner"><span class="prev">
+        ←
+        <a href="arch-example-xianyu-laxintoufang.html" class="prev">
+          闲鱼: 拉新投放系统如何设计
+        </a></span> <span class="next"><a href="arch-example-meituan-peisong.html">
+          美团: 配送系统架构演进实践
+        </a>
+        →
+      </span></p></div> <div class="google_ad_bottom"><ins data-ad-client="ca-pub-5088193899865249" data-ad-slot="6822031208" data-ad-format="auto" data-full-width-responsive="true" class="adsbygoogle" style="display:block"></ins> <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script></div> </main></div> <aside class="page-sidebar"> <div class="page-side-toolbar"><div class="option-box-toc-fixed"><div class="toc-container-sidebar"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:650px"><div style="font-weight:bold;text-align:center;">闲鱼: 复杂搜索系统的可靠性优化之路</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="arch-example-xianyu-search.html#背景" class="toc-sidebar-link">背景</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="arch-example-xianyu-search.html#闲鱼搜索整体架构" class="toc-sidebar-link">闲鱼搜索整体架构</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="arch-example-xianyu-search.html#闲鱼搜索体系运行流程" class="toc-sidebar-link">闲鱼搜索体系运行流程</a></li><li class="toc-sidebar-sub-header"><a href="arch-example-xianyu-search.html#闲鱼搜索体系团队构成" class="toc-sidebar-link">闲鱼搜索体系团队构成</a></li></ul></li><li><a href="arch-example-xianyu-search.html#稳定性治理" class="toc-sidebar-link">稳定性治理</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="arch-example-xianyu-search.html#部署架构优化" class="toc-sidebar-link">部署架构优化</a></li><li class="toc-sidebar-sub-header"><a href="arch-example-xianyu-search.html#流量隔离" class="toc-sidebar-link">流量隔离</a></li><li class="toc-sidebar-sub-header"><a href="arch-example-xianyu-search.html#分级监控体系" class="toc-sidebar-link">分级监控体系</a></li><li class="toc-sidebar-sub-header"><a href="arch-example-xianyu-search.html#压测" class="toc-sidebar-link">压测</a></li><li class="toc-sidebar-sub-header"><a href="arch-example-xianyu-search.html#灰度发布" class="toc-sidebar-link">灰度发布</a></li><li class="toc-sidebar-sub-header"><a href="arch-example-xianyu-search.html#应急预案" class="toc-sidebar-link">应急预案</a></li><li class="toc-sidebar-sub-header"><a href="arch-example-xianyu-search.html#问题排查" class="toc-sidebar-link">问题排查</a></li></ul></li><li><a href="arch-example-xianyu-search.html#总结与展望" class="toc-sidebar-link">总结与展望</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="arch-example-xianyu-search.html#参考资料" class="toc-sidebar-link">参考资料</a><ul class="toc-sidebar-sub-headers"></ul></li></ul></div></div></div></div></div> <div class="option-box-toc-over"><img src="../../toc.png" class="nozoom"> <span class="show-txt">目录</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:550px"><div style="font-weight:bold;text-align:center;">闲鱼: 复杂搜索系统的可靠性优化之路</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="arch-example-xianyu-search.html#背景" class="toc-sidebar-link">背景</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="arch-example-xianyu-search.html#闲鱼搜索整体架构" class="toc-sidebar-link">闲鱼搜索整体架构</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="arch-example-xianyu-search.html#闲鱼搜索体系运行流程" class="toc-sidebar-link">闲鱼搜索体系运行流程</a></li><li class="toc-sidebar-sub-header"><a href="arch-example-xianyu-search.html#闲鱼搜索体系团队构成" class="toc-sidebar-link">闲鱼搜索体系团队构成</a></li></ul></li><li><a href="arch-example-xianyu-search.html#稳定性治理" class="toc-sidebar-link">稳定性治理</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="arch-example-xianyu-search.html#部署架构优化" class="toc-sidebar-link">部署架构优化</a></li><li class="toc-sidebar-sub-header"><a href="arch-example-xianyu-search.html#流量隔离" class="toc-sidebar-link">流量隔离</a></li><li class="toc-sidebar-sub-header"><a href="arch-example-xianyu-search.html#分级监控体系" class="toc-sidebar-link">分级监控体系</a></li><li class="toc-sidebar-sub-header"><a href="arch-example-xianyu-search.html#压测" class="toc-sidebar-link">压测</a></li><li class="toc-sidebar-sub-header"><a href="arch-example-xianyu-search.html#灰度发布" class="toc-sidebar-link">灰度发布</a></li><li class="toc-sidebar-sub-header"><a href="arch-example-xianyu-search.html#应急预案" class="toc-sidebar-link">应急预案</a></li><li class="toc-sidebar-sub-header"><a href="arch-example-xianyu-search.html#问题排查" class="toc-sidebar-link">问题排查</a></li></ul></li><li><a href="arch-example-xianyu-search.html#总结与展望" class="toc-sidebar-link">总结与展望</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="arch-example-xianyu-search.html#参考资料" class="toc-sidebar-link">参考资料</a><ul class="toc-sidebar-sub-headers"></ul></li></ul></div></div></div></div></div> <div class="option-box"><img src="../../wechat.png" class="nozoom"> <span class="show-txt">手机看</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.9rem">微信扫一扫</span> <img height="180px" src="https://api.qrserver.com/v1/create-qr-code/?data=https://www.pdai.tech/md/arch/arch-example-xianyu-search.html" style="margin:10px;">
+              可以<b>手机看</b>或分享至<b>朋友圈</b></div></div></div></div> <div class="option-box"><a title="点击切换全屏" style="text-align:center;padding-left:2px;"><img src="../../full.png" width="30px" class="nozoom"> <span style="color:gray;font-size:11px;font-weight:400;">全屏看</span></a></div> <div class="option-box"><img src="../../toggle.png" width="30px" class="nozoom"> <span class="show-txt">左栏</span></div> <div class="option-box"><img src="../../wexin2.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:yellow">交流圈</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">添加pdai微信进《Java全栈知识体系》学习交流圈「无任何套路」</span> <img src="../../pdai.jpg" height="180px" style="margin:10px;">
+              PS：添加时请备注<b>Java全栈</b>，谢谢！
+            </div></div></div></div> <div class="option-box"><img src="../../download.jpg" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:#a6f792">下资料</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">扫描公众号，回复“资料”下载<font style="color:red;">10GB+</font>书籍资料「无任何套路」</span> <img src="../../pdai_gzh.jpg" height="180px" style="margin:10px;"> <b>公众号:</b> Java全栈知识体系
+            </div></div></div></div> <div class="option-box"><img src="../../heart.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;background-color:#gray">支持我</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">鼓励/支持/赞赏我</span> <img src="../../pdai-guli.png" height="180px" width="200px" style="margin:5px;">
+              1. 不靠它生存但仍希望得到你的鼓励；<br> 2. 时刻警醒自己保持技术人的初心，恒心，简单，利他；
+            </div></div></div></div> <div title="闲鱼: 拉新投放系统如何设计" class="option-box" style="padding-left:2px;text-align:center;"><a href="arch-example-xianyu-laxintoufang.html"><img src="../../pre2.png" width="30px" class="nozoom"> <span class="show-txt">上一篇</span></a></div> <div title="美团: 配送系统架构演进实践" class="option-box" style="padding-left:2px;text-align:center;"><a href="arch-example-meituan-peisong.html"><img src="../../next2.png" width="30px" class="nozoom"> <span class="show-txt">下一篇</span></a></div></div>  <div class="page-side-sitemap"><div class="option-box"><img src="../../sitemap.png" class="nozoom img"> <span class="show-txt">站点图</span> <div class="sitemap-container"><h4>站点导航图
+            <a href="../about/me/about-me.html" class="sitemap-top-link"> 关于我</a> <a href="../about/blog/blog-build-vuepress.html" class="sitemap-top-link"> 关于站点</a> <a href="../about/me/blog-changelist.html" class="sitemap-top-link"> 最近更新记录</a> <a href="../about/me/blog-question.html" class="sitemap-top-link"><font style="color:red;background-color:yellow;">问题反馈</font></a></h4> <table class="sitemap-table"><tr><td nowrap="nowrap"><div class="sitemap-col-group">常用搜索</div></td> <td><div class="sitemap-col-item"><a href="http://www.baidu.com/" target="_blank" title="百度">  
+            百度
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.google.com/" target="_blank" title="Google">  
+            Google
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.bing.com/" target="_blank" title="Bing">  
+            Bing
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://github.com/" target="_blank" title="Github">  
+            Github
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.programcreek.com/java-api-examples/index.php" target="_blank" title="搜代码">  
+            搜代码
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">技术社区</div></td> <td><div class="sitemap-col-item"><a href="http://www.csdn.net/" target="_blank" title="CDSN">  
+            CDSN
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.cnblogs.com/" target="_blank" title="博客园">  
+            博客园
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.oschina.net/" target="_blank" title="OSChina">  
+            OSChina
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://segmentfault.com/" target="_blank" title="知否">  
+            知否
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://juejin.im/" target="_blank" title="掘金">  
+            掘金
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.linuxidc.com/" target="_blank" title="Linux公社">  
+            Linux公社
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.ibm.com/developerworks/cn/" target="_blank" title="IBM 开发者">  
+            IBM 开发者
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://stackoverflow.com/" target="_blank" title="StackOverflow">  
+            StackOverflow
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">Java相关</div></td> <!----> <td><a href="../java/basic/java-basic-oop.html" class="sitemap-col-item">
+            面向对象基础
+          </a><a href="../java/basic/java-basic-lan-basic.html" class="sitemap-col-item">
+            语法基础
+          </a><a href="../java/collection/java-collection-all.html" class="sitemap-col-item">
+            集合框架
+          </a><a href="../java/thread/java-thread-x-overview.html" class="sitemap-col-item">
+            并发基础
+          </a><a href="../java/thread/java-thread-x-key-synchronized.html" class="sitemap-col-item">
+            并发关键字
+          </a><a href="../java/thread/java-thread-x-juc-overview.html" class="sitemap-col-item">
+            JUC并发框架
+          </a><a href="../java/io/java-io-overview.html" class="sitemap-col-item">
+            IO框架
+          </a><a href="../java/java8/java8.html" class="sitemap-col-item">
+            Java8 特性
+          </a><a href="../java/jvm/java-jvm-x-overview.html" class="sitemap-col-item">
+            JVM基础
+          </a><a href="../java/jvm/java-jvm-param.html" class="sitemap-col-item">
+            调试排错
+          </a><a href="../java/others/java-others-awesome-java.html" class="sitemap-col-item">
+            更多资源
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">算法相关</div></td> <!----> <td><a href="../algorithm/alg-basic-array.html" class="sitemap-col-item">
+            数组与线性表
+          </a><a href="../algorithm/alg-basic-tree.html" class="sitemap-col-item">
+            树详解
+          </a><a href="../algorithm/alg-basic-graph.html" class="sitemap-col-item">
+            图详解
+          </a><a href="../algorithm/alg-sort-overview.html" class="sitemap-col-item">
+            内部排序
+          </a><a href="../algorithm/alg-core-divide-and-conquer.html" class="sitemap-col-item">
+            算法思想
+          </a><a href="../algorithm/alg-domain-security-degist.html" class="sitemap-col-item">
+            安全算法
+          </a><a href="../algorithm/alg-domain-bigdata-overview.html" class="sitemap-col-item">
+            大数据处理
+          </a><a href="../algorithm/alg-domain-distribute-overview.html" class="sitemap-col-item">
+            分布式算法
+          </a><a href="../algorithm/alg-domain-load-balance.html" class="sitemap-col-item">
+            负载均衡算法
+          </a><a href="../algorithm/alg-domain-suggest.html" class="sitemap-col-item">
+            推荐算法
+          </a><a href="../algorithm/alg-other-mind.html" class="sitemap-col-item">
+            头脑风暴
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">数据库相关</div></td> <!----> <td><a href="../db/sql/sql-db-howitworks.html" class="sitemap-col-item">
+            数据库原理
+          </a><a href="../db/sql-lan/sql-lan.html" class="sitemap-col-item">
+            SQL语言
+          </a><a href="../db/sql-mysql/sql-mysql-theory.html" class="sitemap-col-item">
+            MySQL相关
+          </a><a href="../db/nosql-mongo/mongo-performance-improve.html" class="sitemap-col-item">
+            MongoDB
+          </a><a href="../db/nosql-es/elasticsearch.html" class="sitemap-col-item">
+            ElasticSearch
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">开发基础相关</div></td> <!----> <td><a href="../develop/package/dev-package-x-apache-common.html" class="sitemap-col-item">
+            常用类库
+          </a><a href="../develop/ut/dev-ut-x-junit.html" class="sitemap-col-item">
+            单元测试
+          </a><a href="../develop/regex/dev-regex-all.html" class="sitemap-col-item">
+            正则表达式
+          </a><a href="../develop/protocol/dev-protocol-overview.html" class="sitemap-col-item">
+            网络协议
+          </a><a href="../develop/security/dev-security-overview.html" class="sitemap-col-item">
+            安全相关
+          </a><a href="../develop/refactor/dev-refactor-if-else.html" class="sitemap-col-item">
+            常见重构技巧
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">架构相关</div></td> <!----> <td><a href="arch-x-basic.html" class="sitemap-col-item">
+            架构基础
+          </a><a href="arch-x-view.html" class="sitemap-col-item">
+            架构视角
+          </a><a href="arch-x-evolution.html" class="sitemap-col-item">
+            架构演进
+          </a><a href="arch-x-pattern.html" class="sitemap-col-item">
+            架构模式和要素
+          </a><a href="arch-y-cache.html" class="sitemap-col-item">
+            高并发之缓存
+          </a><a href="arch-y-ratelimit.html" class="sitemap-col-item">
+            高并发之限流
+          </a><a href="arch-y-reduce.html" class="sitemap-col-item">
+            高并发之降级
+          </a><a href="arch-y-loadbalance.html" class="sitemap-col-item">
+            负载均衡
+          </a><a href="arch-y-backup.html" class="sitemap-col-item">
+            容灾备份
+          </a><a href="arch-x-security.html" class="sitemap-col-item">
+            架构安全
+          </a><a href="arch-example-seckill.html" class="sitemap-col-item">
+            秒杀系统设计
+          </a><a href="arch-example-goods-detail.html" class="sitemap-col-item">
+            架构案例
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">工具和部署</div></td> <!----> <td><a href="../devops/tool/tool-list-overview.html" class="sitemap-col-item">
+            工具集合
+          </a><a href="../devops/tool/tool-ide.html" class="sitemap-col-item">
+            IDE相关
+          </a><a href="../devops/tool/tool-git.html" class="sitemap-col-item">
+            Git
+          </a><a href="../devops/tool/tool-maven.html" class="sitemap-col-item">
+            Maven
+          </a><a href="../devops/linux/linux.html" class="sitemap-col-item">
+            Linux
+          </a><a href="../devops/docker/docker-00-overview.html" class="sitemap-col-item">
+            Docker
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">方法论</div></td> <!----> <td><a href="../dev-spec/spec/dev-th-solid.html" class="sitemap-col-item">
+            SOLID
+          </a><a href="../dev-spec/spec/dev-th-cap.html" class="sitemap-col-item">
+            CAP
+          </a><a href="../dev-spec/spec/dev-th-base.html" class="sitemap-col-item">
+            BASE
+          </a><a href="../dev-spec/spec/dev-opensource.html" class="sitemap-col-item">
+            开源协议
+          </a><a href="../dev-spec/code-style/code-style-alibaba.html" class="sitemap-col-item">
+            代码规范
+          </a><a href="../dev-spec/pattern/1_overview.html" class="sitemap-col-item">
+            设计模式
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">产品和团队</div></td> <!----> <td><a href="../team/team-z-wechat.html" class="sitemap-col-item">
+            产品相关
+          </a><a href="../team/team-z-task-emergency.html" class="sitemap-col-item">
+            团队相关
+          </a><a href="../team/team-z-arch-future.html" class="sitemap-col-item">
+            其它分享
+          </a></td></tr></table></div></div></div> <!----> </aside></div><div class="global-ui"></div></div>
+    <script src="../../assets/js/app.691e72ae.js" defer></script><script src="../../assets/js/4.2e3efdf6.js" defer></script><script src="../../assets/js/3.d77b006c.js" defer></script><script src="../../assets/js/118.c1c40ff4.js" defer></script>
+  </body>
+
+<!-- Mirrored from www.pdai.tech/md/arch/arch-example-xianyu-search.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:32:11 GMT -->
+</html>

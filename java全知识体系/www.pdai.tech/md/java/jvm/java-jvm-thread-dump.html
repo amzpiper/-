@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  
+<!-- Mirrored from www.pdai.tech/md/java/jvm/java-jvm-thread-dump.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:32:54 GMT -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>调试排错 - Java线程Dump分析 | Java 全栈知识体系</title>
+    <meta name="generator" content="VuePress 1.8.2">
+    <link rel="icon" href="../../../favicon.ico">
+    <script src="../../../../hm.baidu.com/hma448.js?525d4abc4a8675472736969f817ceb47"></script>
+    <script defer="defer" async="async" src="../../../../pagead2.googlesyndication.com/pagead/js/f.txt"></script>
+    <meta name="description" content="包含: Java 基础, Java 部分源码, JVM, Spring, Spring Boot, Spring Cloud, 数据库原理, MySQL, ElasticSearch, MongoDB, Docker, k8s, CI&CD, Linux, DevOps, 分布式, 中间件, 开发工具, Git, IDE, 源码阅读，读书笔记, 开源项目...">
+    <meta property="article:modified_time" content="2020-07-08T14:53:51.000Z">
+    <meta property="og:title" content="调试排错 - Java线程Dump分析">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="/md/java/jvm/java-jvm-thread-dump.html">
+    <meta name="twitter:title" content="调试排错 - Java线程Dump分析">
+    <meta name="twitter:url" content="/md/java/jvm/java-jvm-thread-dump.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="robots" content="all">
+    <meta name="author" content="pdai">
+    <meta name="keywords" content="Java 全栈知识体系, java体系, java知识体系, java框架,java全栈,java学习路线,java全栈知识, java面试, 知识体系, java技术体系, java编程, java编程指南,java开发体系, java开发,java教程,java,java数据结构, 算法, 开发基础">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <link rel="preload" href="../../../assets/css/0.styles.d4bb5489.css" as="style"><link rel="preload" href="../../../assets/js/app.691e72ae.js" as="script"><link rel="preload" href="../../../assets/js/4.2e3efdf6.js" as="script"><link rel="preload" href="../../../assets/js/3.d77b006c.js" as="script"><link rel="preload" href="../../../assets/js/479.2fdc511d.js" as="script">
+    <link rel="stylesheet" href="../../../assets/css/0.styles.d4bb5489.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="../../../index.html" class="home-link router-link-active"><!----> <span class="site-name">Java 全栈知识体系</span></a> <div class="links"><form id="search-form" role="search" class="algolia-search-wrapper search-box"><input id="algolia-search-input" class="search-query"></form> <nav class="nav-links can-hide"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav>  <ul class="sidebar-links"><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Java 基础</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../basic/java-basic-oop.html" class="sidebar-link">Java 基础 - 面向对象</a></li><li><a href="../basic/java-basic-lan-basic.html" class="sidebar-link">Java 基础 - 知识点</a></li><li><a href="../basic/java-basic-lan-sum.html" class="sidebar-link">Java 基础 - 图谱 &amp; Q/A</a></li><li><a href="../basic/java-basic-x-generic.html" class="sidebar-link">Java 基础 - 泛型机制详解</a></li><li><a href="../basic/java-basic-x-annotation.html" class="sidebar-link">Java 基础 - 注解机制详解</a></li><li><a href="../basic/java-basic-x-exception.html" class="sidebar-link">Java 基础 - 异常机制详解</a></li><li><a href="../basic/java-basic-x-reflection.html" class="sidebar-link">Java 基础 - 反射机制详解</a></li><li><a href="../advanced/java-advanced-spi.html" class="sidebar-link">Java常用机制 - SPI机制详解</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Java 集合框架</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../collection/java-collection-all.html" class="sidebar-link">Collection 类关系图</a></li><li><a href="../collection/java-collection-ArrayList.html" class="sidebar-link">Collection - ArrayList 源码解析</a></li><li><a href="../collection/java-collection-LinkedList.html" class="sidebar-link">Collection - LinkedList源码解析</a></li><li><a href="../collection/java-collection-Queue%26Stack.html" class="sidebar-link">Collection - Stack &amp; Queue 源码解析</a></li><li><a href="../collection/java-collection-PriorityQueue.html" class="sidebar-link">Collection - PriorityQueue源码解析</a></li><li><a href="../collection/java-map-HashMap%26HashSet.html" class="sidebar-link">Map - HashSet &amp; HashMap 源码解析</a></li><li><a href="../collection/java-map-LinkedHashMap%26LinkedHashSet.html" class="sidebar-link">Map - LinkedHashSet&amp;Map源码解析</a></li><li><a href="../collection/java-map-TreeMap%26TreeSet.html" class="sidebar-link">Map - TreeSet &amp; TreeMap 源码解析</a></li><li><a href="../collection/java-map-WeakHashMap.html" class="sidebar-link">Map - WeakHashMap源码解析</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Java 多线程与并发</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../thread/java-thread-x-overview.html" class="sidebar-link">♥Java并发知识体系详解♥</a></li><li><a href="../thread/java-thread-x-theorty.html" class="sidebar-link">Java 并发 - 理论基础</a></li><li><a href="../thread/java-thread-x-thread-basic.html" class="sidebar-link">Java 并发 - 线程基础</a></li><li><a href="../thread/java-thread-x-key-synchronized.html" class="sidebar-link">关键字: synchronized详解</a></li><li><a href="../thread/java-thread-x-key-volatile.html" class="sidebar-link">关键字: volatile详解</a></li><li><a href="../thread/java-thread-x-key-final.html" class="sidebar-link">关键字: final详解</a></li><li><a href="../thread/java-thread-x-juc-overview.html" class="sidebar-link">JUC - 类汇总和学习指南</a></li><li><a href="../thread/java-thread-x-juc-AtomicInteger.html" class="sidebar-link">JUC原子类: CAS, Unsafe和原子类详解</a></li><li><a href="../thread/java-thread-x-lock-LockSupport.html" class="sidebar-link">JUC锁: LockSupport详解</a></li><li><a href="../thread/java-thread-x-lock-AbstractQueuedSynchronizer.html" class="sidebar-link">JUC锁: 锁核心类AQS详解</a></li><li><a href="../thread/java-thread-x-lock-ReentrantLock.html" class="sidebar-link">JUC锁: ReentrantLock详解</a></li><li><a href="../thread/java-thread-x-lock-ReentrantReadWriteLock.html" class="sidebar-link">JUC锁: ReentrantReadWriteLock详解</a></li><li><a href="../thread/java-thread-x-juc-collection-ConcurrentHashMap.html" class="sidebar-link">JUC集合: ConcurrentHashMap详解</a></li><li><a href="../thread/java-thread-x-juc-collection-CopyOnWriteArrayList.html" class="sidebar-link">JUC集合: CopyOnWriteArrayList详解</a></li><li><a href="../thread/java-thread-x-juc-collection-ConcurrentLinkedQueue.html" class="sidebar-link">JUC集合: ConcurrentLinkedQueue详解</a></li><li><a href="../thread/java-thread-x-juc-collection-BlockingQueue.html" class="sidebar-link">JUC集合: BlockingQueue详解</a></li><li><a href="../thread/java-thread-x-juc-executor-FutureTask.html" class="sidebar-link">JUC线程池: FutureTask详解</a></li><li><a href="../thread/java-thread-x-juc-executor-ThreadPoolExecutor.html" class="sidebar-link">JUC线程池: ThreadPoolExecutor详解</a></li><li><a href="../thread/java-thread-x-juc-executor-ScheduledThreadPoolExecutor.html" class="sidebar-link">JUC线程池: ScheduledThreadPoolExecutor详解</a></li><li><a href="../thread/java-thread-x-juc-executor-ForkJoinPool.html" class="sidebar-link">JUC线程池: Fork/Join框架详解</a></li><li><a href="../thread/java-thread-x-juc-tool-countdownlatch.html" class="sidebar-link">JUC工具类: CountDownLatch详解</a></li><li><a href="../thread/java-thread-x-juc-tool-cyclicbarrier.html" class="sidebar-link">JUC工具类: CyclicBarrier详解</a></li><li><a href="../thread/java-thread-x-juc-tool-semaphore.html" class="sidebar-link">JUC工具类: Semaphore详解</a></li><li><a href="../thread/java-thread-x-juc-tool-phaser.html" class="sidebar-link">JUC工具类: Phaser详解</a></li><li><a href="../thread/java-thread-x-juc-tool-exchanger.html" class="sidebar-link">JUC工具类: Exchanger详解</a></li><li><a href="../thread/java-thread-x-threadlocal.html" class="sidebar-link">Java 并发 - ThreadLocal详解</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Java IO/NIO/AIO</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../io/java-io-overview.html" class="sidebar-link">♥Java IO知识体系详解♥</a></li><li><a href="../io/java-io-basic-category.html" class="sidebar-link">Java IO - 分类(传输，操作)</a></li><li><a href="../io/java-io-basic-design-pattern.html" class="sidebar-link">Java IO - 设计模式(装饰者模式)</a></li><li><a href="../io/java-io-basic-code-inputstream.html" class="sidebar-link">Java IO - 源码: InputStream</a></li><li><a href="../io/java-io-basic-code-outputstream.html" class="sidebar-link">Java IO - 源码: OutputStream</a></li><li><a href="../io/java-io-basic-usage.html" class="sidebar-link">Java IO - 常见类使用</a></li><li><a href="../io/java-io-model.html" class="sidebar-link">IO 模型 - Unix IO 模型</a></li><li><a href="../io/java-io-bio.html" class="sidebar-link">Java IO - BIO 详解</a></li><li><a href="../io/java-io-nio.html" class="sidebar-link">Java NIO - 基础详解</a></li><li><a href="../io/java-io-nio-select-epoll.html" class="sidebar-link">Java NIO - IO多路复用详解</a></li><li><a href="../io/java-io-aio.html" class="sidebar-link">Java AIO - 异步IO详解</a></li><li><a href="../io/java-io-nio-netty.html" class="sidebar-link">Java N(A)IO - 框架: Netty</a></li><li><a href="../io/java-io-nio-zerocopy.html" class="sidebar-link">Java NIO - 零拷贝实现</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Java8 特性详解</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../java8/java8.html" class="sidebar-link">♥Java8特性知识体系详解♥</a></li><li><a href="../java8/java8-stream.html" class="sidebar-link">Java 8 - 函数编程(lambda表达式)</a></li><li><a href="../java8/java8-optional.html" class="sidebar-link">Java 8 - Optional类深度解析</a></li><li><a href="../java8/java8-default.html" class="sidebar-link">Java 8 - 默认方法</a></li><li><a href="../java8/java8-type-anno.html" class="sidebar-link">Java 8 - 类型注解</a></li><li><a href="../java8/java8-anno-repeat.html" class="sidebar-link">Java 8 - 重复注解</a></li><li><a href="../java8/java8-type.html" class="sidebar-link">Java 8 - 类型推断优化</a></li><li><a href="../java8/java8-jre.html" class="sidebar-link">Java 8 - JRE精简</a></li><li><a href="../java8/java8-permgen.html" class="sidebar-link">Java 8 - 移除Permgen</a></li><li><a href="../java8/java8-stampedlock.html" class="sidebar-link">Java 8 - StampedLock</a></li><li><a href="../java8/java8-localdatetime.html" class="sidebar-link">Java 8 - LocalDate/LocalDateTime</a></li><li><a href="../java8/java8-javafx.html" class="sidebar-link">Java 8 - JavaFx 2.0</a></li><li><a href="../java8/java8-others.html" class="sidebar-link">Java 8 - 其它更新: 字符串，base64,...</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Java8 以上特性概述</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../java8up/java-8-up-overview.html" class="sidebar-link">♥Java8+特性知识体系详解♥</a></li><li><a href="../java8up/java9.html" class="sidebar-link">Java 9 新特性概述</a></li><li><a href="../java8up/java10.html" class="sidebar-link">Java 10 新特性概述</a></li><li><a href="../java8up/java11.html" class="sidebar-link">Java 11 新特性概述</a></li><li><a href="../java8up/java13.html" class="sidebar-link">Java 13 新特性概述</a></li><li><a href="../java8up/java14.html" class="sidebar-link">Java 14 新特性概述</a></li><li><a href="../java8up/java15.html" class="sidebar-link">Java 15 新特性概述</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading open"><span>JVM相关</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="java-jvm-x-overview.html" class="sidebar-link">♥JVM相关知识体系详解♥</a></li><li><a href="java-jvm-class.html" class="sidebar-link">JVM 基础 - 类字节码详解</a></li><li><a href="java-jvm-classload.html" class="sidebar-link">JVM 基础 - Java 类加载机制</a></li><li><a href="java-jvm-struct.html" class="sidebar-link">JVM 基础 - JVM 内存结构</a></li><li><a href="java-jvm-x-introduce.html" class="sidebar-link">JVM 基础 - Java 内存模型引入</a></li><li><a href="java-jvm-jmm.html" class="sidebar-link">JVM 基础 - Java 内存模型详解</a></li><li><a href="java-jvm-gc.html" class="sidebar-link">JVM 基础 - Java 垃圾回收基础</a></li><li><a href="java-jvm-gc-g1.html" class="sidebar-link">JVM 基础 - Java 垃圾回收器G1详解</a></li><li><a href="java-jvm-param.html" class="sidebar-link">调试排错 - JVM 调优参数</a></li><li><a href="java-jvm-oom.html" class="sidebar-link">调试排错 - Java OOM 分析</a></li><li><a href="java-jvm-thread-dump.html" aria-current="page" class="active sidebar-link">调试排错 - Java线程Dump分析</a></li><li><a href="java-jvm-debug-tools-linux.html" class="sidebar-link">调试排错 - Java问题排查：Linux命令</a></li><li><a href="java-jvm-debug-tools-list.html" class="sidebar-link">调试排错 - Java问题排查：工具单</a></li><li><a href="java-jvm-cms-gc.html" class="sidebar-link">调试排错 - 9种常见的CMS GC问题分析与解决</a></li><li><a href="java-jvm-agent-usage.html" class="sidebar-link">调试排错 - Java动态调试技术原理</a></li><li><a href="java-jvm-agent-arthas.html" class="sidebar-link">调试排错 - Java应用在线调试Arthas</a></li><li><a href="java-jvm-debug-idea.html" class="sidebar-link">调试排错 - 使用IDEA本地调试和远程调试</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Java其它相关</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../others/java-others-awesome-java.html" class="sidebar-link">Awesome Java</a></li><li><a href="../others/java-others-better-java.html" class="sidebar-link">Better Java</a></li></ul></section></li></ul> </aside> <div><main class="page"> <div class="theme-default-content content__default"><h1 id="调试排错---java线程dump分析"><a href="#调试排错---java线程dump分析" class="header-anchor">¶</a> 调试排错 - Java线程Dump分析</h1> <blockquote><p>Thread Dump是非常有用的诊断Java应用问题的工具。@pdai</p></blockquote> <ul><li><a href="#%E8%B0%83%E8%AF%95%E6%8E%92%E9%94%99---java%E7%BA%BF%E7%A8%8Bdump%E5%88%86%E6%9E%90">调试排错 - Java线程Dump分析</a> <ul><li><a href="#thread-dump%E4%BB%8B%E7%BB%8D">Thread Dump介绍</a> <ul><li><a href="#%E4%BB%80%E4%B9%88%E6%98%AFthread-dump">什么是Thread Dump</a></li> <li><a href="#thread-dump%E7%89%B9%E7%82%B9">Thread Dump特点</a></li> <li><a href="#thread-dump%E6%8A%93%E5%8F%96">Thread Dump抓取</a></li></ul></li> <li><a href="#thread-dump%E5%88%86%E6%9E%90">Thread Dump分析</a> <ul><li><a href="#thread-dump%E4%BF%A1%E6%81%AF">Thread Dump信息</a></li> <li><a href="#thread%E7%8A%B6%E6%80%81%E5%88%86%E6%9E%90">Thread状态分析</a></li> <li><a href="#%E5%85%B3%E9%94%AE%E7%8A%B6%E6%80%81%E5%88%86%E6%9E%90">关键状态分析</a></li> <li><a href="#%E5%85%B3%E9%94%AE%E7%8A%B6%E6%80%81%E7%A4%BA%E4%BE%8B">关键状态示例</a></li></ul></li> <li><a href="#%E6%A1%88%E4%BE%8B%E5%88%86%E6%9E%90">案例分析</a> <ul><li><a href="#%E9%97%AE%E9%A2%98%E5%9C%BA%E6%99%AF">问题场景</a></li> <li><a href="#%E6%AD%BB%E9%94%81">死锁</a></li> <li><a href="#%E7%83%AD%E9%94%81">热锁</a></li></ul></li> <li><a href="#jvm%E9%87%8D%E8%A6%81%E7%BA%BF%E7%A8%8B">JVM重要线程</a></li> <li><a href="#%E5%8F%82%E8%80%83%E6%96%87%E7%AB%A0">参考文章</a></li></ul></li></ul> <h2 id="thread-dump介绍"><a href="#thread-dump介绍" class="header-anchor">¶</a> Thread Dump介绍</h2> <h3 id="什么是thread-dump"><a href="#什么是thread-dump" class="header-anchor">¶</a> 什么是Thread Dump</h3> <p>Thread Dump是非常有用的诊断Java应用问题的工具。每一个Java虚拟机都有及时生成所有线程在某一点状态的thread-dump的能力，虽然各个 Java虚拟机打印的thread dump略有不同，但是 大多都提供了当前活动线程的快照，及JVM中所有Java线程的堆栈跟踪信息，堆栈信息一般包含完整的类名及所执行的方法，如果可能的话还有源代码的行数。</p> <h3 id="thread-dump特点"><a href="#thread-dump特点" class="header-anchor">¶</a> Thread Dump特点</h3> <ul><li>能在各种操作系统下使用；</li> <li>能在各种Java应用服务器下使用；</li> <li>能在生产环境下使用而不影响系统的性能；</li> <li>能将问题直接定位到应用程序的代码行上；</li></ul> <h3 id="thread-dump抓取"><a href="#thread-dump抓取" class="header-anchor">¶</a> Thread Dump抓取</h3> <p>一般当服务器挂起，崩溃或者性能低下时，就需要抓取服务器的线程堆栈（Thread Dump）用于后续的分析。在实际运行中，往往一次 dump的信息，还不足以确认问题。为了反映线程状态的动态变化，需要接连多次做thread dump，每次间隔10-20s，建议至少产生三次 dump信息，如果每次 dump都指向同一个问题，我们才确定问题的典型性。</p> <ul><li>操作系统命令获取ThreadDump</li></ul> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token function">ps</span> –ef <span class="token operator">|</span> <span class="token function">grep</span> java
+<span class="token function">kill</span> -3 <span class="token operator">&lt;</span>pid<span class="token operator">&gt;</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br></div></div><p>注意：</p> <blockquote><p>一定要谨慎, 一步不慎就可能让服务器进程被杀死。kill -9 命令会杀死进程。</p></blockquote> <ul><li>JVM 自带的工具获取线程堆栈</li></ul> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>jps 或 <span class="token function">ps</span> –ef <span class="token operator">|</span> <span class="token function">grep</span> java （获取PID）
+jstack <span class="token punctuation">[</span>-l <span class="token punctuation">]</span> <span class="token operator">&lt;</span>pid<span class="token operator">&gt;</span> <span class="token operator">|</span> <span class="token function">tee</span> -a jstack.log（获取ThreadDump）
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br></div></div><h2 id="thread-dump分析"><a href="#thread-dump分析" class="header-anchor">¶</a> Thread Dump分析</h2> <h3 id="thread-dump信息"><a href="#thread-dump信息" class="header-anchor">¶</a> Thread Dump信息</h3> <ul><li>头部信息：时间，JVM信息</li></ul> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token number">2011</span>-11-02 <span class="token number">19</span>:05:06  
+Full thread dump Java HotSpot<span class="token punctuation">(</span>TM<span class="token punctuation">)</span> Server VM <span class="token punctuation">(</span><span class="token number">16.3</span>-b01 mixed mode<span class="token punctuation">)</span>: 
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br></div></div><ul><li>线程INFO信息块：</li></ul> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token number">1</span>. <span class="token string">&quot;Timer-0&quot;</span> daemon <span class="token assign-left variable">prio</span><span class="token operator">=</span><span class="token number">10</span> <span class="token assign-left variable">tid</span><span class="token operator">=</span>0xac190c00 <span class="token assign-left variable">nid</span><span class="token operator">=</span>0xaef <span class="token keyword">in</span> Object.wait<span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">[</span>0xae77d000<span class="token punctuation">]</span> 
+<span class="token comment"># 线程名称：Timer-0；线程类型：daemon；优先级: 10，默认是5；</span>
+<span class="token comment"># JVM线程id：tid=0xac190c00，JVM内部线程的唯一标识（通过java.lang.Thread.getId()获取，通常用自增方式实现）。</span>
+<span class="token comment"># 对应系统线程id（NativeThread ID）：nid=0xaef，和top命令查看的线程pid对应，不过一个是10进制，一个是16进制。（通过命令：top -H -p pid，可以查看该进程的所有线程信息）</span>
+<span class="token comment"># 线程状态：in Object.wait()；</span>
+<span class="token comment"># 起始栈地址：[0xae77d000]，对象的内存地址，通过JVM内存查看工具，能够看出线程是在哪儿个对象上等待；</span>
+<span class="token number">2</span>.  java.lang.Thread.State: TIMED_WAITING <span class="token punctuation">(</span>on object monitor<span class="token punctuation">)</span>
+<span class="token number">3</span>.  at java.lang.Object.wait<span class="token punctuation">(</span>Native Method<span class="token punctuation">)</span>
+<span class="token number">4</span>.  -waiting on <span class="token operator">&lt;</span>0xb3885f6<span class="token operator"><span class="token file-descriptor important">0</span>&gt;</span> <span class="token punctuation">(</span>a java.util.TaskQueue<span class="token punctuation">)</span>     <span class="token comment"># 继续wait </span>
+<span class="token number">5</span>.  at java.util.TimerThread.mainLoop<span class="token punctuation">(</span>Timer.java:509<span class="token punctuation">)</span>
+<span class="token number">6</span>.  -locked <span class="token operator">&lt;</span>0xb3885f6<span class="token operator"><span class="token file-descriptor important">0</span>&gt;</span> <span class="token punctuation">(</span>a java.util.TaskQueue<span class="token punctuation">)</span>         <span class="token comment"># 已经locked</span>
+<span class="token number">7</span>.  at java.util.TimerThread.run<span class="token punctuation">(</span>Timer.java:462<span class="token punctuation">)</span>
+Java thread statck trace：是上面2-7行的信息。到目前为止这是最重要的数据，Java stack trace提供了大部分信息来精确定位问题根源。
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br></div></div><ul><li>Java thread statck trace详解：</li></ul> <p><strong>堆栈信息应该逆向解读</strong>：程序先执行的是第7行，然后是第6行，依次类推。</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>- locked <span class="token operator">&lt;</span>0xb3885f6<span class="token operator"><span class="token file-descriptor important">0</span>&gt;</span> <span class="token punctuation">(</span>a java.util.ArrayList<span class="token punctuation">)</span>
+- waiting on <span class="token operator">&lt;</span>0xb3885f6<span class="token operator"><span class="token file-descriptor important">0</span>&gt;</span> <span class="token punctuation">(</span>a java.util.ArrayList<span class="token punctuation">)</span> 
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br></div></div><p><strong>也就是说对象先上锁，锁住对象0xb3885f60，然后释放该对象锁，进入waiting状态</strong>。为啥会出现这样的情况呢？看看下面的java代码示例，就会明白：</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token keyword">synchronized</span><span class="token punctuation">(</span>obj<span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+   <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  
+   obj<span class="token punctuation">.</span><span class="token function">wait</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+   <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br></div></div><p>如上，线程的执行过程，先用 <code>synchronized</code> 获得了这个对象的 Monitor（对应于 <code>locked &lt;0xb3885f60&gt;</code> ）。当执行到 <code>obj.wait()</code>，线程即放弃了 Monitor的所有权，进入 “wait set”队列（对应于 <code>waiting on &lt;0xb3885f60&gt;</code> ）。</p> <p><strong>在堆栈的第一行信息中，进一步标明了线程在代码级的状态</strong>，例如：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>java.lang.Thread.State: TIMED_WAITING <span class="token punctuation">(</span>parking<span class="token punctuation">)</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><p>解释如下：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token operator">|</span>blocked<span class="token operator">|</span>
+
+<span class="token operator">&gt;</span> This thread tried to enter asynchronized block, but the lock was taken by another thread. This thread isblocked <span class="token keyword">until</span> the lock gets released.
+
+<span class="token operator">|</span>blocked <span class="token punctuation">(</span>on thin lock<span class="token punctuation">)</span><span class="token operator">|</span>
+
+<span class="token operator">&gt;</span> This is the same state asblocked, but the lock <span class="token keyword">in</span> question is a thin lock.
+
+<span class="token operator">|</span>waiting<span class="token operator">|</span>
+
+<span class="token operator">&gt;</span> This thread calledObject.wait<span class="token punctuation">(</span><span class="token punctuation">)</span> on an object. The thread will remain there <span class="token keyword">until</span> some otherthread sends a notification to that object.
+
+<span class="token operator">|</span>sleeping<span class="token operator">|</span>
+
+<span class="token operator">&gt;</span> This thread calledjava.lang.Thread.sleep<span class="token punctuation">(</span><span class="token punctuation">)</span>.
+
+<span class="token operator">|</span>parked<span class="token operator">|</span>
+
+<span class="token operator">&gt;</span> This thread calledjava.util.concurrent.locks.LockSupport.park<span class="token punctuation">(</span><span class="token punctuation">)</span>.
+
+<span class="token operator">|</span>suspended<span class="token operator">|</span>
+
+<span class="token operator">&gt;</span> The thread's execution wassuspended by java.lang.Thread.suspend<span class="token punctuation">(</span><span class="token punctuation">)</span> or a JVMTI agent call.
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br></div></div><h3 id="thread状态分析"><a href="#thread状态分析" class="header-anchor">¶</a> Thread状态分析</h3> <p>线程的状态是一个很重要的东西，因此thread dump中会显示这些状态，通过对这些状态的分析，能够得出线程的运行状况，进而发现可能存在的问题。<strong>线程的状态在Thread.State这个枚举类型中定义</strong>：</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token keyword">public</span> <span class="token keyword">enum</span> <span class="token class-name">State</span>   
+<span class="token punctuation">{</span>  
+       <span class="token comment">/** 
+        * Thread state for a thread which has not yet started. 
+        */</span>  
+       NEW<span class="token punctuation">,</span>  
+         
+       <span class="token comment">/** 
+        * Thread state for a runnable thread.  A thread in the runnable 
+        * state is executing in the Java virtual machine but it may 
+        * be waiting for other resources from the operating system 
+        * such as processor. 
+        */</span>  
+       RUNNABLE<span class="token punctuation">,</span>  
+         
+       <span class="token comment">/** 
+        * Thread state for a thread blocked waiting for a monitor lock. 
+        * A thread in the blocked state is waiting for a monitor lock 
+        * to enter a synchronized block/method or  
+        * reenter a synchronized block/method after calling 
+        * {@link Object#wait() Object.wait}. 
+        */</span>  
+       BLOCKED<span class="token punctuation">,</span>  
+     
+       <span class="token comment">/** 
+        * Thread state for a waiting thread. 
+        * A thread is in the waiting state due to calling one of the  
+        * following methods: 
+        * &lt;ul&gt; 
+        *   &lt;li&gt;{@link Object#wait() Object.wait} with no timeout&lt;/li&gt; 
+        *   &lt;li&gt;{@link #join() Thread.join} with no timeout&lt;/li&gt; 
+        *   &lt;li&gt;{@link LockSupport#park() LockSupport.park}&lt;/li&gt; 
+        * &lt;/ul&gt; 
+        *  
+        * &lt;p&gt;A thread in the waiting state is waiting for another thread to 
+        * perform a particular action.   
+        * 
+        * For example, a thread that has called &lt;tt&gt;Object.wait()&lt;/tt&gt; 
+        * on an object is waiting for another thread to call  
+        * &lt;tt&gt;Object.notify()&lt;/tt&gt; or &lt;tt&gt;Object.notifyAll()&lt;/tt&gt; on  
+        * that object. A thread that has called &lt;tt&gt;Thread.join()&lt;/tt&gt;  
+        * is waiting for a specified thread to terminate. 
+        */</span>  
+       WAITING<span class="token punctuation">,</span>  
+         
+       <span class="token comment">/** 
+        * Thread state for a waiting thread with a specified waiting time. 
+        * A thread is in the timed waiting state due to calling one of  
+        * the following methods with a specified positive waiting time: 
+        * &lt;ul&gt; 
+        *   &lt;li&gt;{@link #sleep Thread.sleep}&lt;/li&gt; 
+        *   &lt;li&gt;{@link Object#wait(long) Object.wait} with timeout&lt;/li&gt; 
+        *   &lt;li&gt;{@link #join(long) Thread.join} with timeout&lt;/li&gt; 
+        *   &lt;li&gt;{@link LockSupport#parkNanos LockSupport.parkNanos}&lt;/li&gt;  
+        *   &lt;li&gt;{@link LockSupport#parkUntil LockSupport.parkUntil}&lt;/li&gt; 
+        * &lt;/ul&gt; 
+        */</span>  
+       TIMED_WAITING<span class="token punctuation">,</span>  
+  
+       <span class="token comment">/** 
+        * Thread state for a terminated thread. 
+        * The thread has completed execution. 
+        */</span>  
+       TERMINATED<span class="token punctuation">;</span>  
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br><span class="line-number">35</span><br><span class="line-number">36</span><br><span class="line-number">37</span><br><span class="line-number">38</span><br><span class="line-number">39</span><br><span class="line-number">40</span><br><span class="line-number">41</span><br><span class="line-number">42</span><br><span class="line-number">43</span><br><span class="line-number">44</span><br><span class="line-number">45</span><br><span class="line-number">46</span><br><span class="line-number">47</span><br><span class="line-number">48</span><br><span class="line-number">49</span><br><span class="line-number">50</span><br><span class="line-number">51</span><br><span class="line-number">52</span><br><span class="line-number">53</span><br><span class="line-number">54</span><br><span class="line-number">55</span><br><span class="line-number">56</span><br><span class="line-number">57</span><br><span class="line-number">58</span><br><span class="line-number">59</span><br><span class="line-number">60</span><br><span class="line-number">61</span><br><span class="line-number">62</span><br><span class="line-number">63</span><br><span class="line-number">64</span><br><span class="line-number">65</span><br></div></div><ul><li>NEW：</li></ul> <p>每一个线程，在堆内存中都有一个对应的Thread对象。Thread t = new Thread();当刚刚在堆内存中创建Thread对象，还没有调用t.start()方法之前，线程就处在NEW状态。在这个状态上，线程与普通的java对象没有什么区别，就仅仅是一个堆内存中的对象。</p> <ul><li>RUNNABLE：</li></ul> <p>该状态表示线程具备所有运行条件，在运行队列中准备操作系统的调度，或者正在运行。 这个状态的线程比较正常，但如果线程长时间停留在在这个状态就不正常了，这说明线程运行的时间很长（存在性能问题），或者是线程一直得不得执行的机会（存在线程饥饿的问题）。</p> <ul><li>BLOCKED：</li></ul> <p>线程正在等待获取java对象的监视器(也叫内置锁)，即线程正在等待进入由synchronized保护的方法或者代码块。synchronized用来保证原子性，任意时刻最多只能由一个线程进入该临界区域，其他线程只能排队等待。</p> <ul><li>WAITING：</li></ul> <p>处在该线程的状态，正在等待某个事件的发生，只有特定的条件满足，才能获得执行机会。而产生这个特定的事件，通常都是另一个线程。也就是说，如果不发生特定的事件，那么处在该状态的线程一直等待，不能获取执行的机会。比如：</p> <p>A线程调用了obj对象的obj.wait()方法，如果没有线程调用obj.notify或obj.notifyAll，那么A线程就没有办法恢复运行；
+如果A线程调用了LockSupport.park()，没有别的线程调用LockSupport.unpark(A)，那么A没有办法恢复运行。
+TIMED_WAITING：</p> <p>J.U.C中很多与线程相关类，都提供了限时版本和不限时版本的API。TIMED_WAITING意味着线程调用了限时版本的API，正在等待时间流逝。当等待时间过去后，线程一样可以恢复运行。如果线程进入了WAITING状态，一定要特定的事件发生才能恢复运行；而处在TIMED_WAITING的线程，如果特定的事件发生或者是时间流逝完毕，都会恢复运行。</p> <ul><li>TERMINATED：</li></ul> <p>线程执行完毕，执行完run方法正常返回，或者抛出了运行时异常而结束，线程都会停留在这个状态。这个时候线程只剩下Thread对象了，没有什么用了。</p> <h3 id="关键状态分析"><a href="#关键状态分析" class="header-anchor">¶</a> 关键状态分析</h3> <ul><li><strong>Wait on condition</strong>：The thread is either sleeping or waiting to be notified by another thread.</li></ul> <p>该状态说明它在等待另一个条件的发生，来把自己唤醒，或者干脆它是调用了 sleep(n)。</p> <p>此时线程状态大致为以下几种：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>java.lang.Thread.State: WAITING <span class="token punctuation">(</span>parking<span class="token punctuation">)</span>：一直等那个条件发生；
+java.lang.Thread.State: TIMED_WAITING <span class="token punctuation">(</span>parking或sleeping<span class="token punctuation">)</span>：定时的，那个条件不到来，也将定时唤醒自己。
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br></div></div><ul><li><strong>Waiting for Monitor Entry 和 in Object.wait()</strong>：The thread is waiting to get the lock for an object (some other thread may be holding the lock). This happens if two or more threads try to execute synchronized code. Note that the lock is always for an object and not for individual methods.</li></ul> <p>在多线程的JAVA程序中，实现线程之间的同步，就要说说 Monitor。<strong>Monitor是Java中用以实现线程之间的互斥与协作的主要手段，它可以看成是对象或者Class的锁。每一个对象都有，也仅有一个 Monitor</strong> 。下面这个图，描述了线程和 Monitor之间关系，以及线程的状态转换图：</p> <p><img alt="image" data-src="/_images/jvm/java-jvm-debug-1.png" loading="lazy" class="lazy"></p> <p>如上图，每个Monitor在某个时刻，只能被一个线程拥有，<strong>该线程就是 “ActiveThread”，而其它线程都是 “Waiting Thread”，分别在两个队列“Entry Set”和“Wait Set”里等候</strong>。在“Entry Set”中等待的线程状态是“Waiting for monitor entry”，而在“Wait Set”中等待的线程状态是“in Object.wait()”。</p> <p>先看“Entry Set”里面的线程。我们称被 synchronized保护起来的代码段为临界区。<strong>当一个线程申请进入临界区时，它就进入了“Entry Set”队列</strong>。对应的 code就像：</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token keyword">synchronized</span><span class="token punctuation">(</span>obj<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+   <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br></div></div><p>这时有两种可能性：</p> <ul><li>该 monitor不被其它线程拥有， Entry Set里面也没有其它等待线程。本线程即成为相应类或者对象的 Monitor的 Owner，执行临界区的代码。</li> <li>该 monitor被其它线程拥有，本线程在 Entry Set队列中等待。</li></ul> <p>在第一种情况下，线程将处于 “Runnable”的状态，而第二种情况下，线程 DUMP会显示处于 “waiting for monitor entry”。如下：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token string">&quot;Thread-0&quot;</span> <span class="token assign-left variable">prio</span><span class="token operator">=</span><span class="token number">10</span> <span class="token assign-left variable">tid</span><span class="token operator">=</span>0x08222eb0 <span class="token assign-left variable">nid</span><span class="token operator">=</span>0x9 waiting <span class="token keyword">for</span> monitor entry <span class="token punctuation">[</span>0xf927b000<span class="token punctuation">..</span>0xf927bdb8<span class="token punctuation">]</span> 
+at testthread.WaitThread.run<span class="token punctuation">(</span>WaitThread.java:39<span class="token punctuation">)</span> 
+- waiting to lock <span class="token operator">&lt;</span>0xef63bf0<span class="token operator"><span class="token file-descriptor important">8</span>&gt;</span> <span class="token punctuation">(</span>a java.lang.Object<span class="token punctuation">)</span> 
+- locked <span class="token operator">&lt;</span>0xef63beb<span class="token operator"><span class="token file-descriptor important">8</span>&gt;</span> <span class="token punctuation">(</span>a java.util.ArrayList<span class="token punctuation">)</span> 
+at java.lang.Thread.run<span class="token punctuation">(</span>Thread.java:595<span class="token punctuation">)</span> 
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br></div></div><p><strong>临界区的设置，是为了保证其内部的代码执行的原子性和完整性</strong>。但是因为临界区在任何时间只允许线程串行通过，这和我们多线程的程序的初衷是相反的。<strong>如果在多线程的程序中，大量使用 synchronized，或者不适当的使用了它，会造成大量线程在临界区的入口等待，造成系统的性能大幅下降</strong>。如果在线程 DUMP中发现了这个情况，应该审查源码，改进程序。</p> <p>再看“Wait Set”里面的线程。<strong>当线程获得了 Monitor，进入了临界区之后，如果发现线程继续运行的条件没有满足，它则调用对象（一般就是被 synchronized 的对象）的 wait() 方法，放弃 Monitor，进入 “Wait Set”队列。只有当别的线程在该对象上调用了 notify() 或者 notifyAll()，“Wait Set”队列中线程才得到机会去竞争</strong>，但是只有一个线程获得对象的Monitor，恢复到运行态。在 “Wait Set”中的线程， DUMP中表现为： in Object.wait()。如下：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token string">&quot;Thread-1&quot;</span> <span class="token assign-left variable">prio</span><span class="token operator">=</span><span class="token number">10</span> <span class="token assign-left variable">tid</span><span class="token operator">=</span>0x08223250 <span class="token assign-left variable">nid</span><span class="token operator">=</span>0xa <span class="token keyword">in</span> Object.wait<span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">[</span>0xef47a000<span class="token punctuation">..</span>0xef47aa38<span class="token punctuation">]</span> 
+ at java.lang.Object.wait<span class="token punctuation">(</span>Native Method<span class="token punctuation">)</span> 
+ - waiting on <span class="token operator">&lt;</span>0xef63beb<span class="token operator"><span class="token file-descriptor important">8</span>&gt;</span> <span class="token punctuation">(</span>a java.util.ArrayList<span class="token punctuation">)</span> 
+ at java.lang.Object.wait<span class="token punctuation">(</span>Object.java:474<span class="token punctuation">)</span> 
+ at testthread.MyWaitThread.run<span class="token punctuation">(</span>MyWaitThread.java:40<span class="token punctuation">)</span> 
+ - locked <span class="token operator">&lt;</span>0xef63beb<span class="token operator"><span class="token file-descriptor important">8</span>&gt;</span> <span class="token punctuation">(</span>a java.util.ArrayList<span class="token punctuation">)</span> 
+ at java.lang.Thread.run<span class="token punctuation">(</span>Thread.java:595<span class="token punctuation">)</span> 
+综上，一般CPU很忙时，则关注runnable的线程，CPU很闲时，则关注waiting <span class="token keyword">for</span> monitor entry的线程。
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br></div></div><ul><li><strong>JDK 5.0 的 Lock</strong></li></ul> <p>上面提到如果 synchronized和 monitor机制运用不当，可能会造成多线程程序的性能问题。在 JDK 5.0中，引入了 Lock机制，从而使开发者能更灵活的开发高性能的并发多线程程序，可以替代以往 JDK中的 synchronized和 Monitor的 机制。但是，<strong>要注意的是，因为 Lock类只是一个普通类，JVM无从得知 Lock对象的占用情况，所以在线程 DUMP中，也不会包含关于 Lock的信息</strong>， 关于死锁等问题，就不如用 synchronized的编程方式容易识别。</p> <h3 id="关键状态示例"><a href="#关键状态示例" class="header-anchor">¶</a> 关键状态示例</h3> <ul><li><strong>显示BLOCKED状态</strong></li></ul> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token keyword">package</span> <span class="token namespace">jstack</span><span class="token punctuation">;</span>  
+
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">BlockedState</span>  
+<span class="token punctuation">{</span>  
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">Object</span> object <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Object</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+    
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span>  
+    <span class="token punctuation">{</span>  
+        <span class="token class-name">Runnable</span> task <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Runnable</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+
+            <span class="token annotation punctuation">@Override</span>  
+            <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">run</span><span class="token punctuation">(</span><span class="token punctuation">)</span>  
+            <span class="token punctuation">{</span>  
+                <span class="token keyword">synchronized</span> <span class="token punctuation">(</span>object<span class="token punctuation">)</span>  
+                <span class="token punctuation">{</span>  
+                    <span class="token keyword">long</span> begin <span class="token operator">=</span> <span class="token class-name">System</span><span class="token punctuation">.</span><span class="token function">currentTimeMillis</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+  
+                    <span class="token keyword">long</span> end <span class="token operator">=</span> <span class="token class-name">System</span><span class="token punctuation">.</span><span class="token function">currentTimeMillis</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+
+                    <span class="token comment">// 让线程运行5分钟,会一直持有object的监视器  </span>
+                    <span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>end <span class="token operator">-</span> begin<span class="token punctuation">)</span> <span class="token operator">&lt;=</span> <span class="token number">5</span> <span class="token operator">*</span> <span class="token number">60</span> <span class="token operator">*</span> <span class="token number">1000</span><span class="token punctuation">)</span>  
+                    <span class="token punctuation">{</span>  
+  
+                    <span class="token punctuation">}</span>  
+                <span class="token punctuation">}</span>  
+            <span class="token punctuation">}</span>  
+        <span class="token punctuation">}</span><span class="token punctuation">;</span>  
+
+        <span class="token keyword">new</span> <span class="token class-name">Thread</span><span class="token punctuation">(</span>task<span class="token punctuation">,</span> <span class="token string">&quot;t1&quot;</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        <span class="token keyword">new</span> <span class="token class-name">Thread</span><span class="token punctuation">(</span>task<span class="token punctuation">,</span> <span class="token string">&quot;t2&quot;</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+    <span class="token punctuation">}</span>  
+<span class="token punctuation">}</span> 
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br></div></div><p>先获取object的线程会执行5分钟，<strong>这5分钟内会一直持有object的监视器，另一个线程无法执行处在BLOCKED状态</strong>：</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token class-name">Full</span> thread dump <span class="token class-name">Java</span> <span class="token class-name">HotSpot</span><span class="token punctuation">(</span>TM<span class="token punctuation">)</span> <span class="token class-name">Server</span> VM <span class="token punctuation">(</span><span class="token number">20.12</span><span class="token operator">-</span>b01 mixed mode<span class="token punctuation">)</span><span class="token operator">:</span>  
+  
+<span class="token string">&quot;DestroyJavaVM&quot;</span> prio<span class="token operator">=</span><span class="token number">6</span> tid<span class="token operator">=</span><span class="token number">0x00856c00</span> nid<span class="token operator">=</span><span class="token number">0x1314</span> waiting on condition <span class="token punctuation">[</span><span class="token number">0x00000000</span><span class="token punctuation">]</span>  
+<span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Thread<span class="token punctuation">.</span>State</span><span class="token operator">:</span> RUNNABLE  
+
+<span class="token string">&quot;t2&quot;</span> prio<span class="token operator">=</span><span class="token number">6</span> tid<span class="token operator">=</span><span class="token number">0x27d7a800</span> nid<span class="token operator">=</span><span class="token number">0x1350</span> waiting <span class="token keyword">for</span> monitor entry <span class="token punctuation">[</span><span class="token number">0x2833f000</span><span class="token punctuation">]</span>  
+<span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Thread<span class="token punctuation">.</span>State</span><span class="token operator">:</span> BLOCKED <span class="token punctuation">(</span>on object monitor<span class="token punctuation">)</span>  
+     at <span class="token class-name"><span class="token namespace">jstack<span class="token punctuation">.</span></span>BlockedState</span>$<span class="token number">1.</span><span class="token function">run</span><span class="token punctuation">(</span><span class="token class-name">BlockedState</span><span class="token punctuation">.</span>java<span class="token operator">:</span><span class="token number">17</span><span class="token punctuation">)</span>  
+     <span class="token operator">-</span> waiting <span class="token keyword">to</span> <span class="token namespace">lock</span> <span class="token generics"><span class="token punctuation">&lt;</span>0x1cfcdc00<span class="token punctuation">&gt;</span></span> <span class="token punctuation">(</span>a <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Object</span><span class="token punctuation">)</span>  
+     at <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Thread</span><span class="token punctuation">.</span><span class="token function">run</span><span class="token punctuation">(</span><span class="token class-name">Thread</span><span class="token punctuation">.</span>java<span class="token operator">:</span><span class="token number">662</span><span class="token punctuation">)</span>  
+
+<span class="token string">&quot;t1&quot;</span> prio<span class="token operator">=</span><span class="token number">6</span> tid<span class="token operator">=</span><span class="token number">0x27d79400</span> nid<span class="token operator">=</span><span class="token number">0x1338</span> runnable <span class="token punctuation">[</span><span class="token number">0x282ef000</span><span class="token punctuation">]</span>  
+ <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Thread<span class="token punctuation">.</span>State</span><span class="token operator">:</span> RUNNABLE  
+     at <span class="token class-name"><span class="token namespace">jstack<span class="token punctuation">.</span></span>BlockedState</span>$<span class="token number">1.</span><span class="token function">run</span><span class="token punctuation">(</span><span class="token class-name">BlockedState</span><span class="token punctuation">.</span>java<span class="token operator">:</span><span class="token number">22</span><span class="token punctuation">)</span>  
+     <span class="token operator">-</span> locked <span class="token generics"><span class="token punctuation">&lt;</span>0x1cfcdc00<span class="token punctuation">&gt;</span></span> <span class="token punctuation">(</span>a <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Object</span><span class="token punctuation">)</span>  
+     at <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Thread</span><span class="token punctuation">.</span><span class="token function">run</span><span class="token punctuation">(</span><span class="token class-name">Thread</span><span class="token punctuation">.</span>java<span class="token operator">:</span><span class="token number">662</span><span class="token punctuation">)</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br></div></div><p>通过thread dump可以看到：<strong>t2线程确实处在BLOCKED (on object monitor)。waiting for monitor entry 等待进入synchronized保护的区域</strong>。</p> <ul><li><strong>显示WAITING状态</strong></li></ul> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token keyword">package</span> <span class="token namespace">jstack</span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">WaitingState</span>  
+<span class="token punctuation">{</span>  
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">Object</span> object <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Object</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span>  
+    <span class="token punctuation">{</span>  
+        <span class="token class-name">Runnable</span> task <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Runnable</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+
+            <span class="token annotation punctuation">@Override</span>  
+            <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">run</span><span class="token punctuation">(</span><span class="token punctuation">)</span>  
+            <span class="token punctuation">{</span>  
+                <span class="token keyword">synchronized</span> <span class="token punctuation">(</span>object<span class="token punctuation">)</span>  
+                <span class="token punctuation">{</span>  
+                    <span class="token keyword">long</span> begin <span class="token operator">=</span> <span class="token class-name">System</span><span class="token punctuation">.</span><span class="token function">currentTimeMillis</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+                    <span class="token keyword">long</span> end <span class="token operator">=</span> <span class="token class-name">System</span><span class="token punctuation">.</span><span class="token function">currentTimeMillis</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+
+                    <span class="token comment">// 让线程运行5分钟,会一直持有object的监视器  </span>
+                    <span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>end <span class="token operator">-</span> begin<span class="token punctuation">)</span> <span class="token operator">&lt;=</span> <span class="token number">5</span> <span class="token operator">*</span> <span class="token number">60</span> <span class="token operator">*</span> <span class="token number">1000</span><span class="token punctuation">)</span>  
+                    <span class="token punctuation">{</span>  
+                        <span class="token keyword">try</span>  
+                        <span class="token punctuation">{</span>  
+                            <span class="token comment">// 进入等待的同时,会进入释放监视器  </span>
+                            object<span class="token punctuation">.</span><span class="token function">wait</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+                        <span class="token punctuation">}</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">InterruptedException</span> e<span class="token punctuation">)</span>  
+                        <span class="token punctuation">{</span>  
+                            e<span class="token punctuation">.</span><span class="token function">printStackTrace</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+                        <span class="token punctuation">}</span>  
+                    <span class="token punctuation">}</span>  
+                <span class="token punctuation">}</span>  
+            <span class="token punctuation">}</span>  
+        <span class="token punctuation">}</span><span class="token punctuation">;</span>  
+
+        <span class="token keyword">new</span> <span class="token class-name">Thread</span><span class="token punctuation">(</span>task<span class="token punctuation">,</span> <span class="token string">&quot;t1&quot;</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        <span class="token keyword">new</span> <span class="token class-name">Thread</span><span class="token punctuation">(</span>task<span class="token punctuation">,</span> <span class="token string">&quot;t2&quot;</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+    <span class="token punctuation">}</span>  
+<span class="token punctuation">}</span>  
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br><span class="line-number">35</span><br><span class="line-number">36</span><br><span class="line-number">37</span><br><span class="line-number">38</span><br></div></div><div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token class-name">Full</span> thread dump <span class="token class-name">Java</span> <span class="token class-name">HotSpot</span><span class="token punctuation">(</span>TM<span class="token punctuation">)</span> <span class="token class-name">Server</span> VM <span class="token punctuation">(</span><span class="token number">20.12</span><span class="token operator">-</span>b01 mixed mode<span class="token punctuation">)</span><span class="token operator">:</span>  
+
+<span class="token string">&quot;DestroyJavaVM&quot;</span> prio<span class="token operator">=</span><span class="token number">6</span> tid<span class="token operator">=</span><span class="token number">0x00856c00</span> nid<span class="token operator">=</span><span class="token number">0x1734</span> waiting on condition <span class="token punctuation">[</span><span class="token number">0x00000000</span><span class="token punctuation">]</span>  
+<span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Thread<span class="token punctuation">.</span>State</span><span class="token operator">:</span> RUNNABLE  
+
+<span class="token string">&quot;t2&quot;</span> prio<span class="token operator">=</span><span class="token number">6</span> tid<span class="token operator">=</span><span class="token number">0x27d7e000</span> nid<span class="token operator">=</span><span class="token number">0x17f4</span> in <span class="token class-name">Object</span><span class="token punctuation">.</span><span class="token function">wait</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">[</span><span class="token number">0x2833f000</span><span class="token punctuation">]</span>  
+<span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Thread<span class="token punctuation">.</span>State</span><span class="token operator">:</span> WAITING <span class="token punctuation">(</span>on object monitor<span class="token punctuation">)</span>  
+     at <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Object</span><span class="token punctuation">.</span><span class="token function">wait</span><span class="token punctuation">(</span><span class="token class-name">Native</span> <span class="token class-name">Method</span><span class="token punctuation">)</span>  
+     <span class="token operator">-</span> waiting on <span class="token generics"><span class="token punctuation">&lt;</span>0x1cfcdc00<span class="token punctuation">&gt;</span></span> <span class="token punctuation">(</span>a <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Object</span><span class="token punctuation">)</span>  
+     at <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Object</span><span class="token punctuation">.</span><span class="token function">wait</span><span class="token punctuation">(</span><span class="token class-name">Object</span><span class="token punctuation">.</span>java<span class="token operator">:</span><span class="token number">485</span><span class="token punctuation">)</span>  
+     at <span class="token class-name"><span class="token namespace">jstack<span class="token punctuation">.</span></span>WaitingState</span>$<span class="token number">1.</span><span class="token function">run</span><span class="token punctuation">(</span><span class="token class-name">WaitingState</span><span class="token punctuation">.</span>java<span class="token operator">:</span><span class="token number">26</span><span class="token punctuation">)</span>  
+     <span class="token operator">-</span> locked <span class="token generics"><span class="token punctuation">&lt;</span>0x1cfcdc00<span class="token punctuation">&gt;</span></span> <span class="token punctuation">(</span>a <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Object</span><span class="token punctuation">)</span>  
+     at <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Thread</span><span class="token punctuation">.</span><span class="token function">run</span><span class="token punctuation">(</span><span class="token class-name">Thread</span><span class="token punctuation">.</span>java<span class="token operator">:</span><span class="token number">662</span><span class="token punctuation">)</span>  
+
+<span class="token string">&quot;t1&quot;</span> prio<span class="token operator">=</span><span class="token number">6</span> tid<span class="token operator">=</span><span class="token number">0x27d7d400</span> nid<span class="token operator">=</span><span class="token number">0x17f0</span> in <span class="token class-name">Object</span><span class="token punctuation">.</span><span class="token function">wait</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">[</span><span class="token number">0x282ef000</span><span class="token punctuation">]</span>  
+<span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Thread<span class="token punctuation">.</span>State</span><span class="token operator">:</span> WAITING <span class="token punctuation">(</span>on object monitor<span class="token punctuation">)</span>  
+     at <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Object</span><span class="token punctuation">.</span><span class="token function">wait</span><span class="token punctuation">(</span><span class="token class-name">Native</span> <span class="token class-name">Method</span><span class="token punctuation">)</span>  
+     <span class="token operator">-</span> waiting on <span class="token generics"><span class="token punctuation">&lt;</span>0x1cfcdc00<span class="token punctuation">&gt;</span></span> <span class="token punctuation">(</span>a <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Object</span><span class="token punctuation">)</span>  
+     at <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Object</span><span class="token punctuation">.</span><span class="token function">wait</span><span class="token punctuation">(</span><span class="token class-name">Object</span><span class="token punctuation">.</span>java<span class="token operator">:</span><span class="token number">485</span><span class="token punctuation">)</span>  
+     at <span class="token class-name"><span class="token namespace">jstack<span class="token punctuation">.</span></span>WaitingState</span>$<span class="token number">1.</span><span class="token function">run</span><span class="token punctuation">(</span><span class="token class-name">WaitingState</span><span class="token punctuation">.</span>java<span class="token operator">:</span><span class="token number">26</span><span class="token punctuation">)</span>  
+     <span class="token operator">-</span> locked <span class="token generics"><span class="token punctuation">&lt;</span>0x1cfcdc00<span class="token punctuation">&gt;</span></span> <span class="token punctuation">(</span>a <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Object</span><span class="token punctuation">)</span>  
+     at <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Thread</span><span class="token punctuation">.</span><span class="token function">run</span><span class="token punctuation">(</span><span class="token class-name">Thread</span><span class="token punctuation">.</span>java<span class="token operator">:</span><span class="token number">662</span><span class="token punctuation">)</span>  
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br></div></div><p>可以发现t1和t2都处在WAITING (on object monitor)，进入等待状态的原因是调用了in Object.wait()。通过J.U.C包下的锁和条件队列，也是这个效果，大家可以自己实践下。</p> <ul><li><strong>显示TIMED_WAITING状态</strong></li></ul> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token keyword">package</span> <span class="token namespace">jstack</span><span class="token punctuation">;</span>  
+
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span>concurrent<span class="token punctuation">.</span></span><span class="token class-name">TimeUnit</span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span>concurrent<span class="token punctuation">.</span>locks<span class="token punctuation">.</span></span><span class="token class-name">Condition</span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span>concurrent<span class="token punctuation">.</span>locks<span class="token punctuation">.</span></span><span class="token class-name">Lock</span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span>concurrent<span class="token punctuation">.</span>locks<span class="token punctuation">.</span></span><span class="token class-name">ReentrantLock</span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">TimedWaitingState</span>  
+<span class="token punctuation">{</span>  
+    <span class="token comment">// java的显示锁,类似java对象内置的监视器  </span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">Lock</span> lock <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ReentrantLock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+  
+    <span class="token comment">// 锁关联的条件队列(类似于object.wait)  </span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">Condition</span> condition <span class="token operator">=</span> lock<span class="token punctuation">.</span><span class="token function">newCondition</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span>  
+    <span class="token punctuation">{</span>  
+        <span class="token class-name">Runnable</span> task <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Runnable</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+
+            <span class="token annotation punctuation">@Override</span>  
+            <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">run</span><span class="token punctuation">(</span><span class="token punctuation">)</span>  
+            <span class="token punctuation">{</span>  
+                <span class="token comment">// 加锁,进入临界区  </span>
+                lock<span class="token punctuation">.</span><span class="token function">lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+  
+                <span class="token keyword">try</span>  
+                <span class="token punctuation">{</span>  
+                    condition<span class="token punctuation">.</span><span class="token function">await</span><span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">,</span> <span class="token class-name">TimeUnit</span><span class="token punctuation">.</span>MINUTES<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+                <span class="token punctuation">}</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">InterruptedException</span> e<span class="token punctuation">)</span>  
+                <span class="token punctuation">{</span>  
+                    e<span class="token punctuation">.</span><span class="token function">printStackTrace</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+                <span class="token punctuation">}</span>  
+  
+                <span class="token comment">// 解锁,退出临界区  </span>
+                lock<span class="token punctuation">.</span><span class="token function">unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+            <span class="token punctuation">}</span>  
+        <span class="token punctuation">}</span><span class="token punctuation">;</span>  
+  
+        <span class="token keyword">new</span> <span class="token class-name">Thread</span><span class="token punctuation">(</span>task<span class="token punctuation">,</span> <span class="token string">&quot;t1&quot;</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        <span class="token keyword">new</span> <span class="token class-name">Thread</span><span class="token punctuation">(</span>task<span class="token punctuation">,</span> <span class="token string">&quot;t2&quot;</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+    <span class="token punctuation">}</span>  
+<span class="token punctuation">}</span> 
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br><span class="line-number">35</span><br><span class="line-number">36</span><br><span class="line-number">37</span><br><span class="line-number">38</span><br><span class="line-number">39</span><br><span class="line-number">40</span><br><span class="line-number">41</span><br><span class="line-number">42</span><br></div></div><div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token class-name">Full</span> thread dump <span class="token class-name">Java</span> <span class="token class-name">HotSpot</span><span class="token punctuation">(</span>TM<span class="token punctuation">)</span> <span class="token class-name">Server</span> VM <span class="token punctuation">(</span><span class="token number">20.12</span><span class="token operator">-</span>b01 mixed mode<span class="token punctuation">)</span><span class="token operator">:</span>  
+
+<span class="token string">&quot;DestroyJavaVM&quot;</span> prio<span class="token operator">=</span><span class="token number">6</span> tid<span class="token operator">=</span><span class="token number">0x00856c00</span> nid<span class="token operator">=</span><span class="token number">0x169c</span> waiting on condition <span class="token punctuation">[</span><span class="token number">0x00000000</span><span class="token punctuation">]</span>  
+<span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Thread<span class="token punctuation">.</span>State</span><span class="token operator">:</span> RUNNABLE  
+
+<span class="token string">&quot;t2&quot;</span> prio<span class="token operator">=</span><span class="token number">6</span> tid<span class="token operator">=</span><span class="token number">0x27d7d800</span> nid<span class="token operator">=</span><span class="token number">0xc30</span> waiting on condition <span class="token punctuation">[</span><span class="token number">0x2833f000</span><span class="token punctuation">]</span>  
+<span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Thread<span class="token punctuation">.</span>State</span><span class="token operator">:</span> TIMED_WAITING <span class="token punctuation">(</span>parking<span class="token punctuation">)</span>  
+     at <span class="token class-name"><span class="token namespace">sun<span class="token punctuation">.</span>misc<span class="token punctuation">.</span></span>Unsafe</span><span class="token punctuation">.</span><span class="token function">park</span><span class="token punctuation">(</span><span class="token class-name">Native</span> <span class="token class-name">Method</span><span class="token punctuation">)</span>  
+     <span class="token operator">-</span> parking <span class="token keyword">to</span> <span class="token namespace">wait</span> <span class="token keyword">for</span>  <span class="token generics"><span class="token punctuation">&lt;</span>0x1cfce5b8<span class="token punctuation">&gt;</span></span> <span class="token punctuation">(</span>a <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span>concurrent<span class="token punctuation">.</span>locks<span class="token punctuation">.</span></span>AbstractQueuedSynchronizer</span>$<span class="token class-name">ConditionObject</span><span class="token punctuation">)</span>  
+     at <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span>concurrent<span class="token punctuation">.</span>locks<span class="token punctuation">.</span></span>LockSupport</span><span class="token punctuation">.</span><span class="token function">parkNanos</span><span class="token punctuation">(</span><span class="token class-name">LockSupport</span><span class="token punctuation">.</span>java<span class="token operator">:</span><span class="token number">196</span><span class="token punctuation">)</span>  
+     at <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span>concurrent<span class="token punctuation">.</span>locks<span class="token punctuation">.</span></span>AbstractQueuedSynchronizer</span>$<span class="token class-name">ConditionObject</span><span class="token punctuation">.</span><span class="token function">await</span><span class="token punctuation">(</span><span class="token class-name">AbstractQueuedSynchronizer</span><span class="token punctuation">.</span>java<span class="token operator">:</span><span class="token number">2116</span><span class="token punctuation">)</span>  
+     at <span class="token class-name"><span class="token namespace">jstack<span class="token punctuation">.</span></span>TimedWaitingState</span>$<span class="token number">1.</span><span class="token function">run</span><span class="token punctuation">(</span><span class="token class-name">TimedWaitingState</span><span class="token punctuation">.</span>java<span class="token operator">:</span><span class="token number">28</span><span class="token punctuation">)</span>  
+     at <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Thread</span><span class="token punctuation">.</span><span class="token function">run</span><span class="token punctuation">(</span><span class="token class-name">Thread</span><span class="token punctuation">.</span>java<span class="token operator">:</span><span class="token number">662</span><span class="token punctuation">)</span>  
+
+<span class="token string">&quot;t1&quot;</span> prio<span class="token operator">=</span><span class="token number">6</span> tid<span class="token operator">=</span><span class="token number">0x280d0c00</span> nid<span class="token operator">=</span><span class="token number">0x16e0</span> waiting on condition <span class="token punctuation">[</span><span class="token number">0x282ef000</span><span class="token punctuation">]</span>  
+<span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Thread<span class="token punctuation">.</span>State</span><span class="token operator">:</span> TIMED_WAITING <span class="token punctuation">(</span>parking<span class="token punctuation">)</span>  
+     at <span class="token class-name"><span class="token namespace">sun<span class="token punctuation">.</span>misc<span class="token punctuation">.</span></span>Unsafe</span><span class="token punctuation">.</span><span class="token function">park</span><span class="token punctuation">(</span><span class="token class-name">Native</span> <span class="token class-name">Method</span><span class="token punctuation">)</span>  
+     <span class="token operator">-</span> parking <span class="token keyword">to</span> <span class="token namespace">wait</span> <span class="token keyword">for</span>  <span class="token generics"><span class="token punctuation">&lt;</span>0x1cfce5b8<span class="token punctuation">&gt;</span></span> <span class="token punctuation">(</span>a <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span>concurrent<span class="token punctuation">.</span>locks<span class="token punctuation">.</span></span>AbstractQueuedSynchronizer</span>$<span class="token class-name">ConditionObject</span><span class="token punctuation">)</span>  
+     at <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span>concurrent<span class="token punctuation">.</span>locks<span class="token punctuation">.</span></span>LockSupport</span><span class="token punctuation">.</span><span class="token function">parkNanos</span><span class="token punctuation">(</span><span class="token class-name">LockSupport</span><span class="token punctuation">.</span>java<span class="token operator">:</span><span class="token number">196</span><span class="token punctuation">)</span>  
+     at <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span>concurrent<span class="token punctuation">.</span>locks<span class="token punctuation">.</span></span>AbstractQueuedSynchronizer</span>$<span class="token class-name">ConditionObject</span><span class="token punctuation">.</span><span class="token function">await</span><span class="token punctuation">(</span><span class="token class-name">AbstractQueuedSynchronizer</span><span class="token punctuation">.</span>java<span class="token operator">:</span><span class="token number">2116</span><span class="token punctuation">)</span>  
+     at <span class="token class-name"><span class="token namespace">jstack<span class="token punctuation">.</span></span>TimedWaitingState</span>$<span class="token number">1.</span><span class="token function">run</span><span class="token punctuation">(</span><span class="token class-name">TimedWaitingState</span><span class="token punctuation">.</span>java<span class="token operator">:</span><span class="token number">28</span><span class="token punctuation">)</span>  
+     at <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Thread</span><span class="token punctuation">.</span><span class="token function">run</span><span class="token punctuation">(</span><span class="token class-name">Thread</span><span class="token punctuation">.</span>java<span class="token operator">:</span><span class="token number">662</span><span class="token punctuation">)</span>  
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br></div></div><p>可以看到t1和t2线程都处在java.lang.Thread.State: TIMED_WAITING (parking)，这个parking代表是调用的JUC下的工具类，而不是java默认的监视器。</p> <h2 id="案例分析"><a href="#案例分析" class="header-anchor">¶</a> 案例分析</h2> <h3 id="问题场景"><a href="#问题场景" class="header-anchor">¶</a> 问题场景</h3> <ul><li><p><strong>CPU飙高，load高，响应很慢</strong></p> <ol><li>一个请求过程中多次dump；</li> <li>对比多次dump文件的runnable线程，如果执行的方法有比较大变化，说明比较正常。如果在执行同一个方法，就有一些问题了；</li></ol></li> <li><p><strong>查找占用CPU最多的线程</strong></p> <ol><li>使用命令：top -H -p pid（pid为被测系统的进程号），找到导致CPU高的线程ID，对应thread dump信息中线程的nid，只不过一个是十进制，一个是十六进制；</li> <li>在thread dump中，根据top命令查找的线程id，查找对应的线程堆栈信息；</li></ol></li> <li><p><strong>CPU使用率不高但是响应很慢</strong></p></li></ul> <p>进行dump，查看是否有很多thread struck在了i/o、数据库等地方，定位瓶颈原因；</p> <ul><li><strong>请求无法响应</strong></li></ul> <p>多次dump，对比是否所有的runnable线程都一直在执行相同的方法，如果是的，恭喜你，锁住了！</p> <h3 id="死锁"><a href="#死锁" class="header-anchor">¶</a> 死锁</h3> <p>死锁经常表现为程序的停顿，或者不再响应用户的请求。从操作系统上观察，对应进程的CPU占用率为零，很快会从top或prstat的输出中消失。</p> <p>比如在下面这个示例中，是个较为典型的死锁情况：</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token string">&quot;Thread-1&quot;</span> prio<span class="token operator">=</span><span class="token number">5</span> tid<span class="token operator">=</span><span class="token number">0x00acc490</span> nid<span class="token operator">=</span><span class="token number">0xe50</span> waiting <span class="token keyword">for</span> monitor entry <span class="token punctuation">[</span><span class="token number">0x02d3f000</span> 
+<span class="token punctuation">.</span><span class="token number">.0</span>x02d3fd68<span class="token punctuation">]</span> 
+at <span class="token class-name"><span class="token namespace">deadlockthreads<span class="token punctuation">.</span></span>TestThread</span><span class="token punctuation">.</span><span class="token function">run</span><span class="token punctuation">(</span><span class="token class-name">TestThread</span><span class="token punctuation">.</span>java<span class="token operator">:</span><span class="token number">31</span><span class="token punctuation">)</span> 
+<span class="token operator">-</span> waiting <span class="token keyword">to</span> <span class="token namespace">lock</span> <span class="token generics"><span class="token punctuation">&lt;</span>0x22c19f18<span class="token punctuation">&gt;</span></span> <span class="token punctuation">(</span>a <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Object</span><span class="token punctuation">)</span> 
+<span class="token operator">-</span> locked <span class="token generics"><span class="token punctuation">&lt;</span>0x22c19f20<span class="token punctuation">&gt;</span></span> <span class="token punctuation">(</span>a <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Object</span><span class="token punctuation">)</span> 
+
+<span class="token string">&quot;Thread-0&quot;</span> prio<span class="token operator">=</span><span class="token number">5</span> tid<span class="token operator">=</span><span class="token number">0x00accdb0</span> nid<span class="token operator">=</span><span class="token number">0xdec</span> waiting <span class="token keyword">for</span> monitor entry <span class="token punctuation">[</span><span class="token number">0x02cff000</span> 
+<span class="token punctuation">.</span><span class="token number">.0</span>x02cff9e8<span class="token punctuation">]</span> 
+at <span class="token class-name"><span class="token namespace">deadlockthreads<span class="token punctuation">.</span></span>TestThread</span><span class="token punctuation">.</span><span class="token function">run</span><span class="token punctuation">(</span><span class="token class-name">TestThread</span><span class="token punctuation">.</span>java<span class="token operator">:</span><span class="token number">31</span><span class="token punctuation">)</span> 
+<span class="token operator">-</span> waiting <span class="token keyword">to</span> <span class="token namespace">lock</span> <span class="token generics"><span class="token punctuation">&lt;</span>0x22c19f20<span class="token punctuation">&gt;</span></span> <span class="token punctuation">(</span>a <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Object</span><span class="token punctuation">)</span> 
+<span class="token operator">-</span> locked <span class="token generics"><span class="token punctuation">&lt;</span>0x22c19f18<span class="token punctuation">&gt;</span></span> <span class="token punctuation">(</span>a <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Object</span><span class="token punctuation">)</span> 
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br></div></div><p>在 JAVA 5中加强了对死锁的检测。<strong>线程 Dump中可以直接报告出 Java级别的死锁</strong>，如下所示：</p> <div class="language-java line-numbers-mode"><pre class="language-java"><code><span class="token class-name">Found</span> one <span class="token class-name">Java</span><span class="token operator">-</span>level deadlock<span class="token operator">:</span> 
+<span class="token operator">==</span><span class="token operator">==</span><span class="token operator">==</span><span class="token operator">==</span><span class="token operator">==</span><span class="token operator">==</span><span class="token operator">==</span><span class="token operator">==</span><span class="token operator">==</span><span class="token operator">==</span><span class="token operator">==</span><span class="token operator">==</span><span class="token operator">==</span><span class="token operator">==</span><span class="token operator">=</span> 
+<span class="token string">&quot;Thread-1&quot;</span><span class="token operator">:</span> 
+waiting <span class="token keyword">to</span> <span class="token namespace">lock</span> monitor <span class="token number">0x0003f334</span> <span class="token punctuation">(</span>object <span class="token number">0x22c19f18</span><span class="token punctuation">,</span> a <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Object</span><span class="token punctuation">)</span><span class="token punctuation">,</span> 
+which is held by <span class="token string">&quot;Thread-0&quot;</span> 
+
+<span class="token string">&quot;Thread-0&quot;</span><span class="token operator">:</span> 
+waiting <span class="token keyword">to</span> <span class="token namespace">lock</span> monitor <span class="token number">0x0003f314</span> <span class="token punctuation">(</span>object <span class="token number">0x22c19f20</span><span class="token punctuation">,</span> a <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Object</span><span class="token punctuation">)</span><span class="token punctuation">,</span> 
+which is held by <span class="token string">&quot;Thread-1&quot;</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br></div></div><h3 id="热锁"><a href="#热锁" class="header-anchor">¶</a> 热锁</h3> <p>热锁，也往往是导致系统性能瓶颈的主要因素。其表现特征为：<strong>由于多个线程对临界区，或者锁的竞争</strong>，可能出现：</p> <ul><li><strong>频繁的线程的上下文切换</strong>：从操作系统对线程的调度来看，当线程在等待资源而阻塞的时候，操作系统会将之切换出来，放到等待的队列，当线程获得资源之后，调度算法会将这个线程切换进去，放到执行队列中。</li> <li><strong>大量的系统调用</strong>：因为线程的上下文切换，以及热锁的竞争，或者临界区的频繁的进出，都可能导致大量的系统调用。</li> <li><strong>大部分CPU开销用在“系统态”</strong>：线程上下文切换，和系统调用，都会导致 CPU在 “系统态 ”运行，换而言之，虽然系统很忙碌，但是CPU用在 “用户态 ”的比例较小，应用程序得不到充分的 CPU资源。</li> <li><strong>随着CPU数目的增多，系统的性能反而下降</strong>。因为CPU数目多，同时运行的线程就越多，可能就会造成更频繁的线程上下文切换和系统态的CPU开销，从而导致更糟糕的性能。</li></ul> <p>上面的描述，都是一个 scalability（可扩展性）很差的系统的表现。从整体的性能指标看，由于线程热锁的存在，程序的响应时间会变长，吞吐量会降低。</p> <p><strong>那么，怎么去了解 “热锁 ”出现在什么地方呢</strong>？</p> <p>一个重要的方法是 结合操作系统的各种工具观察系统资源使用状况，以及收集Java线程的DUMP信息，看线程都阻塞在什么方法上，了解原因，才能找到对应的解决方法。</p> <h2 id="jvm重要线程"><a href="#jvm重要线程" class="header-anchor">¶</a> JVM重要线程</h2> <p>JVM运行过程中产生的一些比较重要的线程罗列如下：</p> <table><thead><tr><th>线程名称</th> <th>解释说明</th></tr></thead> <tbody><tr><td>Attach Listener</td> <td>Attach Listener 线程是负责接收到外部的命令，而对该命令进行执行的并把结果返回给发送者。通常我们会用一些命令去要求JVM给我们一些反馈信息，如：java -version、jmap、jstack等等。 如果该线程在JVM启动的时候没有初始化，那么，则会在用户第一次执行JVM命令时，得到启动。</td></tr> <tr><td>Signal Dispatcher</td> <td>前面提到Attach Listener线程的职责是接收外部JVM命令，当命令接收成功后，会交给signal dispather线程去进行分发到各个不同的模块处理命令，并且返回处理结果。signal dispather线程也是在第一次接收外部JVM命令时，进行初始化工作。</td></tr> <tr><td>CompilerThread0</td> <td>用来调用JITing，实时编译装卸class 。 通常，JVM会启动多个线程来处理这部分工作，线程名称后面的数字也会累加，例如：CompilerThread1。</td></tr> <tr><td>Concurrent Mark-Sweep GC Thread</td> <td>并发标记清除垃圾回收器（就是通常所说的CMS GC）线程， 该线程主要针对于老年代垃圾回收。ps：启用该垃圾回收器，需要在JVM启动参数中加上：-XX:+UseConcMarkSweepGC。</td></tr> <tr><td>DestroyJavaVM</td> <td>执行main()的线程，在main执行完后调用JNI中的 jni_DestroyJavaVM() 方法唤起DestroyJavaVM 线程，处于等待状态，等待其它线程（Java线程和Native线程）退出时通知它卸载JVM。每个线程退出时，都会判断自己当前是否是整个JVM中最后一个非deamon线程，如果是，则通知DestroyJavaVM 线程卸载JVM。</td></tr> <tr><td>Finalizer Thread</td> <td>这个线程也是在main线程之后创建的，其优先级为10，主要用于在垃圾收集前，调用对象的finalize()方法；关于Finalizer线程的几点：1) 只有当开始一轮垃圾收集时，才会开始调用finalize()方法；因此并不是所有对象的finalize()方法都会被执行；2) 该线程也是daemon线程，因此如果虚拟机中没有其他非daemon线程，不管该线程有没有执行完finalize()方法，JVM也会退出；3) JVM在垃圾收集时会将失去引用的对象包装成Finalizer对象（Reference的实现），并放入ReferenceQueue，由Finalizer线程来处理；最后将该Finalizer对象的引用置为null，由垃圾收集器来回收；4) JVM为什么要单独用一个线程来执行finalize()方法呢？如果JVM的垃圾收集线程自己来做，很有可能由于在finalize()方法中误操作导致GC线程停止或不可控，这对GC线程来说是一种灾难；</td></tr> <tr><td>Low Memory Detector</td> <td>这个线程是负责对可使用内存进行检测，如果发现可用内存低，分配新的内存空间。</td></tr> <tr><td>Reference Handler</td> <td>JVM在创建main线程后就创建Reference Handler线程，其优先级最高，为10，它主要用于处理引用对象本身（软引用、弱引用、虚引用）的垃圾回收问题 。</td></tr> <tr><td>VM Thread</td> <td>这个线程就比较牛b了，是JVM里面的线程母体，根据hotspot源码（vmThread.hpp）里面的注释，它是一个单个的对象（最原始的线程）会产生或触发所有其他的线程，这个单个的VM线程是会被其他线程所使用来做一些VM操作（如：清扫垃圾等）。</td></tr></tbody></table> <h2 id="参考文章"><a href="#参考文章" class="header-anchor">¶</a> 参考文章</h2> <ul><li>作者：猿码架构</li> <li>链接：https://www.jianshu.com/p/f1db856022de</li> <li>来源：简书</li> <li>著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。</li></ul></div> <div class="page-contract"><h2>联系我</h2> <div class="c-content"><span style="font-size:1rem;font-weight:bold;">添加@pdai微信</span><br> <img src="../../../pdai.jpg" height="280px" style="margin:10px;"><br>
+        PS：添加时请备注<b>Java全栈</b>，谢谢！
+      </div></div> <footer class="page-edit"><div class="edit-link"><a href="https://github.com/realpdai/tech-arch-doc/edit/master/md/java/jvm/java-jvm-thread-dump.md" target="_blank" rel="noopener noreferrer">在 GitHub 上编辑此页</a> <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></div> <div class="last-updated"><span class="prefix">上次更新: </span> <span class="time">7/8/2020,</span></div></footer> <div class="page-nav"><p class="inner"><span class="prev">
+        ←
+        <a href="java-jvm-oom.html" class="prev">
+          调试排错 - Java OOM 分析
+        </a></span> <span class="next"><a href="java-jvm-debug-tools-linux.html">
+          调试排错 - Java问题排查：Linux命令
+        </a>
+        →
+      </span></p></div> <div class="google_ad_bottom"><ins data-ad-client="ca-pub-5088193899865249" data-ad-slot="6822031208" data-ad-format="auto" data-full-width-responsive="true" class="adsbygoogle" style="display:block"></ins> <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script></div> </main></div> <aside class="page-sidebar"> <div class="page-side-toolbar"><div class="option-box-toc-fixed"><div class="toc-container-sidebar"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:650px"><div style="font-weight:bold;text-align:center;">调试排错 - Java线程Dump分析</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="java-jvm-thread-dump.html#thread-dump介绍" class="toc-sidebar-link">Thread Dump介绍</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="java-jvm-thread-dump.html#什么是thread-dump" class="toc-sidebar-link">什么是Thread Dump</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-thread-dump.html#thread-dump特点" class="toc-sidebar-link">Thread Dump特点</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-thread-dump.html#thread-dump抓取" class="toc-sidebar-link">Thread Dump抓取</a></li></ul></li><li><a href="java-jvm-thread-dump.html#thread-dump分析" class="toc-sidebar-link">Thread Dump分析</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="java-jvm-thread-dump.html#thread-dump信息" class="toc-sidebar-link">Thread Dump信息</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-thread-dump.html#thread状态分析" class="toc-sidebar-link">Thread状态分析</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-thread-dump.html#关键状态分析" class="toc-sidebar-link">关键状态分析</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-thread-dump.html#关键状态示例" class="toc-sidebar-link">关键状态示例</a></li></ul></li><li><a href="java-jvm-thread-dump.html#案例分析" class="toc-sidebar-link">案例分析</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="java-jvm-thread-dump.html#问题场景" class="toc-sidebar-link">问题场景</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-thread-dump.html#死锁" class="toc-sidebar-link">死锁</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-thread-dump.html#热锁" class="toc-sidebar-link">热锁</a></li></ul></li><li><a href="java-jvm-thread-dump.html#jvm重要线程" class="toc-sidebar-link">JVM重要线程</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="java-jvm-thread-dump.html#参考文章" class="toc-sidebar-link">参考文章</a><ul class="toc-sidebar-sub-headers"></ul></li></ul></div></div></div></div></div> <div class="option-box-toc-over"><img src="../../../toc.png" class="nozoom"> <span class="show-txt">目录</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:550px"><div style="font-weight:bold;text-align:center;">调试排错 - Java线程Dump分析</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="java-jvm-thread-dump.html#thread-dump介绍" class="toc-sidebar-link">Thread Dump介绍</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="java-jvm-thread-dump.html#什么是thread-dump" class="toc-sidebar-link">什么是Thread Dump</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-thread-dump.html#thread-dump特点" class="toc-sidebar-link">Thread Dump特点</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-thread-dump.html#thread-dump抓取" class="toc-sidebar-link">Thread Dump抓取</a></li></ul></li><li><a href="java-jvm-thread-dump.html#thread-dump分析" class="toc-sidebar-link">Thread Dump分析</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="java-jvm-thread-dump.html#thread-dump信息" class="toc-sidebar-link">Thread Dump信息</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-thread-dump.html#thread状态分析" class="toc-sidebar-link">Thread状态分析</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-thread-dump.html#关键状态分析" class="toc-sidebar-link">关键状态分析</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-thread-dump.html#关键状态示例" class="toc-sidebar-link">关键状态示例</a></li></ul></li><li><a href="java-jvm-thread-dump.html#案例分析" class="toc-sidebar-link">案例分析</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="java-jvm-thread-dump.html#问题场景" class="toc-sidebar-link">问题场景</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-thread-dump.html#死锁" class="toc-sidebar-link">死锁</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-thread-dump.html#热锁" class="toc-sidebar-link">热锁</a></li></ul></li><li><a href="java-jvm-thread-dump.html#jvm重要线程" class="toc-sidebar-link">JVM重要线程</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="java-jvm-thread-dump.html#参考文章" class="toc-sidebar-link">参考文章</a><ul class="toc-sidebar-sub-headers"></ul></li></ul></div></div></div></div></div> <div class="option-box"><img src="../../../wechat.png" class="nozoom"> <span class="show-txt">手机看</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.9rem">微信扫一扫</span> <img height="180px" src="https://api.qrserver.com/v1/create-qr-code/?data=https://www.pdai.tech/md/java/jvm/java-jvm-thread-dump.html" style="margin:10px;">
+              可以<b>手机看</b>或分享至<b>朋友圈</b></div></div></div></div> <div class="option-box"><a title="点击切换全屏" style="text-align:center;padding-left:2px;"><img src="../../../full.png" width="30px" class="nozoom"> <span style="color:gray;font-size:11px;font-weight:400;">全屏看</span></a></div> <div class="option-box"><img src="../../../toggle.png" width="30px" class="nozoom"> <span class="show-txt">左栏</span></div> <div class="option-box"><img src="../../../wexin2.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:yellow">交流圈</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">添加pdai微信进《Java全栈知识体系》学习交流圈「无任何套路」</span> <img src="../../../pdai.jpg" height="180px" style="margin:10px;">
+              PS：添加时请备注<b>Java全栈</b>，谢谢！
+            </div></div></div></div> <div class="option-box"><img src="../../../download.jpg" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:#a6f792">下资料</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">扫描公众号，回复“资料”下载<font style="color:red;">10GB+</font>书籍资料「无任何套路」</span> <img src="../../../pdai_gzh.jpg" height="180px" style="margin:10px;"> <b>公众号:</b> Java全栈知识体系
+            </div></div></div></div> <div class="option-box"><img src="../../../heart.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;background-color:#gray">支持我</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">鼓励/支持/赞赏我</span> <img src="../../../pdai-guli.png" height="180px" width="200px" style="margin:5px;">
+              1. 不靠它生存但仍希望得到你的鼓励；<br> 2. 时刻警醒自己保持技术人的初心，恒心，简单，利他；
+            </div></div></div></div> <div title="调试排错 - Java OOM 分析" class="option-box" style="padding-left:2px;text-align:center;"><a href="java-jvm-oom.html"><img src="../../../pre2.png" width="30px" class="nozoom"> <span class="show-txt">上一篇</span></a></div> <div title="调试排错 - Java问题排查：Linux命令" class="option-box" style="padding-left:2px;text-align:center;"><a href="java-jvm-debug-tools-linux.html"><img src="../../../next2.png" width="30px" class="nozoom"> <span class="show-txt">下一篇</span></a></div></div>  <div class="page-side-sitemap"><div class="option-box"><img src="../../../sitemap.png" class="nozoom img"> <span class="show-txt">站点图</span> <div class="sitemap-container"><h4>站点导航图
+            <a href="../../about/me/about-me.html" class="sitemap-top-link"> 关于我</a> <a href="../../about/blog/blog-build-vuepress.html" class="sitemap-top-link"> 关于站点</a> <a href="../../about/me/blog-changelist.html" class="sitemap-top-link"> 最近更新记录</a> <a href="../../about/me/blog-question.html" class="sitemap-top-link"><font style="color:red;background-color:yellow;">问题反馈</font></a></h4> <table class="sitemap-table"><tr><td nowrap="nowrap"><div class="sitemap-col-group">常用搜索</div></td> <td><div class="sitemap-col-item"><a href="http://www.baidu.com/" target="_blank" title="百度">  
+            百度
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.google.com/" target="_blank" title="Google">  
+            Google
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.bing.com/" target="_blank" title="Bing">  
+            Bing
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://github.com/" target="_blank" title="Github">  
+            Github
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.programcreek.com/java-api-examples/index.php" target="_blank" title="搜代码">  
+            搜代码
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">技术社区</div></td> <td><div class="sitemap-col-item"><a href="http://www.csdn.net/" target="_blank" title="CDSN">  
+            CDSN
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.cnblogs.com/" target="_blank" title="博客园">  
+            博客园
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.oschina.net/" target="_blank" title="OSChina">  
+            OSChina
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://segmentfault.com/" target="_blank" title="知否">  
+            知否
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://juejin.im/" target="_blank" title="掘金">  
+            掘金
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.linuxidc.com/" target="_blank" title="Linux公社">  
+            Linux公社
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.ibm.com/developerworks/cn/" target="_blank" title="IBM 开发者">  
+            IBM 开发者
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://stackoverflow.com/" target="_blank" title="StackOverflow">  
+            StackOverflow
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">Java相关</div></td> <!----> <td><a href="../basic/java-basic-oop.html" class="sitemap-col-item">
+            面向对象基础
+          </a><a href="../basic/java-basic-lan-basic.html" class="sitemap-col-item">
+            语法基础
+          </a><a href="../collection/java-collection-all.html" class="sitemap-col-item">
+            集合框架
+          </a><a href="../thread/java-thread-x-overview.html" class="sitemap-col-item">
+            并发基础
+          </a><a href="../thread/java-thread-x-key-synchronized.html" class="sitemap-col-item">
+            并发关键字
+          </a><a href="../thread/java-thread-x-juc-overview.html" class="sitemap-col-item">
+            JUC并发框架
+          </a><a href="../io/java-io-overview.html" class="sitemap-col-item">
+            IO框架
+          </a><a href="../java8/java8.html" class="sitemap-col-item">
+            Java8 特性
+          </a><a href="java-jvm-x-overview.html" class="sitemap-col-item">
+            JVM基础
+          </a><a href="java-jvm-param.html" class="sitemap-col-item">
+            调试排错
+          </a><a href="../others/java-others-awesome-java.html" class="sitemap-col-item">
+            更多资源
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">算法相关</div></td> <!----> <td><a href="../../algorithm/alg-basic-array.html" class="sitemap-col-item">
+            数组与线性表
+          </a><a href="../../algorithm/alg-basic-tree.html" class="sitemap-col-item">
+            树详解
+          </a><a href="../../algorithm/alg-basic-graph.html" class="sitemap-col-item">
+            图详解
+          </a><a href="../../algorithm/alg-sort-overview.html" class="sitemap-col-item">
+            内部排序
+          </a><a href="../../algorithm/alg-core-divide-and-conquer.html" class="sitemap-col-item">
+            算法思想
+          </a><a href="../../algorithm/alg-domain-security-degist.html" class="sitemap-col-item">
+            安全算法
+          </a><a href="../../algorithm/alg-domain-bigdata-overview.html" class="sitemap-col-item">
+            大数据处理
+          </a><a href="../../algorithm/alg-domain-distribute-overview.html" class="sitemap-col-item">
+            分布式算法
+          </a><a href="../../algorithm/alg-domain-load-balance.html" class="sitemap-col-item">
+            负载均衡算法
+          </a><a href="../../algorithm/alg-domain-suggest.html" class="sitemap-col-item">
+            推荐算法
+          </a><a href="../../algorithm/alg-other-mind.html" class="sitemap-col-item">
+            头脑风暴
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">数据库相关</div></td> <!----> <td><a href="../../db/sql/sql-db-howitworks.html" class="sitemap-col-item">
+            数据库原理
+          </a><a href="../../db/sql-lan/sql-lan.html" class="sitemap-col-item">
+            SQL语言
+          </a><a href="../../db/sql-mysql/sql-mysql-theory.html" class="sitemap-col-item">
+            MySQL相关
+          </a><a href="../../db/nosql-mongo/mongo-performance-improve.html" class="sitemap-col-item">
+            MongoDB
+          </a><a href="../../db/nosql-es/elasticsearch.html" class="sitemap-col-item">
+            ElasticSearch
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">开发基础相关</div></td> <!----> <td><a href="../../develop/package/dev-package-x-apache-common.html" class="sitemap-col-item">
+            常用类库
+          </a><a href="../../develop/ut/dev-ut-x-junit.html" class="sitemap-col-item">
+            单元测试
+          </a><a href="../../develop/regex/dev-regex-all.html" class="sitemap-col-item">
+            正则表达式
+          </a><a href="../../develop/protocol/dev-protocol-overview.html" class="sitemap-col-item">
+            网络协议
+          </a><a href="../../develop/security/dev-security-overview.html" class="sitemap-col-item">
+            安全相关
+          </a><a href="../../develop/refactor/dev-refactor-if-else.html" class="sitemap-col-item">
+            常见重构技巧
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">架构相关</div></td> <!----> <td><a href="../../arch/arch-x-basic.html" class="sitemap-col-item">
+            架构基础
+          </a><a href="../../arch/arch-x-view.html" class="sitemap-col-item">
+            架构视角
+          </a><a href="../../arch/arch-x-evolution.html" class="sitemap-col-item">
+            架构演进
+          </a><a href="../../arch/arch-x-pattern.html" class="sitemap-col-item">
+            架构模式和要素
+          </a><a href="../../arch/arch-y-cache.html" class="sitemap-col-item">
+            高并发之缓存
+          </a><a href="../../arch/arch-y-ratelimit.html" class="sitemap-col-item">
+            高并发之限流
+          </a><a href="../../arch/arch-y-reduce.html" class="sitemap-col-item">
+            高并发之降级
+          </a><a href="../../arch/arch-y-loadbalance.html" class="sitemap-col-item">
+            负载均衡
+          </a><a href="../../arch/arch-y-backup.html" class="sitemap-col-item">
+            容灾备份
+          </a><a href="../../arch/arch-x-security.html" class="sitemap-col-item">
+            架构安全
+          </a><a href="../../arch/arch-example-seckill.html" class="sitemap-col-item">
+            秒杀系统设计
+          </a><a href="../../arch/arch-example-goods-detail.html" class="sitemap-col-item">
+            架构案例
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">工具和部署</div></td> <!----> <td><a href="../../devops/tool/tool-list-overview.html" class="sitemap-col-item">
+            工具集合
+          </a><a href="../../devops/tool/tool-ide.html" class="sitemap-col-item">
+            IDE相关
+          </a><a href="../../devops/tool/tool-git.html" class="sitemap-col-item">
+            Git
+          </a><a href="../../devops/tool/tool-maven.html" class="sitemap-col-item">
+            Maven
+          </a><a href="../../devops/linux/linux.html" class="sitemap-col-item">
+            Linux
+          </a><a href="../../devops/docker/docker-00-overview.html" class="sitemap-col-item">
+            Docker
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">方法论</div></td> <!----> <td><a href="../../dev-spec/spec/dev-th-solid.html" class="sitemap-col-item">
+            SOLID
+          </a><a href="../../dev-spec/spec/dev-th-cap.html" class="sitemap-col-item">
+            CAP
+          </a><a href="../../dev-spec/spec/dev-th-base.html" class="sitemap-col-item">
+            BASE
+          </a><a href="../../dev-spec/spec/dev-opensource.html" class="sitemap-col-item">
+            开源协议
+          </a><a href="../../dev-spec/code-style/code-style-alibaba.html" class="sitemap-col-item">
+            代码规范
+          </a><a href="../../dev-spec/pattern/1_overview.html" class="sitemap-col-item">
+            设计模式
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">产品和团队</div></td> <!----> <td><a href="../../team/team-z-wechat.html" class="sitemap-col-item">
+            产品相关
+          </a><a href="../../team/team-z-task-emergency.html" class="sitemap-col-item">
+            团队相关
+          </a><a href="../../team/team-z-arch-future.html" class="sitemap-col-item">
+            其它分享
+          </a></td></tr></table></div></div></div> <!----> </aside></div><div class="global-ui"></div></div>
+    <script src="../../../assets/js/app.691e72ae.js" defer></script><script src="../../../assets/js/4.2e3efdf6.js" defer></script><script src="../../../assets/js/3.d77b006c.js" defer></script><script src="../../../assets/js/479.2fdc511d.js" defer></script>
+  </body>
+
+<!-- Mirrored from www.pdai.tech/md/java/jvm/java-jvm-thread-dump.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:32:55 GMT -->
+</html>

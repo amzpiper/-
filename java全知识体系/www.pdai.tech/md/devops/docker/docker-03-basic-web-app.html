@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  
+<!-- Mirrored from www.pdai.tech/md/devops/docker/docker-03-basic-web-app.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:32:00 GMT -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Docker基础 - 一个web应用实例 | Java 全栈知识体系</title>
+    <meta name="generator" content="VuePress 1.8.2">
+    <link rel="icon" href="../../../favicon.ico">
+    <script src="../../../../hm.baidu.com/hma448.js?525d4abc4a8675472736969f817ceb47"></script>
+    <script defer="defer" async="async" src="../../../../pagead2.googlesyndication.com/pagead/js/f.txt"></script>
+    <meta name="description" content="包含: Java 基础, Java 部分源码, JVM, Spring, Spring Boot, Spring Cloud, 数据库原理, MySQL, ElasticSearch, MongoDB, Docker, k8s, CI&CD, Linux, DevOps, 分布式, 中间件, 开发工具, Git, IDE, 源码阅读，读书笔记, 开源项目...">
+    <meta property="article:modified_time" content="2020-02-19T03:26:08.000Z">
+    <meta property="og:title" content="Docker基础 - 一个web应用实例">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="/md/devops/docker/docker-03-basic-web-app.html">
+    <meta name="twitter:title" content="Docker基础 - 一个web应用实例">
+    <meta name="twitter:url" content="/md/devops/docker/docker-03-basic-web-app.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="robots" content="all">
+    <meta name="author" content="pdai">
+    <meta name="keywords" content="Java 全栈知识体系, java体系, java知识体系, java框架,java全栈,java学习路线,java全栈知识, java面试, 知识体系, java技术体系, java编程, java编程指南,java开发体系, java开发,java教程,java,java数据结构, 算法, 开发基础">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <link rel="preload" href="../../../assets/css/0.styles.d4bb5489.css" as="style"><link rel="preload" href="../../../assets/js/app.691e72ae.js" as="script"><link rel="preload" href="../../../assets/js/4.2e3efdf6.js" as="script"><link rel="preload" href="../../../assets/js/3.d77b006c.js" as="script"><link rel="preload" href="../../../assets/js/344.5c395059.js" as="script">
+    <link rel="stylesheet" href="../../../assets/css/0.styles.d4bb5489.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="../../../index.html" class="home-link router-link-active"><!----> <span class="site-name">Java 全栈知识体系</span></a> <div class="links"><form id="search-form" role="search" class="algolia-search-wrapper search-box"><input id="algolia-search-input" class="search-query"></form> <nav class="nav-links can-hide"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav>  <ul class="sidebar-links"><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>工具清单</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../tool/tool-list-overview.html" class="sidebar-link">工具清单 - Overview</a></li><li><a href="../tool/tool-list-project-management.html" class="sidebar-link">工具清单 - 项目管理</a></li><li><a href="../tool/tool-list-ide.html" class="sidebar-link">工具清单 - IDE工具</a></li><li><a href="../tool/tool-list-kanban.html" class="sidebar-link">工具清单 - 看板工具</a></li><li><a href="../tool/tool-list-bug-tracking.html" class="sidebar-link">工具清单 - Bug追踪管理</a></li><li><a href="../tool/tool-list-cicd.html" class="sidebar-link">工具清单 - CI &amp; CD</a></li><li><a href="../tool/tool-list-api-management.html" class="sidebar-link">工具清单 - API管理</a></li><li><a href="../tool/tool-list-monitoring.html" class="sidebar-link">工具清单 - 监控工具</a></li><li><a href="../tool/tool-list-wiki-doc.html" class="sidebar-link">工具清单 - 文档/Wiki/Notes</a></li><li><a href="../tool/tool-list-file-management-share.html" class="sidebar-link">工具清单 - 文件管理和共享</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>开发工具详解</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../tool/tool-git.html" class="sidebar-link">工具详解 - Git 详解</a></li><li><a href="../tool/tool-ide.html" class="sidebar-link">工具详解 - Eclipse,STS,IDEA</a></li><li><a href="../tool/tool-maven.html" class="sidebar-link">工具详解 - Maven项目构建</a></li><li><a href="../tool/tool-maven-nexus.html" class="sidebar-link">工具详解 - Maven私有仓库Nexus</a></li><li><a href="../tool/tool-jenkins-gitlab.html" class="sidebar-link">工具详解 - Jenkins+Gitlab</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Linux</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../linux/linux.html" class="sidebar-link">Linux - Linux基础知识</a></li><li><a href="../linux/linux-zero-copy.html" class="sidebar-link">Linux - 零拷贝技术</a></li><li><a href="../linux/linux-usage.html" class="sidebar-link">Linux - Linux 常用</a></li><li><a href="../linux/linux-ab-test.html" class="sidebar-link">Linux - ab压力测试</a></li><li><a href="../linux/linux-curl.html" class="sidebar-link">Linux - Curl使用</a></li><li><a href="../linux/linux-service.html" class="sidebar-link">Linux - Linux创建自建服务</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading open"><span>容器化 - Docker</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="docker-00-overview.html" class="sidebar-link">Docker - Overview</a></li><li><a href="docker-01-docker-vm.html" class="sidebar-link">虚拟化技术 - Docker Vs. 虚拟机</a></li><li><a href="docker-02-basic.html" class="sidebar-link">Docker基础 - 入门基础和Helloworld</a></li><li><a href="docker-03-basic2.html" class="sidebar-link">Docker基础 - 仓库，镜像，容器详解</a></li><li><a href="docker-03-basic-web-app.html" aria-current="page" class="active sidebar-link">Docker基础 - 一个web应用实例</a></li><li><a href="docker-07-network.html" class="sidebar-link">Docker基础 - Docker网络使用和配置</a></li><li><a href="docker-06-data.html" class="sidebar-link">Docker基础 - Docker数据卷和数据管理</a></li><li><a href="docker-04-dockerfile.html" class="sidebar-link">Docker基础 - Dockerfile详解</a></li><li><a href="docker-05-compose.html" class="sidebar-link">Docker基础 - DockerCompose详解</a></li><li><a href="docker-08-layer.html" class="sidebar-link">Docker进阶 - Docker底层实现</a></li><li><a href="docker-09-security.html" class="sidebar-link">Docker进阶 - Docker安全相关</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>容器编排 - Kubernetes</span> <!----></p> <!----></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>服务网格 - Service Mesh</span> <!----></p> <!----></section></li></ul> </aside> <div><main class="page"> <div class="theme-default-content content__default"><h1 id="docker基础---一个web应用实例"><a href="#docker基础---一个web应用实例" class="header-anchor">¶</a> Docker基础 - 一个web应用实例</h1> <blockquote><p>通过上文我们已经基本了解了docker的结构（仓库，镜像，容器）以及跑docker应用了；本文将通过介绍一个web应用：向你展示如何进行主机与web容器之间的通信，这是web开发者常用的；第二，贯穿上文中内容, 且为我们后续讲解网络提供基础。@pdai</p></blockquote> <ul><li><a href="#docker%e5%9f%ba%e7%a1%80---%e4%b8%80%e4%b8%aaweb%e5%ba%94%e7%94%a8%e5%ae%9e%e4%be%8b">Docker基础 - 一个web应用实例</a> <ul><li><a href="#%e4%b8%80%e4%b8%aaweb-%e5%ba%94%e7%94%a8%e8%bf%90%e8%a1%8c%e5%92%8c%e8%ae%bf%e9%97%ae">一个web 应用运行和访问</a> <ul><li><a href="#%e8%bf%90%e8%a1%8c%e4%b8%80%e4%b8%aa-web-%e5%ba%94%e7%94%a8">运行一个 web 应用</a></li> <li><a href="#%e8%ae%bf%e9%97%aewebapp">访问webapp</a></li> <li><a href="#%e8%ae%be%e7%bd%ae%e8%87%aa%e5%ae%9a%e4%b9%89%e6%98%a0%e5%b0%84%e7%ab%af%e5%8f%a3">设置自定义映射端口</a></li></ul></li> <li><a href="#%e5%85%b6%e5%ae%83%e5%b8%b8%e7%94%a8%e5%8a%9f%e8%83%bd">其它常用功能</a> <ul><li><a href="#%e6%9f%a5%e7%9c%8bweb-%e5%ba%94%e7%94%a8%e7%bd%91%e7%bb%9c%e7%ab%af%e5%8f%a3">查看web 应用网络端口</a></li> <li><a href="#%e6%9f%a5%e7%9c%8b-web-%e5%ba%94%e7%94%a8%e7%a8%8b%e5%ba%8f%e6%97%a5%e5%bf%97">查看 WEB 应用程序日志</a></li> <li><a href="#%e6%9f%a5%e7%9c%8bweb%e5%ba%94%e7%94%a8%e7%a8%8b%e5%ba%8f%e5%ae%b9%e5%99%a8%e7%9a%84%e8%bf%9b%e7%a8%8b">查看WEB应用程序容器的进程</a></li> <li><a href="#%e6%a3%80%e6%9f%a5-web-%e5%ba%94%e7%94%a8%e7%a8%8b%e5%ba%8f">检查 WEB 应用程序</a></li> <li><a href="#%e5%81%9c%e6%ad%a2-web-%e5%ba%94%e7%94%a8%e5%ae%b9%e5%99%a8">停止 WEB 应用容器</a></li> <li><a href="#%e9%87%8d%e5%90%afweb%e5%ba%94%e7%94%a8%e5%ae%b9%e5%99%a8">重启WEB应用容器</a></li> <li><a href="#%e7%a7%bb%e9%99%a4web%e5%ba%94%e7%94%a8%e5%ae%b9%e5%99%a8">移除WEB应用容器</a></li></ul></li> <li><a href="#%e4%b8%8e%e5%85%b6%e5%ae%83%e5%ae%b9%e5%99%a8db%e5%ae%b9%e5%99%a8%e4%ba%92%e8%81%94">与其它容器（DB容器）互联</a> <ul><li><a href="#%e4%b8%8e%e6%95%b0%e6%8d%ae%e5%ba%93%e5%ae%b9%e5%99%a8%e4%ba%92%e8%81%94">与数据库容器互联</a></li> <li><a href="#%e5%ae%b9%e5%99%a8%e5%85%ac%e5%bc%80%e7%9a%84%e8%bf%9e%e6%8e%a5%e4%bf%a1%e6%81%af">容器公开的连接信息</a> <ul><li><a href="#%e7%8e%af%e5%a2%83%e5%8f%98%e9%87%8f">环境变量</a></li> <li><a href="#hosts-%e6%96%87%e4%bb%b6">hosts 文件</a></li></ul></li></ul></li></ul></li></ul> <h2 id="一个web-应用运行和访问"><a href="#一个web-应用运行和访问" class="header-anchor">¶</a> 一个web 应用运行和访问</h2> <h3 id="运行一个-web-应用"><a href="#运行一个-web-应用" class="header-anchor">¶</a> 运行一个 web 应用</h3> <blockquote><p>我们只需要找一个webapp的镜像即可，无需自己再写个程序啥的。接下来让我们尝试使用 docker 构建一个 web 应用程序。</p></blockquote> <p>这里找了一个<code>training/webapp</code>，它是将在docker容器中运行一个 Python Flask web应用。</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># docker pull training/webapp</span>
+Using default tag: latest
+latest: Pulling from training/webapp
+Image docker.io/training/webapp:latest uses outdated schema1 manifest format. Please upgrade to a schema2 image <span class="token keyword">for</span> better future compatibility. More information at https://docs.docker.com/registry/spec/deprecated-schema-v1/
+e190868d63f8: Pull complete
+909cd34c6fd7: Pull complete
+0b9bfabab7c1: Pull complete
+a3ed95caeb02: Pull complete
+10bbbc0fc0ff: Pull complete
+fca59b508e9f: Pull complete
+e7ae2541b15b: Pull complete
+9dd97ef58ce9: Pull complete
+a4c1b0cb7af7: Pull complete
+Digest: sha256:06e9c1983bd6d5db5fba376ccd63bfa529e8d02f23d5079b8f74a616308fb11d
+Status: Downloaded newer image <span class="token keyword">for</span> training/webapp:latest
+docker.io/training/webapp:latest
+<span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># docker images | grep webapp</span>
+training/webapp     latest              6fae60ef3446        <span class="token number">4</span> years ago         349MB
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br></div></div><p>紧接着，我们启动这个webapp</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># docker run -d -P training/webapp python app.py</span>
+ec3eb9ae218494d5aa5902c1ca4435733567b5e81319f02e5d2509d45cbc25da
+<span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># docker ps</span>
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS                     NAMES
+ec3eb9ae2184        training/webapp     <span class="token string">&quot;python app.py&quot;</span>     <span class="token number">18</span> seconds ago      Up <span class="token number">17</span> seconds       <span class="token number">0.0</span>.0.0:32768-<span class="token operator">&gt;</span><span class="token number">5000</span>/tcp   gifted_agnesi
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br></div></div><p>参数说明:</p> <ul><li><code>-d</code>:让容器在后台运行。</li> <li><code>-P</code>:将容器内部使用的网络端口映射到我们使用的主机上。</li></ul> <h3 id="访问webapp"><a href="#访问webapp" class="header-anchor">¶</a> 访问webapp</h3> <blockquote><p>我们注意看上述PORTS部分为0.0.0.0:32769-&gt;5000/tcp</p></blockquote> <p>Docker 开放了 5000 端口（默认 Python Flask 端口）映射到主机端口 32768 上。</p> <ul><li><strong>从主机上看</strong>，它应该暴露了<strong>端口32768</strong></li></ul> <p>所以我们来验证下：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># netstat | grep 32768</span>
+<span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># netstat -nltp | grep 32768</span>
+tcp6       <span class="token number">0</span>      <span class="token number">0</span> :::32768                :::*                    LISTEN      <span class="token number">2227</span>/docker-proxy
+<span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># curl localhost:32768</span>
+Hello world<span class="token operator">!</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br></div></div><p>这意味着，你浏览器你可以输入<code>localhost:32768</code>访问这个页面。</p> <ul><li><strong>从容器内部看</strong>，它应该有一个<strong>端口5000</strong></li></ul> <p>我们再进容器验证下：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># docker exec -it ec3eb9ae2184 /bin/bash</span>
+root@ec3eb9ae2184:/opt/webapp<span class="token comment"># netstat -nltp</span>
+Active Internet connections <span class="token punctuation">(</span>only servers<span class="token punctuation">)</span>
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name
+tcp        <span class="token number">0</span>      <span class="token number">0</span> <span class="token number">0.0</span>.0.0:5000            <span class="token number">0.0</span>.0.0:*               LISTEN      <span class="token number">1</span>/python
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br></div></div><p>所以我们的理解是对的。</p> <h3 id="设置自定义映射端口"><a href="#设置自定义映射端口" class="header-anchor">¶</a> 设置自定义映射端口</h3> <blockquote><p>我们发现，通过 <code>-P</code>参数映射到主机上的端口是随机，能否自定义端口呢？</p></blockquote> <p>我们可以通过 -p 参数来设置不一样的端口；为了对比，我们再起一个容器实例：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># docker run -d -p 5001:5000 training/webapp python app.py</span>
+5da3588d5bc43a9ed3aa61fb87f98220c9719d2879b616404d443aaae6cee77a
+<span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># docker ps</span>
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS                     NAMES
+5da3588d5bc4        training/webapp     <span class="token string">&quot;python app.py&quot;</span>     <span class="token number">33</span> seconds ago      Up <span class="token number">31</span> seconds       <span class="token number">0.0</span>.0.0:5001-<span class="token operator">&gt;</span><span class="token number">5000</span>/tcp    hopeful_bardeen
+ec3eb9ae2184        training/webapp     <span class="token string">&quot;python app.py&quot;</span>     <span class="token number">22</span> minutes ago      Up <span class="token number">22</span> minutes       <span class="token number">0.0</span>.0.0:32768-<span class="token operator">&gt;</span><span class="token number">5000</span>/tcp   gifted_agnesi
+<span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># netstat -nltp | grep 5001</span>
+tcp6       <span class="token number">0</span>      <span class="token number">0</span> :::5001                 :::*                    LISTEN      <span class="token number">2591</span>/docker-proxy
+<span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># curl localhost:5001</span>
+Hello world<span class="token operator">!</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br></div></div><p>所以你看到跑了两个内部端口都是5000的web实例，新的容器内部的 5000 端口映射到我们本地主机的 5001 端口上。</p> <h2 id="其它常用功能"><a href="#其它常用功能" class="header-anchor">¶</a> 其它常用功能</h2> <h3 id="查看web-应用网络端口"><a href="#查看web-应用网络端口" class="header-anchor">¶</a> 查看web 应用网络端口</h3> <blockquote><p>通过 docker ps 命令可以查看到容器的端口映射，docker 还提供了另一个快捷方式 docker port，使用 docker port 可以查看指定 （ID 或者名字）容器的某个确定端口映射到宿主机的端口号。</p></blockquote> <p>上面我们创建的 web 应用容器 ID 为 5da3588d5bc4 名字为 hopeful_bardeen。</p> <p>我可以这样查看容器端口的映射情况：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># docker port 5da3588d5bc4</span>
+<span class="token number">5000</span>/tcp -<span class="token operator">&gt;</span> <span class="token number">0.0</span>.0.0:5001
+<span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># docker port hopeful_bardeen</span>
+<span class="token number">5000</span>/tcp -<span class="token operator">&gt;</span> <span class="token number">0.0</span>.0.0:5001
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br></div></div><h3 id="查看-web-应用程序日志"><a href="#查看-web-应用程序日志" class="header-anchor">¶</a> 查看 WEB 应用程序日志</h3> <blockquote><p>docker logs [ID或者名字] 可以查看容器内部的标准输出。</p></blockquote> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># docker port hopeful_bardeen</span>
+<span class="token number">5000</span>/tcp -<span class="token operator">&gt;</span> <span class="token number">0.0</span>.0.0:5001
+<span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># docker logs -f hopeful_bardeen</span>
+ * Running on http://0.0.0.0:5000/ <span class="token punctuation">(</span>Press CTRL+C to quit<span class="token punctuation">)</span>
+<span class="token number">172.17</span>.0.1 - - <span class="token punctuation">[</span><span class="token number">18</span>/Feb/2020 09:08:31<span class="token punctuation">]</span> <span class="token string">&quot;GET / HTTP/1.1&quot;</span> <span class="token number">200</span> -
+^C
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br></div></div><p>参数说明：</p> <ul><li><code>-f</code>: 让 docker logs 像使用 tail -f 一样来输出容器内部的标准输出。</li></ul> <p>从上面，我们可以看到应用程序使用的是 5000 端口并且能够查看到应用程序的访问日志。</p> <h3 id="查看web应用程序容器的进程"><a href="#查看web应用程序容器的进程" class="header-anchor">¶</a> 查看WEB应用程序容器的进程</h3> <p>我们还可以使用 docker top 来查看容器内部运行的进程</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># docker top hopeful_bardeen</span>
+<span class="token environment constant">UID</span>                 PID                 <span class="token environment constant">PPID</span>                C                   STIME               TTY                 TIME                CMD
+root                <span class="token number">2614</span>                <span class="token number">2597</span>                <span class="token number">0</span>                   <span class="token number">17</span>:07               ?                   00:00:00            python app.py
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br></div></div><h3 id="检查-web-应用程序"><a href="#检查-web-应用程序" class="header-anchor">¶</a> 检查 WEB 应用程序</h3> <p>使用 docker inspect 来查看 Docker 的底层信息。它会返回一个 JSON 文件记录着 Docker 容器的配置和状态信息。</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># docker inspect hopeful_bardeen</span>
+<span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+        <span class="token string">&quot;Id&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;5da3588d5bc43a9ed3aa61fb87f98220c9719d2879b616404d443aaae6cee77a&quot;</span>,
+        <span class="token string">&quot;Created&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;2020-02-18T09:07:32.827193286Z&quot;</span>,
+        <span class="token string">&quot;Path&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;python&quot;</span>,
+        <span class="token string">&quot;Args&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">[</span>
+            <span class="token string">&quot;app.py&quot;</span>
+        <span class="token punctuation">]</span>,
+        <span class="token string">&quot;State&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">{</span>
+            <span class="token string">&quot;Status&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;running&quot;</span>,
+            <span class="token string">&quot;Running&quot;</span><span class="token builtin class-name">:</span> true,
+            <span class="token string">&quot;Paused&quot;</span><span class="token builtin class-name">:</span> false,
+            <span class="token string">&quot;Restarting&quot;</span><span class="token builtin class-name">:</span> false,
+            <span class="token string">&quot;OOMKilled&quot;</span><span class="token builtin class-name">:</span> false,
+            <span class="token string">&quot;Dead&quot;</span><span class="token builtin class-name">:</span> false,
+            <span class="token string">&quot;Pid&quot;</span><span class="token builtin class-name">:</span> <span class="token number">2614</span>,
+            <span class="token string">&quot;ExitCode&quot;</span><span class="token builtin class-name">:</span> <span class="token number">0</span>,
+            <span class="token string">&quot;Error&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;&quot;</span>,
+            <span class="token string">&quot;StartedAt&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;2020-02-18T09:07:33.374368448Z&quot;</span>,
+            <span class="token string">&quot;FinishedAt&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;0001-01-01T00:00:00Z&quot;</span>
+        <span class="token punctuation">}</span>,
+        <span class="token string">&quot;Image&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;sha256:6fae60ef344644649a39240b94d73b8ba9c67f898ede85cf8e947a887b3e6557&quot;</span>,
+        <span class="token string">&quot;ResolvConfPath&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;/var/lib/docker/containers/5da3588d5bc43a9ed3aa61fb87f98220c9719d2879b616404d443aaae6cee77a/resolv.conf&quot;</span>,
+        <span class="token string">&quot;HostnamePath&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;/var/lib/docker/containers/5da3588d5bc43a9ed3aa61fb87f98220c9719d2879b616404d443aaae6cee77a/hostname&quot;</span>,
+        <span class="token string">&quot;HostsPath&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;/var/lib/docker/containers/5da3588d5bc43a9ed3aa61fb87f98220c9719d2879b616404d443aaae6cee77a/hosts&quot;</span>,
+        <span class="token string">&quot;LogPath&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;/var/lib/docker/containers/5da3588d5bc43a9ed3aa61fb87f98220c9719d2879b616404d443aaae6cee77a/5da3588d5bc43a9ed3aa61fb87f98220c9719d2879b616404d443aaae6cee77a-json.log&quot;</span>,
+        <span class="token string">&quot;Name&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;/hopeful_bardeen&quot;</span>,
+        <span class="token string">&quot;RestartCount&quot;</span><span class="token builtin class-name">:</span> <span class="token number">0</span>,
+        <span class="token string">&quot;Driver&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;overlay2&quot;</span>,
+        <span class="token string">&quot;Platform&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;linux&quot;</span>,
+        <span class="token string">&quot;MountLabel&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;&quot;</span>,
+        <span class="token string">&quot;ProcessLabel&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;&quot;</span>,
+        <span class="token string">&quot;AppArmorProfile&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;&quot;</span>,
+        <span class="token string">&quot;ExecIDs&quot;</span><span class="token builtin class-name">:</span> null,
+        <span class="token string">&quot;HostConfig&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">{</span>
+            <span class="token string">&quot;Binds&quot;</span><span class="token builtin class-name">:</span> null,
+            <span class="token string">&quot;ContainerIDFile&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;&quot;</span>,
+            <span class="token string">&quot;LogConfig&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">{</span>
+                <span class="token string">&quot;Type&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;json-file&quot;</span>,
+                <span class="token string">&quot;Config&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+            <span class="token punctuation">}</span>,
+            <span class="token string">&quot;NetworkMode&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;default&quot;</span>,
+            <span class="token string">&quot;PortBindings&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">{</span>
+                <span class="token string">&quot;5000/tcp&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">[</span>
+                    <span class="token punctuation">{</span>
+                        <span class="token string">&quot;HostIp&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;&quot;</span>,
+                        <span class="token string">&quot;HostPort&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;5001&quot;</span>
+                    <span class="token punctuation">}</span>
+                <span class="token punctuation">]</span>
+            <span class="token punctuation">}</span>,
+            <span class="token string">&quot;RestartPolicy&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">{</span>
+                <span class="token string">&quot;Name&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;no&quot;</span>,
+                <span class="token string">&quot;MaximumRetryCount&quot;</span><span class="token builtin class-name">:</span> <span class="token number">0</span>
+            <span class="token punctuation">}</span>,
+            <span class="token string">&quot;AutoRemove&quot;</span><span class="token builtin class-name">:</span> false,
+            <span class="token string">&quot;VolumeDriver&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;&quot;</span>,
+            <span class="token string">&quot;VolumesFrom&quot;</span><span class="token builtin class-name">:</span> null,
+            <span class="token string">&quot;CapAdd&quot;</span><span class="token builtin class-name">:</span> null,
+            <span class="token string">&quot;CapDrop&quot;</span><span class="token builtin class-name">:</span> null,
+            <span class="token string">&quot;Capabilities&quot;</span><span class="token builtin class-name">:</span> null,
+            <span class="token string">&quot;Dns&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>,
+            <span class="token string">&quot;DnsOptions&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>,
+            <span class="token string">&quot;DnsSearch&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>,
+            <span class="token string">&quot;ExtraHosts&quot;</span><span class="token builtin class-name">:</span> null,
+            <span class="token string">&quot;GroupAdd&quot;</span><span class="token builtin class-name">:</span> null,
+            <span class="token string">&quot;IpcMode&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;private&quot;</span>,
+            <span class="token string">&quot;Cgroup&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;&quot;</span>,
+            <span class="token string">&quot;Links&quot;</span><span class="token builtin class-name">:</span> null,
+            <span class="token string">&quot;OomScoreAdj&quot;</span><span class="token builtin class-name">:</span> <span class="token number">0</span>,
+            <span class="token string">&quot;PidMode&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;&quot;</span>,
+            <span class="token string">&quot;Privileged&quot;</span><span class="token builtin class-name">:</span> false,
+            <span class="token string">&quot;PublishAllPorts&quot;</span><span class="token builtin class-name">:</span> false,
+            <span class="token string">&quot;ReadonlyRootfs&quot;</span><span class="token builtin class-name">:</span> false,
+            <span class="token string">&quot;SecurityOpt&quot;</span><span class="token builtin class-name">:</span> null,
+            <span class="token string">&quot;UTSMode&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;&quot;</span>,
+            <span class="token string">&quot;UsernsMode&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;&quot;</span>,
+            <span class="token string">&quot;ShmSize&quot;</span><span class="token builtin class-name">:</span> <span class="token number">67108864</span>,
+            <span class="token string">&quot;Runtime&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;runc&quot;</span>,
+            <span class="token string">&quot;ConsoleSize&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">[</span>
+                <span class="token number">0</span>,
+                <span class="token number">0</span>
+            <span class="token punctuation">]</span>,
+            <span class="token string">&quot;Isolation&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;&quot;</span>,
+            <span class="token string">&quot;CpuShares&quot;</span><span class="token builtin class-name">:</span> <span class="token number">0</span>,
+            <span class="token string">&quot;Memory&quot;</span><span class="token builtin class-name">:</span> <span class="token number">0</span>,
+            <span class="token string">&quot;NanoCpus&quot;</span><span class="token builtin class-name">:</span> <span class="token number">0</span>,
+            <span class="token string">&quot;CgroupParent&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;&quot;</span>,
+            <span class="token string">&quot;BlkioWeight&quot;</span><span class="token builtin class-name">:</span> <span class="token number">0</span>,
+            <span class="token string">&quot;BlkioWeightDevice&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>,
+            <span class="token string">&quot;BlkioDeviceReadBps&quot;</span><span class="token builtin class-name">:</span> null,
+            <span class="token string">&quot;BlkioDeviceWriteBps&quot;</span><span class="token builtin class-name">:</span> null,
+            <span class="token string">&quot;BlkioDeviceReadIOps&quot;</span><span class="token builtin class-name">:</span> null,
+            <span class="token string">&quot;BlkioDeviceWriteIOps&quot;</span><span class="token builtin class-name">:</span> null,
+            <span class="token string">&quot;CpuPeriod&quot;</span><span class="token builtin class-name">:</span> <span class="token number">0</span>,
+            <span class="token string">&quot;CpuQuota&quot;</span><span class="token builtin class-name">:</span> <span class="token number">0</span>,
+            <span class="token string">&quot;CpuRealtimePeriod&quot;</span><span class="token builtin class-name">:</span> <span class="token number">0</span>,
+            <span class="token string">&quot;CpuRealtimeRuntime&quot;</span><span class="token builtin class-name">:</span> <span class="token number">0</span>,
+            <span class="token string">&quot;CpusetCpus&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;&quot;</span>,
+            <span class="token string">&quot;CpusetMems&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;&quot;</span>,
+            <span class="token string">&quot;Devices&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>,
+            <span class="token string">&quot;DeviceCgroupRules&quot;</span><span class="token builtin class-name">:</span> null,
+            <span class="token string">&quot;DeviceRequests&quot;</span><span class="token builtin class-name">:</span> null,
+            <span class="token string">&quot;KernelMemory&quot;</span><span class="token builtin class-name">:</span> <span class="token number">0</span>,
+            <span class="token string">&quot;KernelMemoryTCP&quot;</span><span class="token builtin class-name">:</span> <span class="token number">0</span>,
+            <span class="token string">&quot;MemoryReservation&quot;</span><span class="token builtin class-name">:</span> <span class="token number">0</span>,
+            <span class="token string">&quot;MemorySwap&quot;</span><span class="token builtin class-name">:</span> <span class="token number">0</span>,
+            <span class="token string">&quot;MemorySwappiness&quot;</span><span class="token builtin class-name">:</span> null,
+            <span class="token string">&quot;OomKillDisable&quot;</span><span class="token builtin class-name">:</span> false,
+            <span class="token string">&quot;PidsLimit&quot;</span><span class="token builtin class-name">:</span> null,
+            <span class="token string">&quot;Ulimits&quot;</span><span class="token builtin class-name">:</span> null,
+            <span class="token string">&quot;CpuCount&quot;</span><span class="token builtin class-name">:</span> <span class="token number">0</span>,
+            <span class="token string">&quot;CpuPercent&quot;</span><span class="token builtin class-name">:</span> <span class="token number">0</span>,
+            <span class="token string">&quot;IOMaximumIOps&quot;</span><span class="token builtin class-name">:</span> <span class="token number">0</span>,
+            <span class="token string">&quot;IOMaximumBandwidth&quot;</span><span class="token builtin class-name">:</span> <span class="token number">0</span>,
+            <span class="token string">&quot;MaskedPaths&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">[</span>
+                <span class="token string">&quot;/proc/asound&quot;</span>,
+                <span class="token string">&quot;/proc/acpi&quot;</span>,
+                <span class="token string">&quot;/proc/kcore&quot;</span>,
+                <span class="token string">&quot;/proc/keys&quot;</span>,
+                <span class="token string">&quot;/proc/latency_stats&quot;</span>,
+                <span class="token string">&quot;/proc/timer_list&quot;</span>,
+                <span class="token string">&quot;/proc/timer_stats&quot;</span>,
+                <span class="token string">&quot;/proc/sched_debug&quot;</span>,
+                <span class="token string">&quot;/proc/scsi&quot;</span>,
+                <span class="token string">&quot;/sys/firmware&quot;</span>
+            <span class="token punctuation">]</span>,
+            <span class="token string">&quot;ReadonlyPaths&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">[</span>
+                <span class="token string">&quot;/proc/bus&quot;</span>,
+                <span class="token string">&quot;/proc/fs&quot;</span>,
+                <span class="token string">&quot;/proc/irq&quot;</span>,
+                <span class="token string">&quot;/proc/sys&quot;</span>,
+                <span class="token string">&quot;/proc/sysrq-trigger&quot;</span>
+            <span class="token punctuation">]</span>
+        <span class="token punctuation">}</span>,
+        <span class="token string">&quot;GraphDriver&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">{</span>
+            <span class="token string">&quot;Data&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">{</span>
+                <span class="token string">&quot;LowerDir&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;/var/lib/docker/overlay2/c6594e5b70feca02eb4b90ac75aba711f36378d5cb9853ffca1ec92f9d0c3e14-init/diff:/var/lib/docker/overlay2/d4690a06236a3857a2a51ab84c61992e50ea3e1a613f4793334916604ea0dfa0/diff:/var/lib/docker/overlay2/c45d0215cd2076174f38fea5003c3ff11a5ba2df2141d9d069f4bf32dac9a22a/diff:/var/lib/docker/overlay2/1cf63068912234a1f4c861f58f155423c87193c6e438948db493687d4da4f0a0/diff:/var/lib/docker/overlay2/55e4ecb04b1ff8d048bc75bb8698c782c813d45caa6f0d82ac6c49adec24bead/diff:/var/lib/docker/overlay2/27fa0dc314b851b8d2f0386d230a725f57117f9f1ccdb49ca27f5ad424cb4a90/diff:/var/lib/docker/overlay2/65a5a082188d9e0b9aaf09c2e9c3b3f8141f74c781996680dfaca63d81672cdf/diff:/var/lib/docker/overlay2/658a33c92cf114ee4cbc10f117207a0c813e39a908acc014fbce1783a28bc654/diff:/var/lib/docker/overlay2/e5b5c9e0abc43ff2750dcd33decc65d90d733b18f2626b91c500d803d7fe189b/diff:/var/lib/docker/overlay2/0b5181e429a89f6ab291e090b972e11718e4f63158ed60af1fce18095d0352a6/diff:/var/lib/docker/overlay2/f7c0405739bb58fdfa9af402a72507b78bc2a48b0d74356dad59495906b6e0e5/diff:/var/lib/docker/overlay2/073c45ae4a6ff27950a1dd969a675d3dcdc18392bb205ddde5913fcc10a751ef/diff:/var/lib/docker/overlay2/f92534844c8cc5b950ea36369b8e4a7dd7f7749e73483908e5d129bf5c26442f/diff:/var/lib/docker/overlay2/477378381d03c4b347d7b9224c4c9023b5dfbfde32022c7eb8af32e7a01b88b2/diff&quot;</span>,
+                <span class="token string">&quot;MergedDir&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;/var/lib/docker/overlay2/c6594e5b70feca02eb4b90ac75aba711f36378d5cb9853ffca1ec92f9d0c3e14/merged&quot;</span>,
+                <span class="token string">&quot;UpperDir&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;/var/lib/docker/overlay2/c6594e5b70feca02eb4b90ac75aba711f36378d5cb9853ffca1ec92f9d0c3e14/diff&quot;</span>,
+                <span class="token string">&quot;WorkDir&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;/var/lib/docker/overlay2/c6594e5b70feca02eb4b90ac75aba711f36378d5cb9853ffca1ec92f9d0c3e14/work&quot;</span>
+            <span class="token punctuation">}</span>,
+            <span class="token string">&quot;Name&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;overlay2&quot;</span>
+        <span class="token punctuation">}</span>,
+        <span class="token string">&quot;Mounts&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>,
+        <span class="token string">&quot;Config&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">{</span>
+            <span class="token string">&quot;Hostname&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;5da3588d5bc4&quot;</span>,
+            <span class="token string">&quot;Domainname&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;&quot;</span>,
+            <span class="token string">&quot;User&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;&quot;</span>,
+            <span class="token string">&quot;AttachStdin&quot;</span><span class="token builtin class-name">:</span> false,
+            <span class="token string">&quot;AttachStdout&quot;</span><span class="token builtin class-name">:</span> false,
+            <span class="token string">&quot;AttachStderr&quot;</span><span class="token builtin class-name">:</span> false,
+            <span class="token string">&quot;ExposedPorts&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">{</span>
+                <span class="token string">&quot;5000/tcp&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+            <span class="token punctuation">}</span>,
+            <span class="token string">&quot;Tty&quot;</span><span class="token builtin class-name">:</span> false,
+            <span class="token string">&quot;OpenStdin&quot;</span><span class="token builtin class-name">:</span> false,
+            <span class="token string">&quot;StdinOnce&quot;</span><span class="token builtin class-name">:</span> false,
+            <span class="token string">&quot;Env&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">[</span>
+                <span class="token string">&quot;PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin&quot;</span>
+            <span class="token punctuation">]</span>,
+            <span class="token string">&quot;Cmd&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">[</span>
+                <span class="token string">&quot;python&quot;</span>,
+                <span class="token string">&quot;app.py&quot;</span>
+            <span class="token punctuation">]</span>,
+            <span class="token string">&quot;Image&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;training/webapp&quot;</span>,
+            <span class="token string">&quot;Volumes&quot;</span><span class="token builtin class-name">:</span> null,
+            <span class="token string">&quot;WorkingDir&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;/opt/webapp&quot;</span>,
+            <span class="token string">&quot;Entrypoint&quot;</span><span class="token builtin class-name">:</span> null,
+            <span class="token string">&quot;OnBuild&quot;</span><span class="token builtin class-name">:</span> null,
+            <span class="token string">&quot;Labels&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+        <span class="token punctuation">}</span>,
+        <span class="token string">&quot;NetworkSettings&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">{</span>
+            <span class="token string">&quot;Bridge&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;&quot;</span>,
+            <span class="token string">&quot;SandboxID&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;66e1f111a5d7acca71f0e9e24516a6945bca428f55ac1eab1576c99bde16190c&quot;</span>,
+            <span class="token string">&quot;HairpinMode&quot;</span><span class="token builtin class-name">:</span> false,
+            <span class="token string">&quot;LinkLocalIPv6Address&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;&quot;</span>,
+            <span class="token string">&quot;LinkLocalIPv6PrefixLen&quot;</span><span class="token builtin class-name">:</span> <span class="token number">0</span>,
+            <span class="token string">&quot;Ports&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">{</span>
+                <span class="token string">&quot;5000/tcp&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">[</span>
+                    <span class="token punctuation">{</span>
+                        <span class="token string">&quot;HostIp&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;0.0.0.0&quot;</span>,
+                        <span class="token string">&quot;HostPort&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;5001&quot;</span>
+                    <span class="token punctuation">}</span>
+                <span class="token punctuation">]</span>
+            <span class="token punctuation">}</span>,
+            <span class="token string">&quot;SandboxKey&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;/var/run/docker/netns/66e1f111a5d7&quot;</span>,
+            <span class="token string">&quot;SecondaryIPAddresses&quot;</span><span class="token builtin class-name">:</span> null,
+            <span class="token string">&quot;SecondaryIPv6Addresses&quot;</span><span class="token builtin class-name">:</span> null,
+            <span class="token string">&quot;EndpointID&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;794d5e97cd3bbb62c8a7a850f125404d174ecc45df4e704dbee403b1be7a2835&quot;</span>,
+            <span class="token string">&quot;Gateway&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;172.17.0.1&quot;</span>,
+            <span class="token string">&quot;GlobalIPv6Address&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;&quot;</span>,
+            <span class="token string">&quot;GlobalIPv6PrefixLen&quot;</span><span class="token builtin class-name">:</span> <span class="token number">0</span>,
+            <span class="token string">&quot;IPAddress&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;172.17.0.3&quot;</span>,
+            <span class="token string">&quot;IPPrefixLen&quot;</span><span class="token builtin class-name">:</span> <span class="token number">16</span>,
+            <span class="token string">&quot;IPv6Gateway&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;&quot;</span>,
+            <span class="token string">&quot;MacAddress&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;02:42:ac:11:00:03&quot;</span>,
+            <span class="token string">&quot;Networks&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">{</span>
+                <span class="token string">&quot;bridge&quot;</span><span class="token builtin class-name">:</span> <span class="token punctuation">{</span>
+                    <span class="token string">&quot;IPAMConfig&quot;</span><span class="token builtin class-name">:</span> null,
+                    <span class="token string">&quot;Links&quot;</span><span class="token builtin class-name">:</span> null,
+                    <span class="token string">&quot;Aliases&quot;</span><span class="token builtin class-name">:</span> null,
+                    <span class="token string">&quot;NetworkID&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;b8c5abdb0becacfa1bfa1d72e2e663fb0157b62a9b8bee37e2607211722713cc&quot;</span>,
+                    <span class="token string">&quot;EndpointID&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;794d5e97cd3bbb62c8a7a850f125404d174ecc45df4e704dbee403b1be7a2835&quot;</span>,
+                    <span class="token string">&quot;Gateway&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;172.17.0.1&quot;</span>,
+                    <span class="token string">&quot;IPAddress&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;172.17.0.3&quot;</span>,
+                    <span class="token string">&quot;IPPrefixLen&quot;</span><span class="token builtin class-name">:</span> <span class="token number">16</span>,
+                    <span class="token string">&quot;IPv6Gateway&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;&quot;</span>,
+                    <span class="token string">&quot;GlobalIPv6Address&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;&quot;</span>,
+                    <span class="token string">&quot;GlobalIPv6PrefixLen&quot;</span><span class="token builtin class-name">:</span> <span class="token number">0</span>,
+                    <span class="token string">&quot;MacAddress&quot;</span><span class="token builtin class-name">:</span> <span class="token string">&quot;02:42:ac:11:00:03&quot;</span>,
+                    <span class="token string">&quot;DriverOpts&quot;</span><span class="token builtin class-name">:</span> null
+                <span class="token punctuation">}</span>
+            <span class="token punctuation">}</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">]</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br><span class="line-number">35</span><br><span class="line-number">36</span><br><span class="line-number">37</span><br><span class="line-number">38</span><br><span class="line-number">39</span><br><span class="line-number">40</span><br><span class="line-number">41</span><br><span class="line-number">42</span><br><span class="line-number">43</span><br><span class="line-number">44</span><br><span class="line-number">45</span><br><span class="line-number">46</span><br><span class="line-number">47</span><br><span class="line-number">48</span><br><span class="line-number">49</span><br><span class="line-number">50</span><br><span class="line-number">51</span><br><span class="line-number">52</span><br><span class="line-number">53</span><br><span class="line-number">54</span><br><span class="line-number">55</span><br><span class="line-number">56</span><br><span class="line-number">57</span><br><span class="line-number">58</span><br><span class="line-number">59</span><br><span class="line-number">60</span><br><span class="line-number">61</span><br><span class="line-number">62</span><br><span class="line-number">63</span><br><span class="line-number">64</span><br><span class="line-number">65</span><br><span class="line-number">66</span><br><span class="line-number">67</span><br><span class="line-number">68</span><br><span class="line-number">69</span><br><span class="line-number">70</span><br><span class="line-number">71</span><br><span class="line-number">72</span><br><span class="line-number">73</span><br><span class="line-number">74</span><br><span class="line-number">75</span><br><span class="line-number">76</span><br><span class="line-number">77</span><br><span class="line-number">78</span><br><span class="line-number">79</span><br><span class="line-number">80</span><br><span class="line-number">81</span><br><span class="line-number">82</span><br><span class="line-number">83</span><br><span class="line-number">84</span><br><span class="line-number">85</span><br><span class="line-number">86</span><br><span class="line-number">87</span><br><span class="line-number">88</span><br><span class="line-number">89</span><br><span class="line-number">90</span><br><span class="line-number">91</span><br><span class="line-number">92</span><br><span class="line-number">93</span><br><span class="line-number">94</span><br><span class="line-number">95</span><br><span class="line-number">96</span><br><span class="line-number">97</span><br><span class="line-number">98</span><br><span class="line-number">99</span><br><span class="line-number">100</span><br><span class="line-number">101</span><br><span class="line-number">102</span><br><span class="line-number">103</span><br><span class="line-number">104</span><br><span class="line-number">105</span><br><span class="line-number">106</span><br><span class="line-number">107</span><br><span class="line-number">108</span><br><span class="line-number">109</span><br><span class="line-number">110</span><br><span class="line-number">111</span><br><span class="line-number">112</span><br><span class="line-number">113</span><br><span class="line-number">114</span><br><span class="line-number">115</span><br><span class="line-number">116</span><br><span class="line-number">117</span><br><span class="line-number">118</span><br><span class="line-number">119</span><br><span class="line-number">120</span><br><span class="line-number">121</span><br><span class="line-number">122</span><br><span class="line-number">123</span><br><span class="line-number">124</span><br><span class="line-number">125</span><br><span class="line-number">126</span><br><span class="line-number">127</span><br><span class="line-number">128</span><br><span class="line-number">129</span><br><span class="line-number">130</span><br><span class="line-number">131</span><br><span class="line-number">132</span><br><span class="line-number">133</span><br><span class="line-number">134</span><br><span class="line-number">135</span><br><span class="line-number">136</span><br><span class="line-number">137</span><br><span class="line-number">138</span><br><span class="line-number">139</span><br><span class="line-number">140</span><br><span class="line-number">141</span><br><span class="line-number">142</span><br><span class="line-number">143</span><br><span class="line-number">144</span><br><span class="line-number">145</span><br><span class="line-number">146</span><br><span class="line-number">147</span><br><span class="line-number">148</span><br><span class="line-number">149</span><br><span class="line-number">150</span><br><span class="line-number">151</span><br><span class="line-number">152</span><br><span class="line-number">153</span><br><span class="line-number">154</span><br><span class="line-number">155</span><br><span class="line-number">156</span><br><span class="line-number">157</span><br><span class="line-number">158</span><br><span class="line-number">159</span><br><span class="line-number">160</span><br><span class="line-number">161</span><br><span class="line-number">162</span><br><span class="line-number">163</span><br><span class="line-number">164</span><br><span class="line-number">165</span><br><span class="line-number">166</span><br><span class="line-number">167</span><br><span class="line-number">168</span><br><span class="line-number">169</span><br><span class="line-number">170</span><br><span class="line-number">171</span><br><span class="line-number">172</span><br><span class="line-number">173</span><br><span class="line-number">174</span><br><span class="line-number">175</span><br><span class="line-number">176</span><br><span class="line-number">177</span><br><span class="line-number">178</span><br><span class="line-number">179</span><br><span class="line-number">180</span><br><span class="line-number">181</span><br><span class="line-number">182</span><br><span class="line-number">183</span><br><span class="line-number">184</span><br><span class="line-number">185</span><br><span class="line-number">186</span><br><span class="line-number">187</span><br><span class="line-number">188</span><br><span class="line-number">189</span><br><span class="line-number">190</span><br><span class="line-number">191</span><br><span class="line-number">192</span><br><span class="line-number">193</span><br><span class="line-number">194</span><br><span class="line-number">195</span><br><span class="line-number">196</span><br><span class="line-number">197</span><br><span class="line-number">198</span><br><span class="line-number">199</span><br><span class="line-number">200</span><br><span class="line-number">201</span><br><span class="line-number">202</span><br><span class="line-number">203</span><br><span class="line-number">204</span><br><span class="line-number">205</span><br><span class="line-number">206</span><br><span class="line-number">207</span><br><span class="line-number">208</span><br><span class="line-number">209</span><br><span class="line-number">210</span><br><span class="line-number">211</span><br><span class="line-number">212</span><br><span class="line-number">213</span><br><span class="line-number">214</span><br><span class="line-number">215</span><br><span class="line-number">216</span><br><span class="line-number">217</span><br></div></div><h3 id="停止-web-应用容器"><a href="#停止-web-应用容器" class="header-anchor">¶</a> 停止 WEB 应用容器</h3> <p>再复习下docker的停止</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># docker stop hopeful_bardeen</span>
+hopeful_bardeen
+<span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># docker ps -a | grep 'hopeful_bardeen'</span>
+5da3588d5bc4        training/webapp      <span class="token string">&quot;python app.py&quot;</span>      <span class="token number">13</span> minutes ago      Exited <span class="token punctuation">(</span><span class="token number">137</span><span class="token punctuation">)</span> <span class="token number">12</span> seconds ago                             hopeful_bardeen
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br></div></div><h3 id="重启web应用容器"><a href="#重启web应用容器" class="header-anchor">¶</a> 重启WEB应用容器</h3> <p>已经停止的容器，我们可以使用命令 docker start 或者docker restart 来启动。</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># docker restart hopeful_bardeen</span>
+hopeful_bardeen
+<span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># docker ps -a | grep hopeful_bardeen</span>
+5da3588d5bc4        training/webapp      <span class="token string">&quot;python app.py&quot;</span>      <span class="token number">14</span> minutes ago      Up <span class="token number">10</span> seconds            <span class="token number">0.0</span>.0.0:5001-<span class="token operator">&gt;</span><span class="token number">5000</span>/tcp    hopeful_bardeen
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br></div></div><h3 id="移除web应用容器"><a href="#移除web应用容器" class="header-anchor">¶</a> 移除WEB应用容器</h3> <p>我们可以使用 docker rm 命令来删除不需要的容器</p> <p>我们上文也讲过，如果是启动着的docker实例，需要加-f，强制（force）删除。</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># docker ps -a | grep hopeful_bardeen</span>
+5da3588d5bc4        training/webapp      <span class="token string">&quot;python app.py&quot;</span>      <span class="token number">14</span> minutes ago      Up <span class="token number">10</span> seconds            <span class="token number">0.0</span>.0.0:5001-<span class="token operator">&gt;</span><span class="token number">5000</span>/tcp    hopeful_bardeen
+<span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># docker rm -f hopeful_bardeen</span>
+hopeful_bardeen
+<span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># docker ps -a | grep hopeful_bardeen</span>
+<span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment">#</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br></div></div><h2 id="与其它容器db容器互联"><a href="#与其它容器db容器互联" class="header-anchor">¶</a> 与其它容器（DB容器）互联</h2> <blockquote><p>上述是一个web单一容器通过端口映射，可以通过主机端口访问容器；那么如果需要访问数据库，就涉及到容器互联。</p></blockquote> <h3 id="与数据库容器互联"><a href="#与数据库容器互联" class="header-anchor">¶</a> 与数据库容器互联</h3> <ul><li>先停止上述的web容器, 且清理所有不用的容器</li></ul> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># docker ps -a</span>
+CONTAINER ID        IMAGE                COMMAND              CREATED             STATUS                    PORTS                     NAMES
+ec3eb9ae2184        training/webapp      <span class="token string">&quot;python app.py&quot;</span>      <span class="token number">18</span> hours ago        Up <span class="token number">18</span> hours               <span class="token number">0.0</span>.0.0:32768-<span class="token operator">&gt;</span><span class="token number">5000</span>/tcp   gifted_agnesi
+11de9755a084        pdai/ubuntu:v2.0.2   <span class="token string">&quot;/bin/bash&quot;</span>          <span class="token number">24</span> hours ago        Exited <span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span> <span class="token number">24</span> hours ago                             pdai-ubuntu-202
+57bd797570b6        pdai/ubuntu:v2.0.2   <span class="token string">&quot;--name pdai-test&quot;</span>   <span class="token number">24</span> hours ago        Created                                             sharp_brahmagupta
+<span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># docker stop ec3eb9ae2184</span>
+ec3eb9ae2184
+<span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># docker ps -a</span>
+CONTAINER ID        IMAGE                COMMAND              CREATED             STATUS                        PORTS               NAMES
+ec3eb9ae2184        training/webapp      <span class="token string">&quot;python app.py&quot;</span>      <span class="token number">18</span> hours ago        Exited <span class="token punctuation">(</span><span class="token number">137</span><span class="token punctuation">)</span> <span class="token number">29</span> seconds ago                       gifted_agnesi
+11de9755a084        pdai/ubuntu:v2.0.2   <span class="token string">&quot;/bin/bash&quot;</span>          <span class="token number">24</span> hours ago        Exited <span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span> <span class="token number">24</span> hours ago                           pdai-ubuntu-202
+57bd797570b6        pdai/ubuntu:v2.0.2   <span class="token string">&quot;--name pdai-test&quot;</span>   <span class="token number">24</span> hours ago        Created                                           sharp_brahmagupta
+<span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># docker container prune</span>
+WARNING<span class="token operator">!</span> This will remove all stopped containers.
+Are you sure you want to continue? <span class="token punctuation">[</span>y/N<span class="token punctuation">]</span> y
+Deleted Containers:
+ec3eb9ae218494d5aa5902c1ca4435733567b5e81319f02e5d2509d45cbc25da
+11de9755a08402d963d263a559a7daf48f4a2188398f258641240b5eb50fbc89
+57bd797570b68b6587b16809889e6e8f710ec7a934229aa6391add02f758e036
+
+Total reclaimed space: 89B
+<span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment">#</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br></div></div><ul><li>创建一个新的数据库容器。</li></ul> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># docker run -d --name db training/postgres</span>
+Unable to <span class="token function">find</span> image <span class="token string">'training/postgres:latest'</span> locally
+latest: Pulling from training/postgres
+Image docker.io/training/postgres:latest uses outdated schema1 manifest format. Please upgrade to a schema2 image <span class="token keyword">for</span> better future compatibility. More information at https://docs.docker.com/registry/spec/deprecated-schema-v1/
+a3ed95caeb02: Pull complete
+6e71c809542e: Pull complete
+2978d9af87ba: Pull complete
+e1bca35b062f: Pull complete
+500b6decf741: Pull complete
+74b14ef2151f: Pull complete
+7afd5ed3826e: Pull complete
+3c69bb244f5e: Pull complete
+d86f9ec5aedf: Pull complete
+010fabf20157: Pull complete
+Digest: sha256:a945dc6dcfbc8d009c3d972931608344b76c2870ce796da00a827bd50791907e
+Status: Downloaded newer image <span class="token keyword">for</span> training/postgres:latest
+d992e3c761e00649eb436b88c737adc54093b76119af0fb7878596b523f743ca
+<span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># docker ps</span>
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+d992e3c761e0        training/postgres   <span class="token string">&quot;su postgres -c '/us…&quot;</span>   <span class="token number">9</span> seconds ago       Up <span class="token number">7</span> seconds        <span class="token number">5432</span>/tcp            db
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br></div></div><ul><li>db 容器和 web 容器建立互联关系</li></ul> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># docker run -d -p 5001:5000 --name web --link db:db training/webapp python app.py</span>
+1cbc9aeba2a8a826d460ecb49de17ddf8ac336e150c752a3c762fd38a3e15254
+<span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># docker ps -a</span>
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                    NAMES
+1cbc9aeba2a8        training/webapp     <span class="token string">&quot;python app.py&quot;</span>          <span class="token number">5</span> seconds ago       Up <span class="token number">4</span> seconds        <span class="token number">0.0</span>.0.0:5001-<span class="token operator">&gt;</span><span class="token number">5000</span>/tcp   web
+d992e3c761e0        training/postgres   <span class="token string">&quot;su postgres -c '/us…&quot;</span>   <span class="token number">7</span> minutes ago       Up <span class="token number">7</span> minutes        <span class="token number">5432</span>/tcp                 db
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br></div></div><p>--link 参数的格式为 --link name:alias，其中 name 是要链接的容器的名称，alias 是这个连接的别名。</p> <blockquote><p>Docker 在两个互联的容器之间创建了一个安全隧道，而且不用映射它们的端口到宿主主机上。在启动 db 容器的时候并没有使用 -p 和 -P 标记，从而避免了暴露数据库端口到外部网络上。</p></blockquote> <h3 id="容器公开的连接信息"><a href="#容器公开的连接信息" class="header-anchor">¶</a> 容器公开的连接信息</h3> <p>Docker 通过 2 种方式为容器公开连接信息：</p> <ul><li>环境变量</li> <li>更新 /etc/hosts 文件</li></ul> <h4 id="环境变量"><a href="#环境变量" class="header-anchor">¶</a> 环境变量</h4> <p>使用 env 命令来查看 web 容器的环境变量</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai ~<span class="token punctuation">]</span><span class="token comment"># docker exec -it web /bin/bash</span>
+root@1cbc9aeba2a8:/opt/webapp<span class="token comment"># env</span>
+<span class="token assign-left variable"><span class="token environment constant">HOSTNAME</span></span><span class="token operator">=</span>1cbc9aeba2a8
+<span class="token assign-left variable">DB_NAME</span><span class="token operator">=</span>/web/db
+<span class="token assign-left variable">DB_PORT_5432_TCP_ADDR</span><span class="token operator">=</span><span class="token number">172.17</span>.0.2
+<span class="token assign-left variable">DB_PORT</span><span class="token operator">=</span>tcp://172.17.0.2:5432
+<span class="token assign-left variable">DB_PORT_5432_TCP</span><span class="token operator">=</span>tcp://172.17.0.2:5432
+<span class="token assign-left variable"><span class="token environment constant">PATH</span></span><span class="token operator">=</span>/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+<span class="token assign-left variable"><span class="token environment constant">PWD</span></span><span class="token operator">=</span>/opt/webapp
+<span class="token assign-left variable">DB_PORT_5432_TCP_PORT</span><span class="token operator">=</span><span class="token number">5432</span>
+<span class="token assign-left variable"><span class="token environment constant">SHLVL</span></span><span class="token operator">=</span><span class="token number">1</span>
+<span class="token assign-left variable"><span class="token environment constant">HOME</span></span><span class="token operator">=</span>/root
+<span class="token assign-left variable">DB_PORT_5432_TCP_PROTO</span><span class="token operator">=</span>tcp
+<span class="token assign-left variable">DB_ENV_PG_VERSION</span><span class="token operator">=</span><span class="token number">9.3</span>
+<span class="token assign-left variable">_</span><span class="token operator">=</span>/usr/bin/env
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br></div></div><p>其中 DB_ 开头的环境变量是供 web 容器连接 db 容器使用，前缀采用大写的连接别名。</p> <h4 id="hosts-文件"><a href="#hosts-文件" class="header-anchor">¶</a> hosts 文件</h4> <p>除了环境变量，Docker 还添加 host 信息到父容器的 /etc/hosts 的文件。下面是父容器 web 的 hosts 文件</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>root@1cbc9aeba2a8:/opt/webapp<span class="token comment"># cat /etc/hosts</span>
+<span class="token number">127.0</span>.0.1       localhost
+::1     localhost ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+<span class="token number">172.17</span>.0.2      db d992e3c761e0
+<span class="token number">172.17</span>.0.3      1cbc9aeba2a8
+root@1cbc9aeba2a8:/opt/webapp<span class="token comment">#</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br></div></div><p>这里有 2 个 hosts:</p> <ul><li>第一个, <code>172.17.0.2 db d992e3c761e0</code> 表示 db 容器的 ip, ID和Name</li> <li>第二个，<code>172.17.0.3 1cbc9aeba2a8</code> 表示 web 容器的 ip, ID</li></ul> <p>可以在 web 容器中安装 ping 命令来测试跟db容器的连通。</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>root@1cbc9aeba2a8:/opt/webapp<span class="token comment"># apt-get install -yqq inetutils-ping</span>
+<span class="token punctuation">(</span>Reading database <span class="token punctuation">..</span>. <span class="token number">18233</span> files and directories currently installed.<span class="token punctuation">)</span>
+Removing ubuntu-minimal <span class="token punctuation">(</span><span class="token number">1.325</span><span class="token punctuation">)</span> <span class="token punctuation">..</span>.
+Removing iputils-ping <span class="token punctuation">(</span><span class="token number">3</span>:20121221-4ubuntu1.1<span class="token punctuation">)</span> <span class="token punctuation">..</span>.
+Selecting previously unselected package inetutils-ping.
+<span class="token punctuation">(</span>Reading database <span class="token punctuation">..</span>. <span class="token number">18221</span> files and directories currently installed.<span class="token punctuation">)</span>
+Preparing to unpack <span class="token punctuation">..</span>./inetutils-ping_2%3a1.9.2-1_amd64.deb <span class="token punctuation">..</span>.
+Unpacking inetutils-ping <span class="token punctuation">(</span><span class="token number">2</span>:1.9.2-1<span class="token punctuation">)</span> <span class="token punctuation">..</span>.
+Setting up inetutils-ping <span class="token punctuation">(</span><span class="token number">2</span>:1.9.2-1<span class="token punctuation">)</span> <span class="token punctuation">..</span>.
+root@1cbc9aeba2a8:/opt/webapp<span class="token comment"># ping db</span>
+PING db <span class="token punctuation">(</span><span class="token number">172.17</span>.0.2<span class="token punctuation">)</span>: <span class="token number">56</span> data bytes
+<span class="token number">64</span> bytes from <span class="token number">172.17</span>.0.2: <span class="token assign-left variable">icmp_seq</span><span class="token operator">=</span><span class="token number">0</span> <span class="token assign-left variable">ttl</span><span class="token operator">=</span><span class="token number">64</span> <span class="token assign-left variable">time</span><span class="token operator">=</span><span class="token number">0.110</span> ms
+<span class="token number">64</span> bytes from <span class="token number">172.17</span>.0.2: <span class="token assign-left variable">icmp_seq</span><span class="token operator">=</span><span class="token number">1</span> <span class="token assign-left variable">ttl</span><span class="token operator">=</span><span class="token number">64</span> <span class="token assign-left variable">time</span><span class="token operator">=</span><span class="token number">0.092</span> ms
+<span class="token number">64</span> bytes from <span class="token number">172.17</span>.0.2: <span class="token assign-left variable">icmp_seq</span><span class="token operator">=</span><span class="token number">2</span> <span class="token assign-left variable">ttl</span><span class="token operator">=</span><span class="token number">64</span> <span class="token assign-left variable">time</span><span class="token operator">=</span><span class="token number">0.094</span> ms
+<span class="token number">64</span> bytes from <span class="token number">172.17</span>.0.2: <span class="token assign-left variable">icmp_seq</span><span class="token operator">=</span><span class="token number">3</span> <span class="token assign-left variable">ttl</span><span class="token operator">=</span><span class="token number">64</span> <span class="token assign-left variable">time</span><span class="token operator">=</span><span class="token number">0.104</span> ms
+<span class="token number">64</span> bytes from <span class="token number">172.17</span>.0.2: <span class="token assign-left variable">icmp_seq</span><span class="token operator">=</span><span class="token number">4</span> <span class="token assign-left variable">ttl</span><span class="token operator">=</span><span class="token number">64</span> <span class="token assign-left variable">time</span><span class="token operator">=</span><span class="token number">0.111</span> ms
+<span class="token number">64</span> bytes from <span class="token number">172.17</span>.0.2: <span class="token assign-left variable">icmp_seq</span><span class="token operator">=</span><span class="token number">5</span> <span class="token assign-left variable">ttl</span><span class="token operator">=</span><span class="token number">64</span> <span class="token assign-left variable">time</span><span class="token operator">=</span><span class="token number">0.093</span> ms
+<span class="token number">64</span> bytes from <span class="token number">172.17</span>.0.2: <span class="token assign-left variable">icmp_seq</span><span class="token operator">=</span><span class="token number">6</span> <span class="token assign-left variable">ttl</span><span class="token operator">=</span><span class="token number">64</span> <span class="token assign-left variable">time</span><span class="token operator">=</span><span class="token number">0.095</span> ms
+^C--- db <span class="token function">ping</span> statistics ---
+<span class="token number">7</span> packets transmitted, <span class="token number">7</span> packets received, <span class="token number">0</span>% packet loss
+round-trip min/avg/max/stddev <span class="token operator">=</span> <span class="token number">0.092</span>/0.100/0.111/0.000 ms
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br></div></div><p>用 ping 来测试db容器，它会解析成 172.17.0.2。</p> <p>当然，你还可以ping db容器的ID或者内部IP, 结果是一样的。</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>root@1cbc9aeba2a8:/opt/webapp<span class="token comment"># ping -t 4 d992e3c761e0</span>
+ping: unsupported packet type: <span class="token number">4</span>
+root@1cbc9aeba2a8:/opt/webapp<span class="token comment"># ping d992e3c761e0</span>
+PING db <span class="token punctuation">(</span><span class="token number">172.17</span>.0.2<span class="token punctuation">)</span>: <span class="token number">56</span> data bytes
+<span class="token number">64</span> bytes from <span class="token number">172.17</span>.0.2: <span class="token assign-left variable">icmp_seq</span><span class="token operator">=</span><span class="token number">0</span> <span class="token assign-left variable">ttl</span><span class="token operator">=</span><span class="token number">64</span> <span class="token assign-left variable">time</span><span class="token operator">=</span><span class="token number">0.089</span> ms
+<span class="token number">64</span> bytes from <span class="token number">172.17</span>.0.2: <span class="token assign-left variable">icmp_seq</span><span class="token operator">=</span><span class="token number">1</span> <span class="token assign-left variable">ttl</span><span class="token operator">=</span><span class="token number">64</span> <span class="token assign-left variable">time</span><span class="token operator">=</span><span class="token number">0.093</span> ms
+^C--- db <span class="token function">ping</span> statistics ---
+<span class="token number">2</span> packets transmitted, <span class="token number">2</span> packets received, <span class="token number">0</span>% packet loss
+round-trip min/avg/max/stddev <span class="token operator">=</span> <span class="token number">0.089</span>/0.091/0.093/0.000 ms
+root@1cbc9aeba2a8:/opt/webapp<span class="token comment"># ping 172.17.0.2</span>
+PING <span class="token number">172.17</span>.0.2 <span class="token punctuation">(</span><span class="token number">172.17</span>.0.2<span class="token punctuation">)</span>: <span class="token number">56</span> data bytes
+<span class="token number">64</span> bytes from <span class="token number">172.17</span>.0.2: <span class="token assign-left variable">icmp_seq</span><span class="token operator">=</span><span class="token number">0</span> <span class="token assign-left variable">ttl</span><span class="token operator">=</span><span class="token number">64</span> <span class="token assign-left variable">time</span><span class="token operator">=</span><span class="token number">0.094</span> ms
+<span class="token number">64</span> bytes from <span class="token number">172.17</span>.0.2: <span class="token assign-left variable">icmp_seq</span><span class="token operator">=</span><span class="token number">1</span> <span class="token assign-left variable">ttl</span><span class="token operator">=</span><span class="token number">64</span> <span class="token assign-left variable">time</span><span class="token operator">=</span><span class="token number">0.103</span> ms
+^C--- <span class="token number">172.17</span>.0.2 <span class="token function">ping</span> statistics ---
+<span class="token number">2</span> packets transmitted, <span class="token number">2</span> packets received, <span class="token number">0</span>% packet loss
+round-trip min/avg/max/stddev <span class="token operator">=</span> <span class="token number">0.094</span>/0.099/0.103/0.000 ms
+root@1cbc9aeba2a8:/opt/webapp<span class="token comment">#</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br></div></div><p>用户可以链接多个父容器到子容器，比如可以链接多个 web 到 db 容器上。</p></div> <div class="page-contract"><h2>联系我</h2> <div class="c-content"><span style="font-size:1rem;font-weight:bold;">添加@pdai微信</span><br> <img src="../../../pdai.jpg" height="280px" style="margin:10px;"><br>
+        PS：添加时请备注<b>Java全栈</b>，谢谢！
+      </div></div> <footer class="page-edit"><div class="edit-link"><a href="https://github.com/realpdai/tech-arch-doc/edit/master/md/devops/docker/docker-03-basic-web-app.md" target="_blank" rel="noopener noreferrer">在 GitHub 上编辑此页</a> <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></div> <div class="last-updated"><span class="prefix">上次更新: </span> <span class="time">2/19/2020,</span></div></footer> <div class="page-nav"><p class="inner"><span class="prev">
+        ←
+        <a href="docker-03-basic2.html" class="prev">
+          Docker基础 - 仓库，镜像，容器详解
+        </a></span> <span class="next"><a href="docker-07-network.html">
+          Docker基础 - Docker网络使用和配置
+        </a>
+        →
+      </span></p></div> <div class="google_ad_bottom"><ins data-ad-client="ca-pub-5088193899865249" data-ad-slot="6822031208" data-ad-format="auto" data-full-width-responsive="true" class="adsbygoogle" style="display:block"></ins> <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script></div> </main></div> <aside class="page-sidebar"> <div class="page-side-toolbar"><div class="option-box-toc-fixed"><div class="toc-container-sidebar"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:650px"><div style="font-weight:bold;text-align:center;">Docker基础 - 一个web应用实例</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="docker-03-basic-web-app.html#一个web-应用运行和访问" class="toc-sidebar-link">一个web 应用运行和访问</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="docker-03-basic-web-app.html#运行一个-web-应用" class="toc-sidebar-link">运行一个 web 应用</a></li><li class="toc-sidebar-sub-header"><a href="docker-03-basic-web-app.html#访问webapp" class="toc-sidebar-link">访问webapp</a></li><li class="toc-sidebar-sub-header"><a href="docker-03-basic-web-app.html#设置自定义映射端口" class="toc-sidebar-link">设置自定义映射端口</a></li></ul></li><li><a href="docker-03-basic-web-app.html#其它常用功能" class="toc-sidebar-link">其它常用功能</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="docker-03-basic-web-app.html#查看web-应用网络端口" class="toc-sidebar-link">查看web 应用网络端口</a></li><li class="toc-sidebar-sub-header"><a href="docker-03-basic-web-app.html#查看-web-应用程序日志" class="toc-sidebar-link">查看 WEB 应用程序日志</a></li><li class="toc-sidebar-sub-header"><a href="docker-03-basic-web-app.html#查看web应用程序容器的进程" class="toc-sidebar-link">查看WEB应用程序容器的进程</a></li><li class="toc-sidebar-sub-header"><a href="docker-03-basic-web-app.html#检查-web-应用程序" class="toc-sidebar-link">检查 WEB 应用程序</a></li><li class="toc-sidebar-sub-header"><a href="docker-03-basic-web-app.html#停止-web-应用容器" class="toc-sidebar-link">停止 WEB 应用容器</a></li><li class="toc-sidebar-sub-header"><a href="docker-03-basic-web-app.html#重启web应用容器" class="toc-sidebar-link">重启WEB应用容器</a></li><li class="toc-sidebar-sub-header"><a href="docker-03-basic-web-app.html#移除web应用容器" class="toc-sidebar-link">移除WEB应用容器</a></li></ul></li><li><a href="docker-03-basic-web-app.html#与其它容器db容器互联" class="toc-sidebar-link">与其它容器（DB容器）互联</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="docker-03-basic-web-app.html#与数据库容器互联" class="toc-sidebar-link">与数据库容器互联</a></li><li class="toc-sidebar-sub-header"><a href="docker-03-basic-web-app.html#容器公开的连接信息" class="toc-sidebar-link">容器公开的连接信息</a></li></ul></li></ul></div></div></div></div></div> <div class="option-box-toc-over"><img src="../../../toc.png" class="nozoom"> <span class="show-txt">目录</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:550px"><div style="font-weight:bold;text-align:center;">Docker基础 - 一个web应用实例</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="docker-03-basic-web-app.html#一个web-应用运行和访问" class="toc-sidebar-link">一个web 应用运行和访问</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="docker-03-basic-web-app.html#运行一个-web-应用" class="toc-sidebar-link">运行一个 web 应用</a></li><li class="toc-sidebar-sub-header"><a href="docker-03-basic-web-app.html#访问webapp" class="toc-sidebar-link">访问webapp</a></li><li class="toc-sidebar-sub-header"><a href="docker-03-basic-web-app.html#设置自定义映射端口" class="toc-sidebar-link">设置自定义映射端口</a></li></ul></li><li><a href="docker-03-basic-web-app.html#其它常用功能" class="toc-sidebar-link">其它常用功能</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="docker-03-basic-web-app.html#查看web-应用网络端口" class="toc-sidebar-link">查看web 应用网络端口</a></li><li class="toc-sidebar-sub-header"><a href="docker-03-basic-web-app.html#查看-web-应用程序日志" class="toc-sidebar-link">查看 WEB 应用程序日志</a></li><li class="toc-sidebar-sub-header"><a href="docker-03-basic-web-app.html#查看web应用程序容器的进程" class="toc-sidebar-link">查看WEB应用程序容器的进程</a></li><li class="toc-sidebar-sub-header"><a href="docker-03-basic-web-app.html#检查-web-应用程序" class="toc-sidebar-link">检查 WEB 应用程序</a></li><li class="toc-sidebar-sub-header"><a href="docker-03-basic-web-app.html#停止-web-应用容器" class="toc-sidebar-link">停止 WEB 应用容器</a></li><li class="toc-sidebar-sub-header"><a href="docker-03-basic-web-app.html#重启web应用容器" class="toc-sidebar-link">重启WEB应用容器</a></li><li class="toc-sidebar-sub-header"><a href="docker-03-basic-web-app.html#移除web应用容器" class="toc-sidebar-link">移除WEB应用容器</a></li></ul></li><li><a href="docker-03-basic-web-app.html#与其它容器db容器互联" class="toc-sidebar-link">与其它容器（DB容器）互联</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="docker-03-basic-web-app.html#与数据库容器互联" class="toc-sidebar-link">与数据库容器互联</a></li><li class="toc-sidebar-sub-header"><a href="docker-03-basic-web-app.html#容器公开的连接信息" class="toc-sidebar-link">容器公开的连接信息</a></li></ul></li></ul></div></div></div></div></div> <div class="option-box"><img src="../../../wechat.png" class="nozoom"> <span class="show-txt">手机看</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.9rem">微信扫一扫</span> <img height="180px" src="https://api.qrserver.com/v1/create-qr-code/?data=https://www.pdai.tech/md/devops/docker/docker-03-basic-web-app.html" style="margin:10px;">
+              可以<b>手机看</b>或分享至<b>朋友圈</b></div></div></div></div> <div class="option-box"><a title="点击切换全屏" style="text-align:center;padding-left:2px;"><img src="../../../full.png" width="30px" class="nozoom"> <span style="color:gray;font-size:11px;font-weight:400;">全屏看</span></a></div> <div class="option-box"><img src="../../../toggle.png" width="30px" class="nozoom"> <span class="show-txt">左栏</span></div> <div class="option-box"><img src="../../../wexin2.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:yellow">交流圈</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">添加pdai微信进《Java全栈知识体系》学习交流圈「无任何套路」</span> <img src="../../../pdai.jpg" height="180px" style="margin:10px;">
+              PS：添加时请备注<b>Java全栈</b>，谢谢！
+            </div></div></div></div> <div class="option-box"><img src="../../../download.jpg" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:#a6f792">下资料</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">扫描公众号，回复“资料”下载<font style="color:red;">10GB+</font>书籍资料「无任何套路」</span> <img src="../../../pdai_gzh.jpg" height="180px" style="margin:10px;"> <b>公众号:</b> Java全栈知识体系
+            </div></div></div></div> <div class="option-box"><img src="../../../heart.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;background-color:#gray">支持我</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">鼓励/支持/赞赏我</span> <img src="../../../pdai-guli.png" height="180px" width="200px" style="margin:5px;">
+              1. 不靠它生存但仍希望得到你的鼓励；<br> 2. 时刻警醒自己保持技术人的初心，恒心，简单，利他；
+            </div></div></div></div> <div title="Docker基础 - 仓库，镜像，容器详解" class="option-box" style="padding-left:2px;text-align:center;"><a href="docker-03-basic2.html"><img src="../../../pre2.png" width="30px" class="nozoom"> <span class="show-txt">上一篇</span></a></div> <div title="Docker基础 - Docker网络使用和配置" class="option-box" style="padding-left:2px;text-align:center;"><a href="docker-07-network.html"><img src="../../../next2.png" width="30px" class="nozoom"> <span class="show-txt">下一篇</span></a></div></div>  <div class="page-side-sitemap"><div class="option-box"><img src="../../../sitemap.png" class="nozoom img"> <span class="show-txt">站点图</span> <div class="sitemap-container"><h4>站点导航图
+            <a href="../../about/me/about-me.html" class="sitemap-top-link"> 关于我</a> <a href="../../about/blog/blog-build-vuepress.html" class="sitemap-top-link"> 关于站点</a> <a href="../../about/me/blog-changelist.html" class="sitemap-top-link"> 最近更新记录</a> <a href="../../about/me/blog-question.html" class="sitemap-top-link"><font style="color:red;background-color:yellow;">问题反馈</font></a></h4> <table class="sitemap-table"><tr><td nowrap="nowrap"><div class="sitemap-col-group">常用搜索</div></td> <td><div class="sitemap-col-item"><a href="http://www.baidu.com/" target="_blank" title="百度">  
+            百度
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.google.com/" target="_blank" title="Google">  
+            Google
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.bing.com/" target="_blank" title="Bing">  
+            Bing
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://github.com/" target="_blank" title="Github">  
+            Github
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.programcreek.com/java-api-examples/index.php" target="_blank" title="搜代码">  
+            搜代码
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">技术社区</div></td> <td><div class="sitemap-col-item"><a href="http://www.csdn.net/" target="_blank" title="CDSN">  
+            CDSN
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.cnblogs.com/" target="_blank" title="博客园">  
+            博客园
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.oschina.net/" target="_blank" title="OSChina">  
+            OSChina
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://segmentfault.com/" target="_blank" title="知否">  
+            知否
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://juejin.im/" target="_blank" title="掘金">  
+            掘金
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.linuxidc.com/" target="_blank" title="Linux公社">  
+            Linux公社
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.ibm.com/developerworks/cn/" target="_blank" title="IBM 开发者">  
+            IBM 开发者
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://stackoverflow.com/" target="_blank" title="StackOverflow">  
+            StackOverflow
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">Java相关</div></td> <!----> <td><a href="../../java/basic/java-basic-oop.html" class="sitemap-col-item">
+            面向对象基础
+          </a><a href="../../java/basic/java-basic-lan-basic.html" class="sitemap-col-item">
+            语法基础
+          </a><a href="../../java/collection/java-collection-all.html" class="sitemap-col-item">
+            集合框架
+          </a><a href="../../java/thread/java-thread-x-overview.html" class="sitemap-col-item">
+            并发基础
+          </a><a href="../../java/thread/java-thread-x-key-synchronized.html" class="sitemap-col-item">
+            并发关键字
+          </a><a href="../../java/thread/java-thread-x-juc-overview.html" class="sitemap-col-item">
+            JUC并发框架
+          </a><a href="../../java/io/java-io-overview.html" class="sitemap-col-item">
+            IO框架
+          </a><a href="../../java/java8/java8.html" class="sitemap-col-item">
+            Java8 特性
+          </a><a href="../../java/jvm/java-jvm-x-overview.html" class="sitemap-col-item">
+            JVM基础
+          </a><a href="../../java/jvm/java-jvm-param.html" class="sitemap-col-item">
+            调试排错
+          </a><a href="../../java/others/java-others-awesome-java.html" class="sitemap-col-item">
+            更多资源
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">算法相关</div></td> <!----> <td><a href="../../algorithm/alg-basic-array.html" class="sitemap-col-item">
+            数组与线性表
+          </a><a href="../../algorithm/alg-basic-tree.html" class="sitemap-col-item">
+            树详解
+          </a><a href="../../algorithm/alg-basic-graph.html" class="sitemap-col-item">
+            图详解
+          </a><a href="../../algorithm/alg-sort-overview.html" class="sitemap-col-item">
+            内部排序
+          </a><a href="../../algorithm/alg-core-divide-and-conquer.html" class="sitemap-col-item">
+            算法思想
+          </a><a href="../../algorithm/alg-domain-security-degist.html" class="sitemap-col-item">
+            安全算法
+          </a><a href="../../algorithm/alg-domain-bigdata-overview.html" class="sitemap-col-item">
+            大数据处理
+          </a><a href="../../algorithm/alg-domain-distribute-overview.html" class="sitemap-col-item">
+            分布式算法
+          </a><a href="../../algorithm/alg-domain-load-balance.html" class="sitemap-col-item">
+            负载均衡算法
+          </a><a href="../../algorithm/alg-domain-suggest.html" class="sitemap-col-item">
+            推荐算法
+          </a><a href="../../algorithm/alg-other-mind.html" class="sitemap-col-item">
+            头脑风暴
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">数据库相关</div></td> <!----> <td><a href="../../db/sql/sql-db-howitworks.html" class="sitemap-col-item">
+            数据库原理
+          </a><a href="../../db/sql-lan/sql-lan.html" class="sitemap-col-item">
+            SQL语言
+          </a><a href="../../db/sql-mysql/sql-mysql-theory.html" class="sitemap-col-item">
+            MySQL相关
+          </a><a href="../../db/nosql-mongo/mongo-performance-improve.html" class="sitemap-col-item">
+            MongoDB
+          </a><a href="../../db/nosql-es/elasticsearch.html" class="sitemap-col-item">
+            ElasticSearch
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">开发基础相关</div></td> <!----> <td><a href="../../develop/package/dev-package-x-apache-common.html" class="sitemap-col-item">
+            常用类库
+          </a><a href="../../develop/ut/dev-ut-x-junit.html" class="sitemap-col-item">
+            单元测试
+          </a><a href="../../develop/regex/dev-regex-all.html" class="sitemap-col-item">
+            正则表达式
+          </a><a href="../../develop/protocol/dev-protocol-overview.html" class="sitemap-col-item">
+            网络协议
+          </a><a href="../../develop/security/dev-security-overview.html" class="sitemap-col-item">
+            安全相关
+          </a><a href="../../develop/refactor/dev-refactor-if-else.html" class="sitemap-col-item">
+            常见重构技巧
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">架构相关</div></td> <!----> <td><a href="../../arch/arch-x-basic.html" class="sitemap-col-item">
+            架构基础
+          </a><a href="../../arch/arch-x-view.html" class="sitemap-col-item">
+            架构视角
+          </a><a href="../../arch/arch-x-evolution.html" class="sitemap-col-item">
+            架构演进
+          </a><a href="../../arch/arch-x-pattern.html" class="sitemap-col-item">
+            架构模式和要素
+          </a><a href="../../arch/arch-y-cache.html" class="sitemap-col-item">
+            高并发之缓存
+          </a><a href="../../arch/arch-y-ratelimit.html" class="sitemap-col-item">
+            高并发之限流
+          </a><a href="../../arch/arch-y-reduce.html" class="sitemap-col-item">
+            高并发之降级
+          </a><a href="../../arch/arch-y-loadbalance.html" class="sitemap-col-item">
+            负载均衡
+          </a><a href="../../arch/arch-y-backup.html" class="sitemap-col-item">
+            容灾备份
+          </a><a href="../../arch/arch-x-security.html" class="sitemap-col-item">
+            架构安全
+          </a><a href="../../arch/arch-example-seckill.html" class="sitemap-col-item">
+            秒杀系统设计
+          </a><a href="../../arch/arch-example-goods-detail.html" class="sitemap-col-item">
+            架构案例
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">工具和部署</div></td> <!----> <td><a href="../tool/tool-list-overview.html" class="sitemap-col-item">
+            工具集合
+          </a><a href="../tool/tool-ide.html" class="sitemap-col-item">
+            IDE相关
+          </a><a href="../tool/tool-git.html" class="sitemap-col-item">
+            Git
+          </a><a href="../tool/tool-maven.html" class="sitemap-col-item">
+            Maven
+          </a><a href="../linux/linux.html" class="sitemap-col-item">
+            Linux
+          </a><a href="docker-00-overview.html" class="sitemap-col-item">
+            Docker
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">方法论</div></td> <!----> <td><a href="../../dev-spec/spec/dev-th-solid.html" class="sitemap-col-item">
+            SOLID
+          </a><a href="../../dev-spec/spec/dev-th-cap.html" class="sitemap-col-item">
+            CAP
+          </a><a href="../../dev-spec/spec/dev-th-base.html" class="sitemap-col-item">
+            BASE
+          </a><a href="../../dev-spec/spec/dev-opensource.html" class="sitemap-col-item">
+            开源协议
+          </a><a href="../../dev-spec/code-style/code-style-alibaba.html" class="sitemap-col-item">
+            代码规范
+          </a><a href="../../dev-spec/pattern/1_overview.html" class="sitemap-col-item">
+            设计模式
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">产品和团队</div></td> <!----> <td><a href="../../team/team-z-wechat.html" class="sitemap-col-item">
+            产品相关
+          </a><a href="../../team/team-z-task-emergency.html" class="sitemap-col-item">
+            团队相关
+          </a><a href="../../team/team-z-arch-future.html" class="sitemap-col-item">
+            其它分享
+          </a></td></tr></table></div></div></div> <!----> </aside></div><div class="global-ui"></div></div>
+    <script src="../../../assets/js/app.691e72ae.js" defer></script><script src="../../../assets/js/4.2e3efdf6.js" defer></script><script src="../../../assets/js/3.d77b006c.js" defer></script><script src="../../../assets/js/344.5c395059.js" defer></script>
+  </body>
+
+<!-- Mirrored from www.pdai.tech/md/devops/docker/docker-03-basic-web-app.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:32:00 GMT -->
+</html>

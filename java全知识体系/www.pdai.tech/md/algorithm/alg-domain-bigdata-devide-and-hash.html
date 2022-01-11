@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  
+<!-- Mirrored from www.pdai.tech/md/algorithm/alg-domain-bigdata-devide-and-hash.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:30:50 GMT -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>大数据处理 - 分治/hash/排序 | Java 全栈知识体系</title>
+    <meta name="generator" content="VuePress 1.8.2">
+    <link rel="icon" href="../../favicon.ico">
+    <script src="../../../hm.baidu.com/hma448.js?525d4abc4a8675472736969f817ceb47"></script>
+    <script defer="defer" async="async" src="../../../pagead2.googlesyndication.com/pagead/js/f.txt"></script>
+    <meta name="description" content="包含: Java 基础, Java 部分源码, JVM, Spring, Spring Boot, Spring Cloud, 数据库原理, MySQL, ElasticSearch, MongoDB, Docker, k8s, CI&CD, Linux, DevOps, 分布式, 中间件, 开发工具, Git, IDE, 源码阅读，读书笔记, 开源项目...">
+    <meta property="article:modified_time" content="2021-05-09T14:05:05.000Z">
+    <meta property="og:title" content="大数据处理 - 分治/hash/排序">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="/md/algorithm/alg-domain-bigdata-devide-and-hash.html">
+    <meta name="twitter:title" content="大数据处理 - 分治/hash/排序">
+    <meta name="twitter:url" content="/md/algorithm/alg-domain-bigdata-devide-and-hash.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="robots" content="all">
+    <meta name="author" content="pdai">
+    <meta name="keywords" content="Java 全栈知识体系, java体系, java知识体系, java框架,java全栈,java学习路线,java全栈知识, java面试, 知识体系, java技术体系, java编程, java编程指南,java开发体系, java开发,java教程,java,java数据结构, 算法, 开发基础">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <link rel="preload" href="../../assets/css/0.styles.d4bb5489.css" as="style"><link rel="preload" href="../../assets/js/app.691e72ae.js" as="script"><link rel="preload" href="../../assets/js/4.2e3efdf6.js" as="script"><link rel="preload" href="../../assets/js/3.d77b006c.js" as="script"><link rel="preload" href="../../assets/js/75.cf923619.js" as="script">
+    <link rel="stylesheet" href="../../assets/css/0.styles.d4bb5489.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="../../index.html" class="home-link router-link-active"><!----> <span class="site-name">Java 全栈知识体系</span></a> <div class="links"><form id="search-form" role="search" class="algolia-search-wrapper search-box"><input id="algolia-search-input" class="search-query"></form> <nav class="nav-links can-hide"><div class="nav-item"><a href="../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav>  <ul class="sidebar-links"><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>数据结构基础</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="alg-basic-overview.html" class="sidebar-link">♥数据结构基础知识体系详解♥</a></li><li><a href="alg-basic-array.html" class="sidebar-link">线性表 - 数组和矩阵</a></li><li><a href="alg-basic-linklist.html" class="sidebar-link">线性表 - 链表</a></li><li><a href="alg-basic-hashtable.html" class="sidebar-link">线性表(散列) - 哈希表</a></li><li><a href="alg-basic-stack_queue.html" class="sidebar-link">线性表 - 栈和队列</a></li><li><a href="alg-basic-tree.html" class="sidebar-link">树 - 基础和Overview</a></li><li><a href="alg-basic-tree-search.html" class="sidebar-link">树 - 二叉搜索树(BST)</a></li><li><a href="alg-basic-tree-balance.html" class="sidebar-link">树 - 平衡二叉树(AVL)</a></li><li><a href="alg-basic-tree-redblack.html" class="sidebar-link">树 - 红黑树(R-B Tree)</a></li><li><a href="alg-basic-tree-hafman.html" class="sidebar-link">树 - 哈夫曼树(Huffman Tree)</a></li><li><a href="alg-basic-tree-trie.html" class="sidebar-link">树 - 前缀树(Trie Tree)</a></li><li><a href="alg-basic-graph.html" class="sidebar-link">图 - 基础和Overview</a></li><li><a href="alg-basic-graph-bfs-dfs.html" class="sidebar-link">图 - 遍历(BFS &amp; DFS)</a></li><li><a href="alg-basic-graph-min-tree.html" class="sidebar-link">图 - 最小生成树(Prim &amp; Kruskal)</a></li><li><a href="alg-basic-graph-min-distance.html" class="sidebar-link">图 - 最短路径(Dijkstra &amp; Frolyd)</a></li><li><a href="alg-basic-graph-topo-sort.html" class="sidebar-link">图 - 拓扑排序(Topological sort)</a></li><li><a href="alg-basic-graph-aoe.html" class="sidebar-link">图 - AOE &amp; 关键路径</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>常见排序算法</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="alg-sort-overview.html" class="sidebar-link">♥常见排序算法知识体系详解♥</a></li><li><a href="alg-sort-x-bubble.html" class="sidebar-link">排序 - 冒泡排序(Bubble Sort)</a></li><li><a href="alg-sort-x-fast.html" class="sidebar-link">排序 - 快速排序(Quick Sort)</a></li><li><a href="alg-sort-x-insert.html" class="sidebar-link">排序 - 插入排序(Insertion Sort)</a></li><li><a href="alg-sort-x-shell.html" class="sidebar-link">排序 - Shell排序(Shell Sort)</a></li><li><a href="alg-sort-x-select.html" class="sidebar-link">排序 - 选择排序(Selection sort)</a></li><li><a href="alg-sort-x-heap.html" class="sidebar-link">排序 - 堆排序(Heap Sort)</a></li><li><a href="alg-sort-x-merge.html" class="sidebar-link">排序 - 归并排序(Merge Sort)</a></li><li><a href="alg-sort-x-bucket.html" class="sidebar-link">排序 - 桶排序(Bucket Sort)</a></li><li><a href="alg-sort-x-radix.html" class="sidebar-link">排序 - 基数排序(Radix Sort)</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>算法思想</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="alg-core-overview.html" class="sidebar-link">♥算法思想知识体系详解♥</a></li><li><a href="alg-core-divide-and-conquer.html" class="sidebar-link">算法思想 - 分治算法</a></li><li><a href="alg-core-dynamic.html" class="sidebar-link">算法思想 - 动态规划算法</a></li><li><a href="alg-core-greedy.html" class="sidebar-link">算法思想 - 贪心算法</a></li><li><a href="alg-core-devide-two.html" class="sidebar-link">算法思想 - 二分法</a></li><li><a href="alg-core-search.html" class="sidebar-link">算法思想 - 搜索算法</a></li><li><a href="alg-core-backtracking.html" class="sidebar-link">算法思想 - 回溯算法</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading open"><span>一些领域算法</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="alg-domain-overview.html" class="sidebar-link">♥一些领域算法知识体系♥</a></li><li><a href="alg-domain-security-degist.html" class="sidebar-link">安全算法 - 摘要算法</a></li><li><a href="alg-domain-security-secure.html" class="sidebar-link">安全算法 - 加密算法</a></li><li><a href="alg-domain-security-sm.html" class="sidebar-link">安全算法 - 国密算法</a></li><li><a href="alg-domain-char-match.html" class="sidebar-link">字符串匹配 - Overview</a></li><li><a href="alg-domain-char-match-bf.html" class="sidebar-link">字符串匹配 - 模式预处理：朴素算法（Naive)(暴力破解)</a></li><li><a href="alg-domain-char-match-kmp.html" class="sidebar-link">字符串匹配 - 模式预处理：KMP 算法（Knuth-Morris-Pratt）</a></li><li><a href="alg-domain-char-match-bm.html" class="sidebar-link">字符串匹配 - 模式预处理：BM 算法 (Boyer-Moore)</a></li><li><a href="alg-domain-char-match-st.html" class="sidebar-link">字符串匹配 - 文本预处理：后缀树（Suffix Tree）</a></li><li><a href="alg-domain-bigdata-overview.html" class="sidebar-link">大数据处理 - Overview</a></li><li><a href="alg-domain-bigdata-devide-and-hash.html" aria-current="page" class="active sidebar-link">大数据处理 - 分治/hash/排序</a></li><li><a href="alg-domain-bigdata-bloom-filter.html" class="sidebar-link">大数据处理 - Bitmap &amp; Bloom Filter</a></li><li><a href="alg-domain-bigdata-bucket.html" class="sidebar-link">大数据处理 - 双层桶划分</a></li><li><a href="alg-domain-bigdata-db-index.html" class="sidebar-link">大数据处理 - Trie树/数据库/倒排索引</a></li><li><a href="alg-domain-bigdata-outsort.html" class="sidebar-link">大数据处理 - 外（磁盘文件）排序</a></li><li><a href="alg-domain-bigdata-map-reduce.html" class="sidebar-link">大数据处理 - Map &amp; Reduce</a></li><li><a href="alg-domain-distribute-overview.html" class="sidebar-link">分布式算法 - Overview</a></li><li><a href="alg-domain-distribute-x-consistency-hash.html" class="sidebar-link">分布式算法 - 一致性Hash算法</a></li><li><a href="alg-domain-distribute-x-paxos.html" class="sidebar-link">分布式算法 - Paxos算法</a></li><li><a href="alg-domain-distribute-x-raft.html" class="sidebar-link">分布式算法 - Raft算法</a></li><li><a href="alg-domain-distribute-x-zab.html" class="sidebar-link">分布式算法 - ZAB算法</a></li><li><a href="alg-domain-id-snowflake.html" class="sidebar-link">分布式算法 - Snowflake算法</a></li><li><a href="alg-domain-load-balance.html" class="sidebar-link">负载均衡算法 - 汇总</a></li><li><a href="alg-domain-suggest.html" class="sidebar-link">推荐算法 - 汇总</a></li><li><a href="alg-domain-machine.html" class="sidebar-link">数据挖掘 - 10大算法汇总</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>其它算法相关</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="alg-other-mind.html" class="sidebar-link">头脑风暴题目</a></li></ul></section></li></ul> </aside> <div><main class="page"> <div class="theme-default-content content__default"><h1 id="大数据处理---分治hash排序"><a href="#大数据处理---分治hash排序" class="header-anchor">¶</a> 大数据处理 - 分治/hash/排序</h1> <blockquote><p>大数据处理思路:  分而治之/Hash映射 + Hash_map统计 + 堆/快速/归并排序。@pdai</p></blockquote> <ul><li><a href="#%e5%a4%a7%e6%95%b0%e6%8d%ae%e5%a4%84%e7%90%86---%e5%88%86%e6%b2%bbhash%e6%8e%92%e5%ba%8f">大数据处理 - 分治/hash/排序</a> <ul><li><a href="#%e6%80%9d%e8%b7%af%e7%ae%80%e4%bb%8b">思路简介</a></li> <li><a href="#%e6%a1%88%e4%be%8b%e5%88%86%e6%9e%90">案例分析</a> <ul><li><a href="#%e6%b5%b7%e9%87%8f%e6%97%a5%e5%bf%97%e6%95%b0%e6%8d%ae%e6%8f%90%e5%8f%96%e5%87%ba%e6%9f%90%e6%97%a5%e8%ae%bf%e9%97%ae%e7%99%be%e5%ba%a6%e6%ac%a1%e6%95%b0%e6%9c%80%e5%a4%9a%e7%9a%84%e9%82%a3%e4%b8%aaip">海量日志数据，提取出某日访问百度次数最多的那个IP</a></li> <li><a href="#%e5%af%bb%e6%89%be%e7%83%ad%e9%97%a8%e6%9f%a5%e8%af%a2300%e4%b8%87%e4%b8%aa%e6%9f%a5%e8%af%a2%e5%ad%97%e7%ac%a6%e4%b8%b2%e4%b8%ad%e7%bb%9f%e8%ae%a1%e6%9c%80%e7%83%ad%e9%97%a8%e7%9a%8410%e4%b8%aa%e6%9f%a5%e8%af%a2">寻找热门查询，300万个查询字符串中统计最热门的10个查询</a></li> <li><a href="#%e6%9c%89%e4%b8%80%e4%b8%aa1g%e5%a4%a7%e5%b0%8f%e7%9a%84%e4%b8%80%e4%b8%aa%e6%96%87%e4%bb%b6%e9%87%8c%e9%9d%a2%e6%af%8f%e4%b8%80%e8%a1%8c%e6%98%af%e4%b8%80%e4%b8%aa%e8%af%8d%e8%af%8d%e7%9a%84%e5%a4%a7%e5%b0%8f%e4%b8%8d%e8%b6%85%e8%bf%8716%e5%ad%97%e8%8a%82%e5%86%85%e5%ad%98%e9%99%90%e5%88%b6%e5%a4%a7%e5%b0%8f%e6%98%af1m%e8%bf%94%e5%9b%9e%e9%a2%91%e6%95%b0%e6%9c%80%e9%ab%98%e7%9a%84100%e4%b8%aa%e8%af%8d">有一个1G大小的一个文件，里面每一行是一个词，词的大小不超过16字节，内存限制大小是1M。返回频数最高的100个词。</a></li> <li><a href="#%e6%b5%b7%e9%87%8f%e6%95%b0%e6%8d%ae%e5%88%86%e5%b8%83%e5%9c%a8100%e5%8f%b0%e7%94%b5%e8%84%91%e4%b8%ad%e6%83%b3%e4%b8%aa%e5%8a%9e%e6%b3%95%e9%ab%98%e6%95%88%e7%bb%9f%e8%ae%a1%e5%87%ba%e8%bf%99%e6%89%b9%e6%95%b0%e6%8d%ae%e7%9a%84top10">海量数据分布在100台电脑中，想个办法高效统计出这批数据的TOP10。</a></li> <li><a href="#%e6%9c%8910%e4%b8%aa%e6%96%87%e4%bb%b6%e6%af%8f%e4%b8%aa%e6%96%87%e4%bb%b61g%e6%af%8f%e4%b8%aa%e6%96%87%e4%bb%b6%e7%9a%84%e6%af%8f%e4%b8%80%e8%a1%8c%e5%ad%98%e6%94%be%e7%9a%84%e9%83%bd%e6%98%af%e7%94%a8%e6%88%b7%e7%9a%84query%e6%af%8f%e4%b8%aa%e6%96%87%e4%bb%b6%e7%9a%84query%e9%83%bd%e5%8f%af%e8%83%bd%e9%87%8d%e5%a4%8d%e8%a6%81%e6%b1%82%e4%bd%a0%e6%8c%89%e7%85%a7query%e7%9a%84%e9%a2%91%e5%ba%a6%e6%8e%92%e5%ba%8f">有10个文件，每个文件1G，每个文件的每一行存放的都是用户的query，每个文件的query都可能重复。要求你按照query的频度排序。</a></li> <li><a href="#%e7%bb%99%e5%ae%9aab%e4%b8%a4%e4%b8%aa%e6%96%87%e4%bb%b6%e5%90%84%e5%ad%98%e6%94%be50%e4%ba%bf%e4%b8%aaurl%e6%af%8f%e4%b8%aaurl%e5%90%84%e5%8d%a064%e5%ad%97%e8%8a%82%e5%86%85%e5%ad%98%e9%99%90%e5%88%b6%e6%98%af4g%e8%ae%a9%e4%bd%a0%e6%89%be%e5%87%baab%e6%96%87%e4%bb%b6%e5%85%b1%e5%90%8c%e7%9a%84url">给定a、b两个文件，各存放50亿个url，每个url各占64字节，内存限制是4G，让你找出a、b文件共同的url? </a></li> <li><a href="#%e6%80%8e%e4%b9%88%e5%9c%a8%e6%b5%b7%e9%87%8f%e6%95%b0%e6%8d%ae%e4%b8%ad%e6%89%be%e5%87%ba%e9%87%8d%e5%a4%8d%e6%ac%a1%e6%95%b0%e6%9c%80%e5%a4%9a%e7%9a%84%e4%b8%80%e4%b8%aa">怎么在海量数据中找出重复次数最多的一个? </a></li> <li><a href="#%e4%b8%8a%e5%8d%83%e4%b8%87%e6%88%96%e4%b8%8a%e4%ba%bf%e6%95%b0%e6%8d%ae%e6%9c%89%e9%87%8d%e5%a4%8d%e7%bb%9f%e8%ae%a1%e5%85%b6%e4%b8%ad%e5%87%ba%e7%8e%b0%e6%ac%a1%e6%95%b0%e6%9c%80%e5%a4%9a%e7%9a%84%e5%89%8dn%e4%b8%aa%e6%95%b0%e6%8d%ae">上千万或上亿数据(有重复)，统计其中出现次数最多的前N个数据。</a></li> <li><a href="#%e4%b8%80%e4%b8%aa%e6%96%87%e6%9c%ac%e6%96%87%e4%bb%b6%e5%a4%a7%e7%ba%a6%e6%9c%89%e4%b8%80%e4%b8%87%e8%a1%8c%e6%af%8f%e8%a1%8c%e4%b8%80%e4%b8%aa%e8%af%8d%e8%a6%81%e6%b1%82%e7%bb%9f%e8%ae%a1%e5%87%ba%e5%85%b6%e4%b8%ad%e6%9c%80%e9%a2%91%e7%b9%81%e5%87%ba%e7%8e%b0%e7%9a%84%e5%89%8d10%e4%b8%aa%e8%af%8d%e8%af%b7%e7%bb%99%e5%87%ba%e6%80%9d%e6%83%b3%e7%bb%99%e5%87%ba%e6%97%b6%e9%97%b4%e5%a4%8d%e6%9d%82%e5%ba%a6%e5%88%86%e6%9e%90">一个文本文件，大约有一万行，每行一个词，要求统计出其中最频繁出现的前10个词，请给出思想，给出时间复杂度分析。</a></li> <li><a href="#%e4%b8%80%e4%b8%aa%e6%96%87%e6%9c%ac%e6%96%87%e4%bb%b6%e6%89%be%e5%87%ba%e5%89%8d10%e4%b8%aa%e7%bb%8f%e5%b8%b8%e5%87%ba%e7%8e%b0%e7%9a%84%e8%af%8d%e4%bd%86%e8%bf%99%e6%ac%a1%e6%96%87%e4%bb%b6%e6%af%94%e8%be%83%e9%95%bf%e8%af%b4%e6%98%af%e4%b8%8a%e4%ba%bf%e8%a1%8c%e6%88%96%e5%8d%81%e4%ba%bf%e8%a1%8c%e6%80%bb%e4%b9%8b%e6%97%a0%e6%b3%95%e4%b8%80%e6%ac%a1%e8%af%bb%e5%85%a5%e5%86%85%e5%ad%98%e9%97%ae%e6%9c%80%e4%bc%98%e8%a7%a3">一个文本文件，找出前10个经常出现的词，但这次文件比较长，说是上亿行或十亿行，总之无法一次读入内存，问最优解。</a></li> <li><a href="#100w%e4%b8%aa%e6%95%b0%e4%b8%ad%e6%89%be%e5%87%ba%e6%9c%80%e5%a4%a7%e7%9a%84100%e4%b8%aa%e6%95%b0">100w个数中找出最大的100个数。</a></li></ul></li></ul></li></ul> <h2 id="思路简介"><a href="#思路简介" class="header-anchor">¶</a> 思路简介</h2> <blockquote><p>分而治之/hash映射 + hash统计 + 堆/快速/归并排序，说白了，就是先映射，而后统计，最后排序:</p></blockquote> <ul><li><p><code>分而治之/hash映射</code>: 针对数据太大，内存受限，只能是: 把大文件化成(取模映射)小文件，即16字方针: 大而化小，各个击破，缩小规模，逐个解决</p></li> <li><p><code>hash_map统计</code>: 当大文件转化了小文件，那么我们便可以采用常规的hash_map(ip，value)来进行频率统计。</p></li> <li><p><code>堆/快速排序</code>: 统计完了之后，便进行排序(可采取堆排序)，得到次数最多的IP。</p></li></ul> <h2 id="案例分析"><a href="#案例分析" class="header-anchor">¶</a> 案例分析</h2> <h3 id="海量日志数据提取出某日访问百度次数最多的那个ip"><a href="#海量日志数据提取出某日访问百度次数最多的那个ip" class="header-anchor">¶</a> 海量日志数据，提取出某日访问百度次数最多的那个IP</h3> <p>分析:  “首先是这一天，并且是访问百度的日志中的IP取出来，逐个写入到一个大文件中。注意到IP是32位的，最多有个2^32个IP。同样可以采用映射的方法，比如%1000，把整个大文件映射为1000个小文件，再找出每个小文中出现频率最大的IP(可以采用hash_map对那1000个文件中的所有IP进行频率统计，然后依次找出各个文件中频率最大的那个IP)及相应的频率。然后再在这1000个最大的IP中，找出那个频率最大的IP，即为所求。”</p> <p>关于本题，还有几个问题，如下:</p> <ul><li>Hash取模是一种等价映射，不会存在同一个元素分散到不同小文件中的情况，即这里采用的是mod1000算法，那么相同的IP在hash取模后，只可能落在同一个文件中，不可能被分散的。因为如果两个IP相等，那么经过Hash(IP)之后的哈希值是相同的，将此哈希值取模(如模1000)，必定仍然相等。</li> <li>那到底什么是hash映射呢? 简单来说，就是为了便于计算机在有限的内存中处理big数据，从而通过一种映射散列的方式让数据均匀分布在对应的内存位置(如大数据通过取余的方式映射成小树存放在内存中，或大文件映射成多个小文件)，而这个映射散列方式便是我们通常所说的hash函数，设计的好的hash函数能让数据均匀分布而减少冲突。尽管数据映射到了另外一些不同的位置，但数据还是原来的数据，只是代替和表示这些原始数据的形式发生了变化而已。</li></ul> <h3 id="寻找热门查询300万个查询字符串中统计最热门的10个查询"><a href="#寻找热门查询300万个查询字符串中统计最热门的10个查询" class="header-anchor">¶</a> 寻找热门查询，300万个查询字符串中统计最热门的10个查询</h3> <p>原题: 搜索引擎会通过日志文件把用户每次检索使用的所有检索串都记录下来，每个查询串的长度为1-255字节。假设目前有一千万个记录(这些查询串的重复度比较高，虽然总数是1千万，但如果除去重复后，不超过3百万个。一个查询串的重复度越高，说明查询它的用户越多，也就是越热门)，请你统计最热门的10个查询串，要求使用的内存不能超过1G。</p> <p>解答: 由上面第1题，我们知道，数据大则划为小的，如如一亿个Ip求Top 10，可先%1000将ip分到1000个小文件中去，并保证一种ip只出现在一个文件中，再对每个小文件中的ip进行hashmap计数统计并按数量排序，最后归并或者最小堆依次处理每个小文件的top10以得到最后的结。</p> <p>但如果数据规模比较小，能一次性装入内存呢?比如这第2题，虽然有一千万个Query，但是由于重复度比较高，因此事实上只有300万的Query，每个Query255Byte，因此我们可以考虑把他们都放进内存中去(300万个字符串假设没有重复，都是最大长度，那么最多占用内存3M*1K/4=0.75G。所以可以将所有字符串都存放在内存中进行处理)，而现在只是需要一个合适的数据结构，在这里，HashTable绝对是我们优先的选择。</p> <p>所以我们放弃分而治之/hash映射的步骤，直接上hash统计，然后排序。So，针对此类典型的TOP K问题，采取的对策往往是: hashmap + 堆。如下所示:</p> <ul><li><code>hash_map统计</code>: 先对这批海量数据预处理。具体方法是: 维护一个Key为Query字串，Value为该Query出现次数的HashTable，即hash_map(Query，Value)，每次读取一个Query，如果该字串不在Table中，那么加入该字串，并且将Value值设为1；如果该字串在Table中，那么将该字串的计数加一即可。最终我们在O(N)的时间复杂度内用Hash表完成了统计；
+堆排序: 第二步、借助堆这个数据结构，找出Top K，时间复杂度为N‘logK。即借助堆结构，我们可以在log量级的时间内查找和调整/移动。因此，维护一个K(该题目中是10)大小的小根堆，然后遍历300万的Query，分别和根元素进行对比。所以，我们最终的时间复杂度是: O(N) + N' * O(logK)，(N为1000万，N’为300万)。</li></ul> <p>别忘了这篇文章中所述的堆排序思路: “维护k个元素的最小堆，即用容量为k的最小堆存储最先遍历到的k个数，并假设它们即是最大的k个数，建堆费时O(k)，并调整堆(费时O(logk))后，有k1&gt;k2&gt;...kmin(kmin设为小顶堆中最小元素)。继续遍历数列，每次遍历一个元素x，与堆顶元素比较，若x&gt;kmin，则更新堆(x入堆，用时logk)，否则不更新堆。这样下来，总费时O(k*logk+(n-k)<em>logk)=O(n</em>logk)。此方法得益于在堆中，查找等各项操作时间复杂度均为logk。”--第三章续、Top K算法问题的实现。
+    当然，你也可以采用trie树，关键字域存该查询串出现的次数，没有出现为0。最后用10个元素的最小推来对出现频率进行排序。</p> <h3 id="有一个1g大小的一个文件里面每一行是一个词词的大小不超过16字节内存限制大小是1m返回频数最高的100个词"><a href="#有一个1g大小的一个文件里面每一行是一个词词的大小不超过16字节内存限制大小是1m返回频数最高的100个词" class="header-anchor">¶</a> 有一个1G大小的一个文件，里面每一行是一个词，词的大小不超过16字节，内存限制大小是1M。返回频数最高的100个词。</h3> <ul><li><code>分而治之/hash映射</code>: 顺序读文件中，对于每个词x，取hash(x)%5000，然后按照该值存到5000个小文件(记为x0,x1,...x4999)中。这样每个文件大概是200k左右。如果其中的有的文件超过了1M大小，还可以按照类似的方法继续往下分，直到分解得到的小文件的大小都不超过1M。</li> <li><code>hash_map统计</code>: 对每个小文件，采用trie树/hash_map等统计每个文件中出现的词以及相应的频率。</li> <li><code>堆/归并排序</code>: 取出出现频率最大的100个词(可以用含100个结点的最小堆)后，再把100个词及相应的频率存入文件，这样又得到了5000个文件。最后就是把这5000个文件进行归并(类似于归并排序)的过程了。</li></ul> <h3 id="海量数据分布在100台电脑中想个办法高效统计出这批数据的top10"><a href="#海量数据分布在100台电脑中想个办法高效统计出这批数据的top10" class="header-anchor">¶</a> 海量数据分布在100台电脑中，想个办法高效统计出这批数据的TOP10。</h3> <p>如果每个数据元素只出现一次，而且只出现在某一台机器中，那么可以采取以下步骤统计出现次数TOP10的数据元素:</p> <ul><li><code>堆排序</code>: 在每台电脑上求出TOP10，可以采用包含10个元素的堆完成(TOP10小，用最大堆，TOP10大，用最小堆，比如求TOP10大，我们首先取前10个元素调整成最小堆，如果发现，然后扫描后面的数据，并与堆顶元素比较，如果比堆顶元素大，那么用该元素替换堆顶，然后再调整为最小堆。最后堆中的元素就是TOP10大)。
+求出每台电脑上的TOP10后，然后把这100台电脑上的TOP10组合起来，共1000个数据，再利用上面类似的方法求出TOP10就可以了。</li></ul> <p>但如果同一个元素重复出现在不同的电脑中呢，如下例子所述, 这个时候，你可以有两种方法:</p> <ul><li>遍历一遍所有数据，重新hash取摸，如此使得同一个元素只出现在单独的一台电脑中，然后采用上面所说的方法，统计每台电脑中各个元素的出现次数找出TOP10，继而组合100台电脑上的TOP10，找出最终的TOP10。</li> <li>或者，暴力求解: 直接统计统计每台电脑中各个元素的出现次数，然后把同一个元素在不同机器中的出现次数相加，最终从所有数据中找出TOP10。</li></ul> <h3 id="有10个文件每个文件1g每个文件的每一行存放的都是用户的query每个文件的query都可能重复要求你按照query的频度排序"><a href="#有10个文件每个文件1g每个文件的每一行存放的都是用户的query每个文件的query都可能重复要求你按照query的频度排序" class="header-anchor">¶</a> 有10个文件，每个文件1G，每个文件的每一行存放的都是用户的query，每个文件的query都可能重复。要求你按照query的频度排序。</h3> <p>方案1:</p> <ul><li><code>hash映射</code>: 顺序读取10个文件，按照hash(query)%10的结果将query写入到另外10个文件(记为a0,a1,..a9)中。这样新生成的文件每个的大小大约也1G(假设hash函数是随机的)。</li> <li><code>hash_map统计</code>: 找一台内存在2G左右的机器，依次对用hash_map(query, query_count)来统计每个query出现的次数。注: hash_map(query,query_count)是用来统计每个query的出现次数，不是存储他们的值，出现一次，则count+1。
+堆/快速/归并排序: 利用快速/堆/归并排序按照出现次数进行排序，将排序好的query和对应的query_cout输出到文件中，这样得到了10个排好序的文件(记为)。最后，对这10个文件进行归并排序(内排序与外排序相结合)。根据此方案1，这里有一份实现: https://github.com/ooooola/sortquery/blob/master/querysort.py。</li></ul> <p>方案2: 一般query的总量是有限的，只是重复的次数比较多而已，可能对于所有的query，一次性就可以加入到内存了。这样，我们就可以采用trie树/hash_map等直接来统计每个query出现的次数，然后按出现次数做快速/堆/归并排序就可以了。</p> <p>方案3: 与方案1类似，但在做完hash，分成多个文件后，可以交给多个文件来处理，采用分布式的架构来处理(比如MapReduce)，最后再进行合并。</p> <h3 id="给定a、b两个文件各存放50亿个url每个url各占64字节内存限制是4g让你找出a、b文件共同的url"><a href="#给定a、b两个文件各存放50亿个url每个url各占64字节内存限制是4g让你找出a、b文件共同的url" class="header-anchor">¶</a> 给定a、b两个文件，各存放50亿个url，每个url各占64字节，内存限制是4G，让你找出a、b文件共同的url?</h3> <p>可以估计每个文件安的大小为5G×64=320G，远远大于内存限制的4G。所以不可能将其完全加载到内存中处理。考虑采取分而治之的方法。</p> <p><code>分而治之/hash映射</code>: 遍历文件a，对每个url求取，然后根据所取得的值将url分别存储到1000个小文件(记为，这里漏写个了a1)中。这样每个小文件的大约为300M。遍历文件b，采取和a相同的方式将url分别存储到1000小文件中(记为)。这样处理后，所有可能相同的url都在对应的小文件()中，不对应的小文件不可能有相同的url。然后我们只要求出1000对小文件中相同的url即可。</p> <p><code>hash_set统计</code>: 求每对小文件中相同的url时，可以把其中一个小文件的url存储到hash_set中。然后遍历另一个小文件的每个url，看其是否在刚才构建的hash_set中，如果是，那么就是共同的url，存到文件里面就可以了。</p> <h3 id="怎么在海量数据中找出重复次数最多的一个"><a href="#怎么在海量数据中找出重复次数最多的一个" class="header-anchor">¶</a> 怎么在海量数据中找出重复次数最多的一个?</h3> <p>方案: 先做hash，然后求模映射为小文件，求出每个小文件中重复次数最多的一个，并记录重复次数。然后找出上一步求出的数据中重复次数最多的一个就是所求(具体参考前面的题)。</p> <h3 id="上千万或上亿数据有重复统计其中出现次数最多的前n个数据"><a href="#上千万或上亿数据有重复统计其中出现次数最多的前n个数据" class="header-anchor">¶</a> 上千万或上亿数据(有重复)，统计其中出现次数最多的前N个数据。</h3> <p>方案: 上千万或上亿的数据，现在的机器的内存应该能存下。所以考虑采用hash_map/搜索二叉树/红黑树等来进行统计次数。然后利用堆取出前N个出现次数最多的数据。</p> <h3 id="一个文本文件大约有一万行每行一个词要求统计出其中最频繁出现的前10个词请给出思想给出时间复杂度分析"><a href="#一个文本文件大约有一万行每行一个词要求统计出其中最频繁出现的前10个词请给出思想给出时间复杂度分析" class="header-anchor">¶</a> 一个文本文件，大约有一万行，每行一个词，要求统计出其中最频繁出现的前10个词，请给出思想，给出时间复杂度分析。</h3> <p>方案1: 如果文件比较大，无法一次性读入内存，可以采用hash取模的方法，将大文件分解为多个小文件，对于单个小文件利用hash_map统计出每个小文件中10个最常出现的词，然后再进行归并处理，找出最终的10个最常出现的词。</p> <p>方案2: 通过hash取模将大文件分解为多个小文件后，除了可以用hash_map统计出每个小文件中10个最常出现的词，也可以用trie树统计每个词出现的次数，时间复杂度是O(n<em>le)(le表示单词的平准长度)，最终同样找出出现最频繁的前10个词(可用堆来实现)，时间复杂度是O(n</em>lg10)。</p> <h3 id="一个文本文件找出前10个经常出现的词但这次文件比较长说是上亿行或十亿行总之无法一次读入内存问最优解"><a href="#一个文本文件找出前10个经常出现的词但这次文件比较长说是上亿行或十亿行总之无法一次读入内存问最优解" class="header-anchor">¶</a> 一个文本文件，找出前10个经常出现的词，但这次文件比较长，说是上亿行或十亿行，总之无法一次读入内存，问最优解。</h3> <p>方案1: 首先根据用hash并求模，将文件分解为多个小文件，对于单个文件利用上题的方法求出每个文件件中10个最常出现的词。然后再进行归并处理，找出最终的10个最常出现的词。</p> <h3 id="100w个数中找出最大的100个数"><a href="#100w个数中找出最大的100个数" class="header-anchor">¶</a> 100w个数中找出最大的100个数。</h3> <p>方案1: 采用局部淘汰法。选取前100个元素，并排序，记为序列L。然后一次扫描剩余的元素x，与排好序的100个元素中最小的元素比，如果比这个最小的要大，那么把这个最小的元素删除，并把x利用插入排序的思想，插入到序列L中。依次循环，知道扫描了所有的元素。复杂度为O(100w*100)。</p> <p>方案2: 采用快速排序的思想，每次分割之后只考虑比轴大的一部分，知道比轴大的一部分在比100多的时候，采用传统排序算法排序，取前100个。复杂度为O(100w*100)。</p> <p>方案3: 在前面的题中，我们已经提到了，用一个含100个元素的最小堆完成。复杂度为O(100w*lg100)。</p></div> <div class="page-contract"><h2>联系我</h2> <div class="c-content"><span style="font-size:1rem;font-weight:bold;">添加@pdai微信</span><br> <img src="../../pdai.jpg" height="280px" style="margin:10px;"><br>
+        PS：添加时请备注<b>Java全栈</b>，谢谢！
+      </div></div> <footer class="page-edit"><div class="edit-link"><a href="https://github.com/realpdai/tech-arch-doc/edit/master/md/algorithm/alg-domain-bigdata-devide-and-hash.md" target="_blank" rel="noopener noreferrer">在 GitHub 上编辑此页</a> <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></div> <div class="last-updated"><span class="prefix">上次更新: </span> <span class="time">5/9/2021,</span></div></footer> <div class="page-nav"><p class="inner"><span class="prev">
+        ←
+        <a href="alg-domain-bigdata-overview.html" class="prev">
+          大数据处理 - Overview
+        </a></span> <span class="next"><a href="alg-domain-bigdata-bloom-filter.html">
+          大数据处理 - Bitmap &amp; Bloom Filter
+        </a>
+        →
+      </span></p></div> <div class="google_ad_bottom"><ins data-ad-client="ca-pub-5088193899865249" data-ad-slot="6822031208" data-ad-format="auto" data-full-width-responsive="true" class="adsbygoogle" style="display:block"></ins> <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script></div> </main></div> <aside class="page-sidebar"> <div class="page-side-toolbar"><div class="option-box-toc-fixed"><div class="toc-container-sidebar"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:650px"><div style="font-weight:bold;text-align:center;">大数据处理 - 分治/hash/排序</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="alg-domain-bigdata-devide-and-hash.html#思路简介" class="toc-sidebar-link">思路简介</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="alg-domain-bigdata-devide-and-hash.html#案例分析" class="toc-sidebar-link">案例分析</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-devide-and-hash.html#海量日志数据提取出某日访问百度次数最多的那个ip" class="toc-sidebar-link">海量日志数据，提取出某日访问百度次数最多的那个IP</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-devide-and-hash.html#寻找热门查询300万个查询字符串中统计最热门的10个查询" class="toc-sidebar-link">寻找热门查询，300万个查询字符串中统计最热门的10个查询</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-devide-and-hash.html#有一个1g大小的一个文件里面每一行是一个词词的大小不超过16字节内存限制大小是1m返回频数最高的100个词" class="toc-sidebar-link">有一个1G大小的一个文件，里面每一行是一个词，词的大小不超过16字节，内存限制大小是1M。返回频数最高的100个词。</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-devide-and-hash.html#海量数据分布在100台电脑中想个办法高效统计出这批数据的top10" class="toc-sidebar-link">海量数据分布在100台电脑中，想个办法高效统计出这批数据的TOP10。</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-devide-and-hash.html#有10个文件每个文件1g每个文件的每一行存放的都是用户的query每个文件的query都可能重复要求你按照query的频度排序" class="toc-sidebar-link">有10个文件，每个文件1G，每个文件的每一行存放的都是用户的query，每个文件的query都可能重复。要求你按照query的频度排序。</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-devide-and-hash.html#给定a、b两个文件各存放50亿个url每个url各占64字节内存限制是4g让你找出a、b文件共同的url" class="toc-sidebar-link">给定a、b两个文件，各存放50亿个url，每个url各占64字节，内存限制是4G，让你找出a、b文件共同的url?</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-devide-and-hash.html#怎么在海量数据中找出重复次数最多的一个" class="toc-sidebar-link">怎么在海量数据中找出重复次数最多的一个?</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-devide-and-hash.html#上千万或上亿数据有重复统计其中出现次数最多的前n个数据" class="toc-sidebar-link">上千万或上亿数据(有重复)，统计其中出现次数最多的前N个数据。</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-devide-and-hash.html#一个文本文件大约有一万行每行一个词要求统计出其中最频繁出现的前10个词请给出思想给出时间复杂度分析" class="toc-sidebar-link">一个文本文件，大约有一万行，每行一个词，要求统计出其中最频繁出现的前10个词，请给出思想，给出时间复杂度分析。</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-devide-and-hash.html#一个文本文件找出前10个经常出现的词但这次文件比较长说是上亿行或十亿行总之无法一次读入内存问最优解" class="toc-sidebar-link">一个文本文件，找出前10个经常出现的词，但这次文件比较长，说是上亿行或十亿行，总之无法一次读入内存，问最优解。</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-devide-and-hash.html#100w个数中找出最大的100个数" class="toc-sidebar-link">100w个数中找出最大的100个数。</a></li></ul></li></ul></div></div></div></div></div> <div class="option-box-toc-over"><img src="../../toc.png" class="nozoom"> <span class="show-txt">目录</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:550px"><div style="font-weight:bold;text-align:center;">大数据处理 - 分治/hash/排序</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="alg-domain-bigdata-devide-and-hash.html#思路简介" class="toc-sidebar-link">思路简介</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="alg-domain-bigdata-devide-and-hash.html#案例分析" class="toc-sidebar-link">案例分析</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-devide-and-hash.html#海量日志数据提取出某日访问百度次数最多的那个ip" class="toc-sidebar-link">海量日志数据，提取出某日访问百度次数最多的那个IP</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-devide-and-hash.html#寻找热门查询300万个查询字符串中统计最热门的10个查询" class="toc-sidebar-link">寻找热门查询，300万个查询字符串中统计最热门的10个查询</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-devide-and-hash.html#有一个1g大小的一个文件里面每一行是一个词词的大小不超过16字节内存限制大小是1m返回频数最高的100个词" class="toc-sidebar-link">有一个1G大小的一个文件，里面每一行是一个词，词的大小不超过16字节，内存限制大小是1M。返回频数最高的100个词。</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-devide-and-hash.html#海量数据分布在100台电脑中想个办法高效统计出这批数据的top10" class="toc-sidebar-link">海量数据分布在100台电脑中，想个办法高效统计出这批数据的TOP10。</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-devide-and-hash.html#有10个文件每个文件1g每个文件的每一行存放的都是用户的query每个文件的query都可能重复要求你按照query的频度排序" class="toc-sidebar-link">有10个文件，每个文件1G，每个文件的每一行存放的都是用户的query，每个文件的query都可能重复。要求你按照query的频度排序。</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-devide-and-hash.html#给定a、b两个文件各存放50亿个url每个url各占64字节内存限制是4g让你找出a、b文件共同的url" class="toc-sidebar-link">给定a、b两个文件，各存放50亿个url，每个url各占64字节，内存限制是4G，让你找出a、b文件共同的url?</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-devide-and-hash.html#怎么在海量数据中找出重复次数最多的一个" class="toc-sidebar-link">怎么在海量数据中找出重复次数最多的一个?</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-devide-and-hash.html#上千万或上亿数据有重复统计其中出现次数最多的前n个数据" class="toc-sidebar-link">上千万或上亿数据(有重复)，统计其中出现次数最多的前N个数据。</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-devide-and-hash.html#一个文本文件大约有一万行每行一个词要求统计出其中最频繁出现的前10个词请给出思想给出时间复杂度分析" class="toc-sidebar-link">一个文本文件，大约有一万行，每行一个词，要求统计出其中最频繁出现的前10个词，请给出思想，给出时间复杂度分析。</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-devide-and-hash.html#一个文本文件找出前10个经常出现的词但这次文件比较长说是上亿行或十亿行总之无法一次读入内存问最优解" class="toc-sidebar-link">一个文本文件，找出前10个经常出现的词，但这次文件比较长，说是上亿行或十亿行，总之无法一次读入内存，问最优解。</a></li><li class="toc-sidebar-sub-header"><a href="alg-domain-bigdata-devide-and-hash.html#100w个数中找出最大的100个数" class="toc-sidebar-link">100w个数中找出最大的100个数。</a></li></ul></li></ul></div></div></div></div></div> <div class="option-box"><img src="../../wechat.png" class="nozoom"> <span class="show-txt">手机看</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.9rem">微信扫一扫</span> <img height="180px" src="https://api.qrserver.com/v1/create-qr-code/?data=https://www.pdai.tech/md/algorithm/alg-domain-bigdata-devide-and-hash.html" style="margin:10px;">
+              可以<b>手机看</b>或分享至<b>朋友圈</b></div></div></div></div> <div class="option-box"><a title="点击切换全屏" style="text-align:center;padding-left:2px;"><img src="../../full.png" width="30px" class="nozoom"> <span style="color:gray;font-size:11px;font-weight:400;">全屏看</span></a></div> <div class="option-box"><img src="../../toggle.png" width="30px" class="nozoom"> <span class="show-txt">左栏</span></div> <div class="option-box"><img src="../../wexin2.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:yellow">交流圈</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">添加pdai微信进《Java全栈知识体系》学习交流圈「无任何套路」</span> <img src="../../pdai.jpg" height="180px" style="margin:10px;">
+              PS：添加时请备注<b>Java全栈</b>，谢谢！
+            </div></div></div></div> <div class="option-box"><img src="../../download.jpg" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:#a6f792">下资料</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">扫描公众号，回复“资料”下载<font style="color:red;">10GB+</font>书籍资料「无任何套路」</span> <img src="../../pdai_gzh.jpg" height="180px" style="margin:10px;"> <b>公众号:</b> Java全栈知识体系
+            </div></div></div></div> <div class="option-box"><img src="../../heart.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;background-color:#gray">支持我</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">鼓励/支持/赞赏我</span> <img src="../../pdai-guli.png" height="180px" width="200px" style="margin:5px;">
+              1. 不靠它生存但仍希望得到你的鼓励；<br> 2. 时刻警醒自己保持技术人的初心，恒心，简单，利他；
+            </div></div></div></div> <div title="大数据处理 - Overview" class="option-box" style="padding-left:2px;text-align:center;"><a href="alg-domain-bigdata-overview.html"><img src="../../pre2.png" width="30px" class="nozoom"> <span class="show-txt">上一篇</span></a></div> <div title="大数据处理 - Bitmap &amp; Bloom Filter" class="option-box" style="padding-left:2px;text-align:center;"><a href="alg-domain-bigdata-bloom-filter.html"><img src="../../next2.png" width="30px" class="nozoom"> <span class="show-txt">下一篇</span></a></div></div>  <div class="page-side-sitemap"><div class="option-box"><img src="../../sitemap.png" class="nozoom img"> <span class="show-txt">站点图</span> <div class="sitemap-container"><h4>站点导航图
+            <a href="../about/me/about-me.html" class="sitemap-top-link"> 关于我</a> <a href="../about/blog/blog-build-vuepress.html" class="sitemap-top-link"> 关于站点</a> <a href="../about/me/blog-changelist.html" class="sitemap-top-link"> 最近更新记录</a> <a href="../about/me/blog-question.html" class="sitemap-top-link"><font style="color:red;background-color:yellow;">问题反馈</font></a></h4> <table class="sitemap-table"><tr><td nowrap="nowrap"><div class="sitemap-col-group">常用搜索</div></td> <td><div class="sitemap-col-item"><a href="http://www.baidu.com/" target="_blank" title="百度">  
+            百度
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.google.com/" target="_blank" title="Google">  
+            Google
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.bing.com/" target="_blank" title="Bing">  
+            Bing
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://github.com/" target="_blank" title="Github">  
+            Github
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.programcreek.com/java-api-examples/index.php" target="_blank" title="搜代码">  
+            搜代码
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">技术社区</div></td> <td><div class="sitemap-col-item"><a href="http://www.csdn.net/" target="_blank" title="CDSN">  
+            CDSN
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.cnblogs.com/" target="_blank" title="博客园">  
+            博客园
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.oschina.net/" target="_blank" title="OSChina">  
+            OSChina
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://segmentfault.com/" target="_blank" title="知否">  
+            知否
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://juejin.im/" target="_blank" title="掘金">  
+            掘金
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.linuxidc.com/" target="_blank" title="Linux公社">  
+            Linux公社
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.ibm.com/developerworks/cn/" target="_blank" title="IBM 开发者">  
+            IBM 开发者
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://stackoverflow.com/" target="_blank" title="StackOverflow">  
+            StackOverflow
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">Java相关</div></td> <!----> <td><a href="../java/basic/java-basic-oop.html" class="sitemap-col-item">
+            面向对象基础
+          </a><a href="../java/basic/java-basic-lan-basic.html" class="sitemap-col-item">
+            语法基础
+          </a><a href="../java/collection/java-collection-all.html" class="sitemap-col-item">
+            集合框架
+          </a><a href="../java/thread/java-thread-x-overview.html" class="sitemap-col-item">
+            并发基础
+          </a><a href="../java/thread/java-thread-x-key-synchronized.html" class="sitemap-col-item">
+            并发关键字
+          </a><a href="../java/thread/java-thread-x-juc-overview.html" class="sitemap-col-item">
+            JUC并发框架
+          </a><a href="../java/io/java-io-overview.html" class="sitemap-col-item">
+            IO框架
+          </a><a href="../java/java8/java8.html" class="sitemap-col-item">
+            Java8 特性
+          </a><a href="../java/jvm/java-jvm-x-overview.html" class="sitemap-col-item">
+            JVM基础
+          </a><a href="../java/jvm/java-jvm-param.html" class="sitemap-col-item">
+            调试排错
+          </a><a href="../java/others/java-others-awesome-java.html" class="sitemap-col-item">
+            更多资源
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">算法相关</div></td> <!----> <td><a href="alg-basic-array.html" class="sitemap-col-item">
+            数组与线性表
+          </a><a href="alg-basic-tree.html" class="sitemap-col-item">
+            树详解
+          </a><a href="alg-basic-graph.html" class="sitemap-col-item">
+            图详解
+          </a><a href="alg-sort-overview.html" class="sitemap-col-item">
+            内部排序
+          </a><a href="alg-core-divide-and-conquer.html" class="sitemap-col-item">
+            算法思想
+          </a><a href="alg-domain-security-degist.html" class="sitemap-col-item">
+            安全算法
+          </a><a href="alg-domain-bigdata-overview.html" class="sitemap-col-item">
+            大数据处理
+          </a><a href="alg-domain-distribute-overview.html" class="sitemap-col-item">
+            分布式算法
+          </a><a href="alg-domain-load-balance.html" class="sitemap-col-item">
+            负载均衡算法
+          </a><a href="alg-domain-suggest.html" class="sitemap-col-item">
+            推荐算法
+          </a><a href="alg-other-mind.html" class="sitemap-col-item">
+            头脑风暴
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">数据库相关</div></td> <!----> <td><a href="../db/sql/sql-db-howitworks.html" class="sitemap-col-item">
+            数据库原理
+          </a><a href="../db/sql-lan/sql-lan.html" class="sitemap-col-item">
+            SQL语言
+          </a><a href="../db/sql-mysql/sql-mysql-theory.html" class="sitemap-col-item">
+            MySQL相关
+          </a><a href="../db/nosql-mongo/mongo-performance-improve.html" class="sitemap-col-item">
+            MongoDB
+          </a><a href="../db/nosql-es/elasticsearch.html" class="sitemap-col-item">
+            ElasticSearch
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">开发基础相关</div></td> <!----> <td><a href="../develop/package/dev-package-x-apache-common.html" class="sitemap-col-item">
+            常用类库
+          </a><a href="../develop/ut/dev-ut-x-junit.html" class="sitemap-col-item">
+            单元测试
+          </a><a href="../develop/regex/dev-regex-all.html" class="sitemap-col-item">
+            正则表达式
+          </a><a href="../develop/protocol/dev-protocol-overview.html" class="sitemap-col-item">
+            网络协议
+          </a><a href="../develop/security/dev-security-overview.html" class="sitemap-col-item">
+            安全相关
+          </a><a href="../develop/refactor/dev-refactor-if-else.html" class="sitemap-col-item">
+            常见重构技巧
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">架构相关</div></td> <!----> <td><a href="../arch/arch-x-basic.html" class="sitemap-col-item">
+            架构基础
+          </a><a href="../arch/arch-x-view.html" class="sitemap-col-item">
+            架构视角
+          </a><a href="../arch/arch-x-evolution.html" class="sitemap-col-item">
+            架构演进
+          </a><a href="../arch/arch-x-pattern.html" class="sitemap-col-item">
+            架构模式和要素
+          </a><a href="../arch/arch-y-cache.html" class="sitemap-col-item">
+            高并发之缓存
+          </a><a href="../arch/arch-y-ratelimit.html" class="sitemap-col-item">
+            高并发之限流
+          </a><a href="../arch/arch-y-reduce.html" class="sitemap-col-item">
+            高并发之降级
+          </a><a href="../arch/arch-y-loadbalance.html" class="sitemap-col-item">
+            负载均衡
+          </a><a href="../arch/arch-y-backup.html" class="sitemap-col-item">
+            容灾备份
+          </a><a href="../arch/arch-x-security.html" class="sitemap-col-item">
+            架构安全
+          </a><a href="../arch/arch-example-seckill.html" class="sitemap-col-item">
+            秒杀系统设计
+          </a><a href="../arch/arch-example-goods-detail.html" class="sitemap-col-item">
+            架构案例
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">工具和部署</div></td> <!----> <td><a href="../devops/tool/tool-list-overview.html" class="sitemap-col-item">
+            工具集合
+          </a><a href="../devops/tool/tool-ide.html" class="sitemap-col-item">
+            IDE相关
+          </a><a href="../devops/tool/tool-git.html" class="sitemap-col-item">
+            Git
+          </a><a href="../devops/tool/tool-maven.html" class="sitemap-col-item">
+            Maven
+          </a><a href="../devops/linux/linux.html" class="sitemap-col-item">
+            Linux
+          </a><a href="../devops/docker/docker-00-overview.html" class="sitemap-col-item">
+            Docker
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">方法论</div></td> <!----> <td><a href="../dev-spec/spec/dev-th-solid.html" class="sitemap-col-item">
+            SOLID
+          </a><a href="../dev-spec/spec/dev-th-cap.html" class="sitemap-col-item">
+            CAP
+          </a><a href="../dev-spec/spec/dev-th-base.html" class="sitemap-col-item">
+            BASE
+          </a><a href="../dev-spec/spec/dev-opensource.html" class="sitemap-col-item">
+            开源协议
+          </a><a href="../dev-spec/code-style/code-style-alibaba.html" class="sitemap-col-item">
+            代码规范
+          </a><a href="../dev-spec/pattern/1_overview.html" class="sitemap-col-item">
+            设计模式
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">产品和团队</div></td> <!----> <td><a href="../team/team-z-wechat.html" class="sitemap-col-item">
+            产品相关
+          </a><a href="../team/team-z-task-emergency.html" class="sitemap-col-item">
+            团队相关
+          </a><a href="../team/team-z-arch-future.html" class="sitemap-col-item">
+            其它分享
+          </a></td></tr></table></div></div></div> <!----> </aside></div><div class="global-ui"></div></div>
+    <script src="../../assets/js/app.691e72ae.js" defer></script><script src="../../assets/js/4.2e3efdf6.js" defer></script><script src="../../assets/js/3.d77b006c.js" defer></script><script src="../../assets/js/75.cf923619.js" defer></script>
+  </body>
+
+<!-- Mirrored from www.pdai.tech/md/algorithm/alg-domain-bigdata-devide-and-hash.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:30:50 GMT -->
+</html>

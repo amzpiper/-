@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  
+<!-- Mirrored from www.pdai.tech/md/db/nosql-redis/db-redis-x-version-lastest.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:31:01 GMT -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Redis进阶 - 版本特性: Redis4.0、5.0、6.0特性整理 | Java 全栈知识体系</title>
+    <meta name="generator" content="VuePress 1.8.2">
+    <link rel="icon" href="../../../favicon.ico">
+    <script src="../../../../hm.baidu.com/hma448.js?525d4abc4a8675472736969f817ceb47"></script>
+    <script defer="defer" async="async" src="../../../../pagead2.googlesyndication.com/pagead/js/f.txt"></script>
+    <meta name="description" content="在学习Redis知识体系时，我们难免会需要查看版本实现之间的差异，本文主要整理Redis较为新的版本的特性。">
+    <meta property="article:modified_time" content="2021-03-29T06:00:18.000Z">
+    <meta property="og:title" content="Redis进阶 - 版本特性: Redis4.0、5.0、6.0特性整理">
+    <meta property="og:description" content="在学习Redis知识体系时，我们难免会需要查看版本实现之间的差异，本文主要整理Redis较为新的版本的特性。">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="/md/db/nosql-redis/db-redis-x-version-lastest.html">
+    <meta name="twitter:title" content="Redis进阶 - 版本特性: Redis4.0、5.0、6.0特性整理">
+    <meta name="twitter:description" content="在学习Redis知识体系时，我们难免会需要查看版本实现之间的差异，本文主要整理Redis较为新的版本的特性。">
+    <meta name="twitter:url" content="/md/db/nosql-redis/db-redis-x-version-lastest.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:label2" content="Filed under">
+    <meta name="twitter:data2" content="Redis 4 版本特性, Redis 5 版本特性, Redis 6 版本特性">
+    <meta property="article:tag" content="Redis 4 版本特性">
+    <meta name="robots" content="all">
+    <meta name="author" content="pdai">
+    <meta name="keywords" content="Java 全栈知识体系, java体系, java知识体系, java框架,java全栈,java学习路线,java全栈知识, java面试, 知识体系, java技术体系, java编程, java编程指南,java开发体系, java开发,java教程,java,java数据结构, 算法, 开发基础">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <link rel="preload" href="../../../assets/css/0.styles.d4bb5489.css" as="style"><link rel="preload" href="../../../assets/js/app.691e72ae.js" as="script"><link rel="preload" href="../../../assets/js/4.2e3efdf6.js" as="script"><link rel="preload" href="../../../assets/js/3.d77b006c.js" as="script"><link rel="preload" href="../../../assets/js/217.cbe6dce6.js" as="script">
+    <link rel="stylesheet" href="../../../assets/css/0.styles.d4bb5489.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="../../../index.html" class="home-link router-link-active"><!----> <span class="site-name">Java 全栈知识体系</span></a> <div class="links"><form id="search-form" role="search" class="algolia-search-wrapper search-box"><input id="algolia-search-input" class="search-query"></form> <nav class="nav-links can-hide"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../../java/basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../../java/thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../../java/java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="../../java/jvm/java-jvm-debug-tools-linux.html" class="nav-link">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav>  <ul class="sidebar-links"><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>数据库基础和原理</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../sql/sql-db.html" class="sidebar-link">♥数据库基础和SQL知识体系详解♥</a></li><li><a href="../sql/sql-db-howitworks.html" class="sidebar-link">SQL DB - 关系型数据库是如何工作的</a></li><li><a href="../sql/sql-db-theory-concept.html" class="sidebar-link">SQL DB - 关系型数据库设计理论</a></li><li><a href="../sql/sql-db-theory-design.html" class="sidebar-link">SQL DB - 关系型数据库设计流程</a></li><li><a href="../sql/sql-db-theory.html" class="sidebar-link">SQL DB - 数据库系统核心知识点</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>SQL 语言</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../sql-lan/sql-lan.html" class="sidebar-link">SQL语言 - SQL语法基础</a></li><li><a href="../sql-lan/sql-lan-pratice.html" class="sidebar-link">SQL语言 - SQL语句练习</a></li><li><a href="../sql-lan/sql-lan-leetcode.html" class="sidebar-link">SQL语言 - SQL题目进阶</a></li><li><a href="../sql-lan/sql-lan-optimize.html" class="sidebar-link">SQL语言 - SQL语句优化</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>SQL - MySQL</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../sql-mysql/sql-mysql-overview.html" class="sidebar-link">♥MySQL知识体系详解♥</a></li><li><a href="../sql-mysql/sql-mysql-theory.html" class="sidebar-link">MySQL - 数据类型</a></li><li><a href="../sql-mysql/sql-mysql-engine.html" class="sidebar-link">MySQL - 存储引擎</a></li><li><a href="../sql-mysql/sql-mysql-b-tree.html" class="sidebar-link">MySQL - 索引(B+树)</a></li><li><a href="../sql-mysql/sql-mysql-performance.html" class="sidebar-link">MySQL - 性能优化</a></li><li><a href="../sql-mysql/sql-mysql-devide.html" class="sidebar-link">MySQL - 分表分库</a></li><li><a href="../sql-mysql/sql-mysql-slave.html" class="sidebar-link">MySQL - 主从复制与读写分离</a></li><li><a href="../sql-mysql/sql-mysql-mvcc.html" class="sidebar-link">MySQL - MySQL InnoDB的MVCC实现机制</a></li><li><a href="../sql-mysql/sql-mysql-execute.html" class="sidebar-link">MySQL - 一条 SQL 的执行过程详解</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading open"><span>NoSQL - Redis</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="db-redis-overview.html" class="sidebar-link">♥Redis教程 - Redis知识体系详解♥</a></li><li><a href="db-redis-introduce.html" class="sidebar-link">Redis入门 - Redis概念和基础</a></li><li><a href="db-redis-data-types.html" class="sidebar-link">Redis入门 - 数据类型：5种基础数据类型详解</a></li><li><a href="db-redis-data-type-special.html" class="sidebar-link">Redis入门 - 数据类型：3种特殊类型详解</a></li><li><a href="db-redis-data-type-stream.html" class="sidebar-link">Redis入门 - 数据类型：Stream详解</a></li><li><a href="db-redis-x-redis-object.html" class="sidebar-link">Redis进阶 - 数据结构：对象机制详解</a></li><li><a href="db-redis-x-redis-ds.html" class="sidebar-link">Redis进阶 - 数据结构：底层数据结构详解</a></li><li><a href="db-redis-data-type-enc.html" class="sidebar-link">Redis进阶 - 数据结构：redis对象与编码(底层结构)对应关系详解</a></li><li><a href="db-redis-x-rdb-aof.html" class="sidebar-link">Redis进阶 - 持久化：RDB和AOF机制详解</a></li><li><a href="db-redis-x-pub-sub.html" class="sidebar-link">Redis进阶 - 消息传递：发布订阅模式详解</a></li><li><a href="db-redis-x-event.html" class="sidebar-link">Redis进阶 - 事件：Redis事件机制详解</a></li><li><a href="db-redis-x-trans.html" class="sidebar-link">Redis进阶 - 事务：Redis事务详解</a></li><li><a href="db-redis-x-copy.html" class="sidebar-link">Redis进阶 - 高可用：主从复制详解</a></li><li><a href="db-redis-x-sentinel.html" class="sidebar-link">Redis进阶 - 高可用：哨兵机制（Redis Sentinel）详解</a></li><li><a href="db-redis-x-cluster.html" class="sidebar-link">Redis进阶 - 高可拓展：分片技术（Redis Cluster）详解</a></li><li><a href="db-redis-x-cache.html" class="sidebar-link">Redis进阶 - 缓存问题：一致性, 穿击, 穿透, 雪崩, 污染等</a></li><li><a href="db-redis-x-version-lastest.html" aria-current="page" class="active sidebar-link">Redis进阶 - 版本特性: Redis4.0、5.0、6.0特性整理</a></li><li><a href="db-redis-y-monitor.html" class="sidebar-link">Redis进阶 - 运维监控：Redis的监控详解</a></li><li><a href="db-redis-x-performance.html" class="sidebar-link">Redis进阶 - 性能调优：Redis性能调优详解</a></li><li><a href="db-redis-y-weibo.html" class="sidebar-link">Redis大厂经验 - 微博：万亿级日访问量下，Redis在微博的9年优化历程</a></li><li><a href="db-redis-z-mianshi.html" class="sidebar-link">Redis面试 - redis问题总结</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>NoSQL - MongoDB</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../nosql-mongo/mongo.html" class="sidebar-link">♥MongoDB教程 - Mongo知识体系详解♥</a></li><li><a href="../nosql-mongo/mongo-x-basic.html" class="sidebar-link">Mongo入门 - MongoDB基础概念</a></li><li><a href="../nosql-mongo/mongo-x-ecosystem.html" class="sidebar-link">Mongo入门 - MongoDB整体生态</a></li><li><a href="../nosql-mongo/mongo-x-usage-1.html" class="sidebar-link">Mongo入门 - 基本使用：安装和CRUD</a></li><li><a href="../nosql-mongo/mongo-x-usage-2.html" class="sidebar-link">Mongo入门 - 基本使用：索引和聚合</a></li><li><a href="../nosql-mongo/mongo-x-usage-3.html" class="sidebar-link">Mongo入门 - 基本使用：效率工具</a></li><li><a href="../nosql-mongo/mongo-x-usage-4.html" class="sidebar-link">Mongo入门 - 基本使用：Java API</a></li><li><a href="../nosql-mongo/mongo-x-usage-5.html" class="sidebar-link">Mongo入门 - 基本使用：Spring集成</a></li><li><a href="../nosql-mongo/mongo-y-arch.html" class="sidebar-link">Mongo进阶 - MongoDB体系结构</a></li><li><a href="../nosql-mongo/mongo-y-introduce.html" class="sidebar-link">Mongo进阶 - 原理和WiredTiger引擎</a></li><li><a href="../nosql-mongo/mongo-y-ds.html" class="sidebar-link">Mongo进阶 - WT引擎：数据结构</a></li><li><a href="../nosql-mongo/mongo-y-page.html" class="sidebar-link">Mongo进阶 - WT引擎：Page生命周期</a></li><li><a href="../nosql-mongo/mongo-y-checkpoint.html" class="sidebar-link">Mongo进阶 - WT引擎：checkpoint原理</a></li><li><a href="../nosql-mongo/mongo-y-trans.html" class="sidebar-link">Mongo进阶 - WT引擎：事务实现</a></li><li><a href="../nosql-mongo/mongo-y-cache.html" class="sidebar-link">Mongo进阶 - WT引擎：缓存机制</a></li><li><a href="../nosql-mongo/mongo-z-index.html" class="sidebar-link">Mongo进阶 - DB核心：索引实现</a></li><li><a href="../nosql-mongo/mongo-z-rep.html" class="sidebar-link">Mongo进阶 - DB核心：复制集</a></li><li><a href="../nosql-mongo/mongo-z-sharding.html" class="sidebar-link">Mongo进阶 - DB核心：分片Sharding</a></li><li><a href="../nosql-mongo/mongo-z-backup.html" class="sidebar-link">Mongo进阶 - DB核心：备份恢复</a></li><li><a href="../nosql-mongo/mongo-performance-model.html" class="sidebar-link">Mongo进阶 - 系统设计：数据模型</a></li><li><a href="../nosql-mongo/mongo-y-doc.html" class="sidebar-link">Mongo进阶 - 系统设计：模式构建</a></li><li><a href="../nosql-mongo/mongo-performance-improve.html" class="sidebar-link">Mongo进阶 - 性能：查询聚合优化</a></li><li><a href="../nosql-mongo/postgresql-replace.html" class="sidebar-link">MongoDB 替换方案之PostgreSQL</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>NoSQL - ElasticSearch</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../nosql-es/elasticsearch.html" class="sidebar-link">♥ElasticSearch知识体系详解♥</a></li><li><a href="../nosql-es/elasticsearch-x-introduce-1.html" class="sidebar-link">ES详解 - 认知：ElasticSearch基础概念</a></li><li><a href="../nosql-es/elasticsearch-x-introduce-2.html" class="sidebar-link">ES详解 - 认知：Elastic Stack生态和场景方案</a></li><li><a href="../nosql-es/elasticsearch-x-install.html" class="sidebar-link">ES详解 - 安装：ElasticSearch和Kibana安装</a></li><li><a href="../nosql-es/elasticsearch-x-usage.html" class="sidebar-link">ES详解 - 入门：查询和聚合的基础使用</a></li><li><a href="../nosql-es/elasticsearch-x-index-mapping.html" class="sidebar-link">ES详解 - 索引：索引管理详解</a></li><li><a href="../nosql-es/elasticsearch-x-index-template.html" class="sidebar-link">ES详解 - 索引：索引模板(Index Template)详解</a></li><li><a href="../nosql-es/elasticsearch-x-dsl-com.html" class="sidebar-link">ES详解 - 查询：DSL查询之复合查询详解</a></li><li><a href="../nosql-es/elasticsearch-x-dsl-full-text.html" class="sidebar-link">ES详解 - 查询：DSL查询之全文搜索详解</a></li><li><a href="../nosql-es/elasticsearch-x-dsl-term.html" class="sidebar-link">ES详解 - 查询：DSL查询之Term详解</a></li><li><a href="../nosql-es/elasticsearch-x-agg-bucket.html" class="sidebar-link">ES详解 - 聚合：聚合查询之Bucket聚合详解</a></li><li><a href="../nosql-es/elasticsearch-x-agg-metric.html" class="sidebar-link">ES详解 - 聚合：聚合查询之Metric聚合详解</a></li><li><a href="../nosql-es/elasticsearch-x-agg-pipeline.html" class="sidebar-link">ES详解 - 聚合：聚合查询之Pipline聚合详解</a></li><li><a href="../nosql-es/elasticsearch-y-th-1.html" class="sidebar-link">ES详解 - 原理：从图解构筑对ES原理的初步认知</a></li><li><a href="../nosql-es/elasticsearch-y-th-2.html" class="sidebar-link">ES详解 - 原理：ES原理知识点补充和整体结构</a></li><li><a href="../nosql-es/elasticsearch-y-th-3.html" class="sidebar-link">ES详解 - 原理：ES原理之索引文档流程详解</a></li><li><a href="../nosql-es/elasticsearch-y-th-4.html" class="sidebar-link">ES详解 - 原理：ES原理之读取文档流程详解</a></li><li><a href="../nosql-es/elasticsearch-y-peformance.html" class="sidebar-link">ES详解 - 优化：ElasticSearch性能优化详解</a></li><li><a href="../nosql-es/elasticsearch-z-tencent.html" class="sidebar-link">ES详解 - 大厂实践：腾讯万亿级 Elasticsearch 技术实践</a></li><li><a href="../nosql-es/elasticsearch-awesome-es.html" class="sidebar-link">ES详解 - 资料：Awesome Elasticsearch</a></li><li><a href="../nosql-es/elasticsearch-wrapper-query.html" class="sidebar-link">ElasticSearch - WrapperQuery</a></li><li><a href="../nosql-es/elasticsearch-backup.html" class="sidebar-link">ElasticSearch - 备份和迁移</a></li></ul></section></li></ul> </aside> <div><main class="page"> <div class="theme-default-content content__default"><h1 id="redis进阶---版本特性-redis40、50、60特性整理"><a href="#redis进阶---版本特性-redis40、50、60特性整理" class="header-anchor">¶</a> Redis进阶 - 版本特性: Redis4.0、5.0、6.0特性整理</h1> <blockquote><p>在学习Redis知识体系时，我们难免会需要查看版本实现之间的差异，本文主要整理Redis较为新的版本的特性。@pdai</p></blockquote> <ul><li><a href="#redis%E8%BF%9B%E9%98%B6---%E7%89%88%E6%9C%AC%E7%89%B9%E6%80%A7-redis405060%E7%89%B9%E6%80%A7%E6%95%B4%E7%90%86">Redis进阶 - 版本特性: Redis4.0、5.0、6.0特性整理</a> <ul><li><a href="#redis-4">Redis 4</a> <ul><li><a href="#%E6%A8%A1%E5%9D%97%E7%B3%BB%E7%BB%9F">模块系统</a></li> <li><a href="#psync-20">PSYNC 2.0</a></li> <li><a href="#%E7%BC%93%E5%AD%98%E9%A9%B1%E9%80%90%E7%AD%96%E7%95%A5%E4%BC%98%E5%8C%96">缓存驱逐策略优化</a></li> <li><a href="#lazy-free">Lazy Free</a></li> <li><a href="#%E4%BA%A4%E6%8D%A2%E6%95%B0%E6%8D%AE%E5%BA%93">交换数据库</a></li> <li><a href="#%E6%B7%B7%E5%90%88%E6%8C%81%E4%B9%85%E5%8C%96">混合持久化</a></li> <li><a href="#%E5%86%85%E5%AD%98%E5%91%BD%E4%BB%A4">内存命令</a></li> <li><a href="#%E5%85%BC%E5%AE%B9-nat-%E5%92%8C-docker">兼容 NAT 和 Docker</a></li> <li><a href="#%E5%85%B6%E4%BB%96">其他</a></li></ul></li> <li><a href="#redis-5">Redis 5</a> <ul><li><a href="#stream%E7%B1%BB%E5%9E%8B">Stream类型</a></li> <li><a href="#%E6%96%B0%E7%9A%84redis%E6%A8%A1%E5%9D%97api">新的Redis模块API</a></li> <li><a href="#%E9%9B%86%E7%BE%A4%E7%AE%A1%E7%90%86%E5%99%A8%E6%9B%B4%E6%94%B9">集群管理器更改</a></li> <li><a href="#lua%E6%94%B9%E8%BF%9B">Lua改进</a></li> <li><a href="#rdb%E6%A0%BC%E5%BC%8F%E5%8F%98%E5%8C%96">RDB格式变化</a></li> <li><a href="#%E5%8A%A8%E6%80%81hz">动态HZ</a></li> <li><a href="#zpopminzpopmax%E5%91%BD%E4%BB%A4">ZPOPMIN&amp;ZPOPMAX命令</a></li> <li><a href="#client%E6%96%B0%E5%A2%9E%E5%91%BD%E4%BB%A4">CLIENT新增命令</a></li> <li><a href="#%E5%85%B6%E4%BB%96-1">其他</a></li></ul></li> <li><a href="#redis-6">Redis 6</a> <ul><li><a href="#%E5%A4%9A%E7%BA%BF%E7%A8%8Bio">多线程IO</a></li> <li><a href="#ssl%E6%94%AF%E6%8C%81">SSL支持</a></li> <li><a href="#acl%E6%94%AF%E6%8C%81">ACL支持</a></li> <li><a href="#resp3">RESP3</a></li> <li><a href="#%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%BC%93%E5%AD%98">客户端缓存</a></li> <li><a href="#%E9%9B%86%E7%BE%A4%E4%BB%A3%E7%90%86">集群代理</a></li> <li><a href="#disque-module">Disque module</a></li> <li><a href="#%E5%85%B6%E4%BB%96-2">其他</a></li> <li><a href="#%E6%96%87%E7%AB%A0%E6%9D%A5%E6%BA%90">文章来源</a></li></ul></li></ul></li></ul> <h2 id="redis-4"><a href="#redis-4" class="header-anchor">¶</a> Redis 4</h2> <h3 id="模块系统"><a href="#模块系统" class="header-anchor">¶</a> 模块系统</h3> <p>​ Redis 4.0 发生的最大变化就是加入了模块系统， 这个系统可以让用户通过自己编写的代码来扩展和实现 Redis 本身并不具备的功能，因为模块系统是通过高层次 API 实现的， 它与 Redis 内核本身完全分离、互不干扰， 所以用户可以在有需要的情况下才启用这个功能。目前已经有人使用这个功能开发了各种各样的模块， 比如 Redis Labs 开发的一些模块就可以在 http://redismodules.com 看到。模块功能使得用户可以将 Redis 用作基础设施， 并在上面构建更多功能， 这给 Redis 带来了无数新的可能性。</p> <h3 id="psync-20"><a href="#psync-20" class="header-anchor">¶</a> PSYNC 2.0</h3> <p>新版本的PSYNC命令解决了旧版本的 Redis 在复制时的一些不够优化的地方：</p> <ul><li>在旧版本 Redis 中， 如果一个从服务器在 FAILOVER 之后成为了新的主节点， 那么其他从节点在复制这个新主的时候就必须进行全量复制。 在 Redis 4.0 中， 新主和从服务器在处理这种情况时， 将在条件允许的情况下使用部分复制。</li> <li>在旧版本 Redis 中， 一个从服务器如果重启了， 那么它就必须与主服务器重新进行全量复制， 在 Redis 4.0 中， 只要条件允许， 主从在处理这种情况时将使用部分复制。</li> <li>在旧版本中，当复制为链式复制的时候，如 A—&gt;B—&gt;C ，主节点为A。当A出现问题，C节点不能正常复制B节点的数据。当提升B为主节点，C需要全量同步B的数据。在PSYNC2：PSYNC2解决了链式复制之间的关联性。A出现问题不影响C节点，B提升为主C不需要全量同步。</li> <li>在使用星形复制时，如一主两从。A—&gt;B , A—&gt;C ，主节点为A。当A出现问题，B提升为主节点，C 重新指向主节点B。使用同步机制PSYNC2，C节点只做增量同步即可。在使用sentinel故障转移可以较少数据重新同步的延迟时间，避免大redis同步出现的网络带宽占满。</li></ul> <h3 id="缓存驱逐策略优化"><a href="#缓存驱逐策略优化" class="header-anchor">¶</a> 缓存驱逐策略优化</h3> <p>新添加了Last Frequently Used（LFU）缓存驱逐策略；</p> <p>LFU：最不经常使用。在一段时间内，使用次数最少的数据，优先被淘汰；</p> <p>另外 Redis 4.0 还对已有的缓存驱逐策略进行了优化， 使得它们能够更健壮、高效、快速和精确。</p> <h3 id="lazy-free"><a href="#lazy-free" class="header-anchor">¶</a> Lazy Free</h3> <p>在 Redis 4.0 之前， 用户在使用 DEL命令删除体积较大的键， 又或者在使用 <strong>FLUSHDB</strong> 和 <strong>FLUSHALL</strong>删除包含大量键的数据库时， 都可能会造成服务器阻塞。</p> <p>​为了解决以上问题， Redis 4.0 新添加了<strong>UNLINK</strong>命令， 这个命令是DEL命令的异步版本， 它可以将删除指定键的操作放在后台线程里面执行， 从而尽可能地避免服务器阻塞：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>redis<span class="token operator">&gt;</span> UNLINK fruits
+<span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">1</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br></div></div><p>​ 因为一些历史原因， 执行同步删除操作的DEL命令将会继续保留。此外， Redis 4.0 中的<strong>FLUSHDB</strong>和<strong>FLUSHALL</strong>这两个命令都新添加了ASYNC选项， 带有这个选项的数据库删除操作将在后台线程进行：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>redis<span class="token operator">&gt;</span> FLUSHDB ASYNC
+OK
+
+redis<span class="token operator">&gt;</span> FLUSHALL ASYNC
+OK
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br></div></div><p>​ 还有，执行<code>rename oldkey newkey</code>时，如果newkey已经存在，Redis会先删除已经存在的newkey，这也会引发上面提到的删除大key问题。如果想让Redis在这种场景下也使用lazyfree的方式来删除，可以按如下配置：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>lazyfree-lazy-server-del <span class="token function">yes</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><h3 id="交换数据库"><a href="#交换数据库" class="header-anchor">¶</a> 交换数据库</h3> <p>​Redis 4.0 对数据库命令的另外一个修改是新增了SWAPDB命令， 这个命令可以对指定的两个数据库进行互换： 比如说， 通过执行命令 <code>SWAPDB 0 1</code> ， 我们可以将原来的数据库 0 变成数据库 1 ， 而原来的数据库 1 则变成数据库 0。</p> <h3 id="混合持久化"><a href="#混合持久化" class="header-anchor">¶</a> 混合持久化</h3> <p>​Redis 4.0 新增了 RDB-AOF 混合持久化格式， 这是一个可选的功能， 在开启了这个功能之后， AOF 重写产生的文件将同时包含 RDB 格式的内容和 AOF 格式的内容， 其中 RDB 格式的内容用于记录已有的数据， 而 AOF 格式的内存则用于记录最近发生了变化的数据， 这样 Redis 就可以同时兼有 RDB 持久化和 AOF 持久化的优点 —— 既能够快速地生成重写文件， 也能够在出现问题时， 快速地载入数据。这个功能可以通过配置项：<code>aof-use-rdb-preamble</code>进行开启。</p> <h3 id="内存命令"><a href="#内存命令" class="header-anchor">¶</a> 内存命令</h3> <p>新添加了一个MEMORY命令， 这个命令可以用于视察内存使用情况， 并进行相应的内存管理操作：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>redis<span class="token operator">&gt;</span> MEMORY HELP
+<span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;MEMORY USAGE &lt;key&gt; [SAMPLES &lt;count&gt;] - Estimate memory usage of key&quot;</span>
+<span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;MEMORY STATS                         - Show memory usage details&quot;</span>
+<span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;MEMORY PURGE                         - Ask the allocator to release memory&quot;</span>
+<span class="token number">4</span><span class="token punctuation">)</span> <span class="token string">&quot;MEMORY MALLOC-STATS                  - Show allocator internal stats&quot;</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br></div></div><p>其中， 使用MEMORY USAGE子命令可以估算储存给定键所需的内存：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>redis<span class="token operator">&gt;</span> SET msg <span class="token string">&quot;hello world&quot;</span>
+OK
+
+redis<span class="token operator">&gt;</span> SADD fruits apple banana cherry
+<span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">3</span>
+
+redis<span class="token operator">&gt;</span> MEMORY USAGE msg
+<span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">62</span>
+
+redis<span class="token operator">&gt;</span> MEMORY USAGE fruits
+<span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">375</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br></div></div><p>使用MEMORY STATS子命令可以查看 Redis 当前的内存使用情况：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>redis<span class="token operator">&gt;</span> MEMORY STATS
+<span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;peak.allocated&quot;</span>
+<span class="token number">2</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">1014480</span>
+<span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;total.allocated&quot;</span>
+<span class="token number">4</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">1014512</span>
+<span class="token number">5</span><span class="token punctuation">)</span> <span class="token string">&quot;startup.allocated&quot;</span>
+<span class="token number">6</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">963040</span>
+<span class="token number">7</span><span class="token punctuation">)</span> <span class="token string">&quot;replication.backlog&quot;</span>
+<span class="token number">8</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">0</span>
+<span class="token number">9</span><span class="token punctuation">)</span> <span class="token string">&quot;clients.slaves&quot;</span>
+<span class="token number">10</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">0</span>
+<span class="token number">11</span><span class="token punctuation">)</span> <span class="token string">&quot;clients.normal&quot;</span>
+<span class="token number">12</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">49614</span>
+<span class="token number">13</span><span class="token punctuation">)</span> <span class="token string">&quot;aof.buffer&quot;</span>
+<span class="token number">14</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">0</span>
+<span class="token number">15</span><span class="token punctuation">)</span> <span class="token string">&quot;db.0&quot;</span>
+<span class="token number">16</span><span class="token punctuation">)</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;overhead.hashtable.main&quot;</span>
+    <span class="token number">2</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">264</span>
+    <span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;overhead.hashtable.expires&quot;</span>
+    <span class="token number">4</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">32</span>
+<span class="token number">17</span><span class="token punctuation">)</span> <span class="token string">&quot;overhead.total&quot;</span>
+<span class="token number">18</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">1012950</span>
+<span class="token number">19</span><span class="token punctuation">)</span> <span class="token string">&quot;keys.count&quot;</span>
+<span class="token number">20</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">5</span>
+<span class="token number">21</span><span class="token punctuation">)</span> <span class="token string">&quot;keys.bytes-per-key&quot;</span>
+<span class="token number">22</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">10294</span>
+<span class="token number">23</span><span class="token punctuation">)</span> <span class="token string">&quot;dataset.bytes&quot;</span>
+<span class="token number">24</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">1562</span>
+<span class="token number">25</span><span class="token punctuation">)</span> <span class="token string">&quot;dataset.percentage&quot;</span>
+<span class="token number">26</span><span class="token punctuation">)</span> <span class="token string">&quot;3.0346596240997314&quot;</span>
+<span class="token number">27</span><span class="token punctuation">)</span> <span class="token string">&quot;peak.percentage&quot;</span>
+<span class="token number">28</span><span class="token punctuation">)</span> <span class="token string">&quot;100.00315093994141&quot;</span>
+<span class="token number">29</span><span class="token punctuation">)</span> <span class="token string">&quot;fragmentation&quot;</span>
+<span class="token number">30</span><span class="token punctuation">)</span> <span class="token string">&quot;2.1193723678588867&quot;</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br></div></div><p>使用<strong>MEMORY PURGE</strong>子命令可以要求分配器释放内存：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>redis<span class="token operator">&gt;</span> MEMORY PURGE
+OK
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br></div></div><p>使用<strong>MEMORY MALLOC-STATS</strong>子命令可以展示分配器内部状态：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token number">127.0</span>.0.1:630<span class="token operator"><span class="token file-descriptor important">6</span>&gt;</span> MEMORY MALLOC-STATS
+___ Begin jemalloc statistics ___
+Version: <span class="token number">4.0</span>.3-0-ge9192eacf8935e29fc62fddc2701f7942b1cc02c
+Assertions disabled
+Run-time option settings:
+  opt.abort: <span class="token boolean">false</span>
+  opt.lg_chunk: <span class="token number">21</span>
+  opt.dss: <span class="token string">&quot;secondary&quot;</span>
+  opt.narenas: <span class="token number">32</span>
+  opt.lg_dirty_mult: <span class="token number">3</span> <span class="token punctuation">(</span>arenas.lg_dirty_mult: <span class="token number">3</span><span class="token punctuation">)</span>
+  opt.stats_print: <span class="token boolean">false</span>
+  opt.junk: <span class="token string">&quot;false&quot;</span>
+  opt.quarantine: <span class="token number">0</span>
+  opt.redzone: <span class="token boolean">false</span>
+  opt.zero: <span class="token boolean">false</span>
+  opt.tcache: <span class="token boolean">true</span>
+  opt.lg_tcache_max: <span class="token number">15</span>
+CPUs: <span class="token number">8</span>
+Arenas: <span class="token number">32</span>
+Pointer size: <span class="token number">8</span>
+Quantum size: <span class="token number">8</span>
+Page size: <span class="token number">4096</span>
+Min active:dirty page ratio per arena: <span class="token number">8</span>:1
+Maximum thread-cached size class: <span class="token number">32768</span>
+Chunk size: <span class="token number">2097152</span> <span class="token punctuation">(</span><span class="token number">2</span>^21<span class="token punctuation">)</span>
+Allocated: <span class="token number">3101248</span>, active: <span class="token number">3371008</span>, metadata: <span class="token number">1590912</span>, resident: <span class="token number">4657152</span>, mapped: <span class="token number">8388608</span>
+Current active ceiling: <span class="token number">4194304</span>
+ 
+arenas<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>:
+assigned threads: <span class="token number">1</span>
+dss allocation precedence: secondary
+min active:dirty page ratio: <span class="token number">8</span>:1
+dirty pages: <span class="token number">823</span>:10 active:dirty, <span class="token number">1</span> sweep, <span class="token number">3</span> madvises, <span class="token number">1032</span> purged
+                            allocated      nmalloc      ndalloc    nrequests
+small:                         <span class="token number">586304</span>        <span class="token number">25408</span>        <span class="token number">13607</span>    <span class="token number">170099066</span>
+large:                        <span class="token number">2514944</span>      <span class="token number">3967215</span>      <span class="token number">3967203</span>      <span class="token number">3967223</span>
+huge:                               <span class="token number">0</span>            <span class="token number">1</span>            <span class="token number">1</span>            <span class="token number">1</span>
+total:                        <span class="token number">3101248</span>      <span class="token number">3992624</span>      <span class="token number">3980811</span>    <span class="token number">174066290</span>
+active:                       <span class="token number">3371008</span>
+mapped:                       <span class="token number">6291456</span>
+metadata: mapped: <span class="token number">159744</span>, allocated: <span class="token number">346240</span>
+<span class="token punctuation">..</span>.
+<span class="token punctuation">..</span>.
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br><span class="line-number">35</span><br><span class="line-number">36</span><br><span class="line-number">37</span><br><span class="line-number">38</span><br><span class="line-number">39</span><br><span class="line-number">40</span><br><span class="line-number">41</span><br><span class="line-number">42</span><br><span class="line-number">43</span><br></div></div><h3 id="兼容-nat-和-docker"><a href="#兼容-nat-和-docker" class="header-anchor">¶</a> 兼容 NAT 和 Docker</h3> <p>​ 在Redis Cluster集群模式下，集群的节点需要告诉用户或者是其他节点连接自己的IP和端口。</p> <p>​ 默认情况下，Redis会自动检测自己的IP和从配置中获取绑定的PORT，告诉客户端或者是其他节点。而在Docker环境中，如果使用的不是host网络模式，在容器内部的IP和PORT都是隔离的，那么客户端和其他节点无法通过节点公布的IP和PORT建立连接。</p> <p>4.0中增加了三个配置：</p> <ul><li><code>cluster-announce-ip</code>：要宣布的IP地址</li> <li><code>cluster-announce-port</code>：要宣布的数据端口</li> <li><code>cluster-announce-bus-port</code>：节点通信端口，默认在端口前+1</li></ul> <p>如果配置了以后，Redis节点会将配置中的这些IP和PORT告知客户端或其他节点。而这些IP和PORT是通过Docker转发到容器内的临时IP和PORT的。
+Active Defrag</p> <p>Redis 4.0 之后支持自动内存碎片整理（Active Defrag），通过以下选项进行配置：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token comment"># 开启自动内存碎片整理(总开关)</span>
+activedefrag <span class="token function">yes</span>
+<span class="token comment"># 当碎片达到 100mb 时，开启内存碎片整理</span>
+active-defrag-ignore-bytes 100mb
+<span class="token comment"># 当碎片超过 10% 时，开启内存碎片整理</span>
+active-defrag-threshold-lower <span class="token number">10</span>
+<span class="token comment"># 内存碎片超过 100%，则尽最大努力整理</span>
+active-defrag-threshold-upper <span class="token number">100</span>
+<span class="token comment"># 内存自动整理占用资源最小百分比</span>
+active-defrag-cycle-min <span class="token number">25</span>
+<span class="token comment"># 内存自动整理占用资源最大百分比</span>
+active-defrag-cycle-max <span class="token number">75</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br></div></div><p>实现原理可参考：https://zhuanlan.zhihu.com/p/67381368</p> <h3 id="其他"><a href="#其他" class="header-anchor">¶</a> 其他</h3> <ul><li>Redis Cluster的故障检测方式改变，node之间的通讯减少；</li> <li>慢日志记录客户端来源IP地址，这个小功能对于故障排查很有用处；</li> <li>新增zlexcount命令，用于sorted set中，和zrangebylex类似，不同的是zrangebylex返回member，而zlexcount是返回符合条件的member个数；</li></ul> <h2 id="redis-5"><a href="#redis-5" class="header-anchor">¶</a> Redis 5</h2> <h3 id="stream类型"><a href="#stream类型" class="header-anchor">¶</a> Stream类型</h3> <p>Stream与Redis现有数据结构比较：</p> <table><thead><tr><th>Stream</th> <th>List, Pub/Sub, Zset</th></tr></thead> <tbody><tr><td>获取元素高效，复杂度为O(logN)</td> <td>List获取元素的复杂度为O(N)</td></tr> <tr><td>支持offset，每个消息元素有唯一id。不会因为新元素加入或者其他元素淘汰而改变id。</td> <td>List没有offset概念，如果有元素被逐出，无法确定最新的元素</td></tr> <tr><td>支持消息元素持久化，可以保存到AOF和RDB中</td> <td>Pub/Sub不支持持久化消息</td></tr> <tr><td>支持消费分组</td> <td>Pub/Sub不支持消费分组</td></tr> <tr><td>支持ACK（消费确认）</td> <td>Pub/Sub不支持</td></tr> <tr><td>Stream性能与消费者数量无明显关系</td> <td>Pub/Sub性能与客户端数量负相关</td></tr> <tr><td>允许按时间线逐出历史数据，支持block，给予radix tree和listpack，内存开销少</td> <td>Zset不能重复添加相同元素，不支持逐出和block，内存开销大</td></tr> <tr><td>不能从中间删除消息元素</td> <td>Zet支持删除任意元素</td></tr></tbody></table> <h3 id="新的redis模块api"><a href="#新的redis模块api" class="header-anchor">¶</a> 新的Redis模块API</h3> <p>新的Redis模块API：定时器(Timers)、集群(Cluster)和字典API(Dictionary APIs)。</p> <h3 id="集群管理器更改"><a href="#集群管理器更改" class="header-anchor">¶</a> 集群管理器更改</h3> <p>​ redis3.x和redis4.x的集群管理主要依赖基于Ruby的redis-trib.rb脚本，redis5.0彻底抛弃了它，将集群管理功能全部集成到完全用C写的redis-cli中。可以通过命令<code>redis-cli --cluster help</code>查看帮助信息。</p> <h3 id="lua改进"><a href="#lua改进" class="header-anchor">¶</a> Lua改进</h3> <p>将Lua脚本更好地传播到 replicas/AOF；</p> <p>Lua脚本现在可以超时并在副本中进入BUSY状态。</p> <h3 id="rdb格式变化"><a href="#rdb格式变化" class="header-anchor">¶</a> RDB格式变化</h3> <p>Redis5.0开始，RDB快照文件中增加存储key逐出策略LRU和LFU：</p> <ul><li><p>LRU(Least Recently Used)：最近最少使用。长期未使用的数据，优先被淘汰。</p></li> <li><p>LFU(Least Frequently Used)：最不经常使用。在一段时间内，使用次数最少的数据，优先被淘汰。</p></li></ul> <p>Redis5.0的RDB文件格式有变化，向下兼容。因此如果使用快照的方式迁移，可以从Redis低版本迁移到Redis5.0，但不能从Redis5.0迁移到低版本。</p> <h3 id="动态hz"><a href="#动态hz" class="header-anchor">¶</a> 动态HZ</h3> <p>​ 以前redis版本的配置项hz都是固定的，redis5.0将hz动态化是为了平衡空闲CPU的使用率和响应能力。当然这个是可配置的，只不过在5.0中默认是动态的，其对应的配置为：<code>dynamic-hz yes</code></p> <h3 id="zpopminampzpopmax命令"><a href="#zpopminampzpopmax命令" class="header-anchor">¶</a> ZPOPMIN&amp;ZPOPMAX命令</h3> <ul><li><p>ZPOPMIN key [count]</p> <p>在有序集合ZSET所有key中，删除并返回指定count个数得分最低的成员，如果返回多个成员，也会按照得分高低（value值比较），从低到高排列。</p></li> <li><p>ZPOPMAX key [count]</p> <p>在有序集合ZSET所有key中，删除并返回指定count个数得分最高的成员，如果返回多个成员，也会按照得分高低（value值比较），从高到低排列。</p></li> <li><p>BZPOPMIN key [key …] timeout</p> <p>ZPOPMIN的阻塞版本。</p></li> <li><p>BZPOPMAX key [key …] timeout</p> <p>ZPOPMAX的阻塞版本。</p></li></ul> <h3 id="client新增命令"><a href="#client新增命令" class="header-anchor">¶</a> CLIENT新增命令</h3> <ul><li><p>CLIENT UNBLOCK</p> <p>**格式：**CLIENT UNBLOCK client-id [TIMEOUT|ERROR]</p> <p>**用法：**当客户端因为执行具有阻塞功能的命令如BRPOP、XREAD被阻塞时，该命令可以通过其他连接解除客户端的阻塞</p></li> <li><p>CLIENT ID</p> <p>该命令仅返回当前连接的ID。每个连接ID都有某些保证：
+它永远不会重复，可以判断当前链接是否断开过；
+ID是单调递增的。可以判断两个链接的接入顺序。</p></li></ul> <h3 id="其他-2"><a href="#其他-2" class="header-anchor">¶</a> 其他</h3> <ul><li><p>主动碎片整理V2：增强版主动碎片整理，配合Jemalloc版本更新，更快更智能，延时更低；</p></li> <li><p>HyperLogLog改进：在Redis5.0中，HyperLogLog算法得到改进，优化了计数统计时的内存使用效率；</p></li> <li><p>更好的内存统计报告；</p></li> <li><p>客户经常连接和断开连接时性能更好；</p></li> <li><p>错误修复和改进；</p></li> <li><p>Jemalloc内存分配器升级到5.1版本；</p></li> <li><p>许多拥有子命令的命令，新增了HELP子命令，如：XINFO help、PUBSUB help、XGROUP help…</p></li> <li><p>LOLWUT命令：没什么实际用处，根据不同的版本，显示不同的图案，类似安卓；</p></li> <li><p>如果不为了API向后兼容，我们将不再使用“slave”一词：<a href="https://www.oschina.net/news/99797/redis-master-slave-terminology" target="_blank" rel="noopener noreferrer">查看原因<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></p></li> <li><p>Redis核心在许多方面进行了重构和改进。</p></li></ul> <h2 id="redis-6"><a href="#redis-6" class="header-anchor">¶</a> Redis 6</h2> <h3 id="多线程io"><a href="#多线程io" class="header-anchor">¶</a> 多线程IO</h3> <p>​ Redis的多线程部分只是用来处理网络数据的读写和协议解析，执行命令仍然是单线程顺序执行。所以我们不需要去考虑控制 key、lua、事务，LPUSH/LPOP 等等的并发及线程安全问题。</p> <p>​ Redis6.0的多线程默认是禁用的，只使用主线程。如需开启需要修改redis.conf配置文件：io-threads-do-reads yes。开启多线程后，还需要设置线程数，否则是不生效的。修改redis.conf配置文件：io-threads ，关于线程数的设置，官方有一个建议：4核的机器建议设置为2或3个线程，8核的建议设置为6个线程，线程数一定要小于机器核数。还需要注意的是，线程数并不是越大越好，官方认为超过了8个基本就没什么意义了。</p> <p>​ 更多关于redis 6.0多线程的讲解，请查看：https://www.cnblogs.com/madashu/p/12832766.html</p> <h3 id="ssl支持"><a href="#ssl支持" class="header-anchor">¶</a> SSL支持</h3> <p>​ 连接支持SSL协议，更加安全。</p> <h3 id="acl支持"><a href="#acl支持" class="header-anchor">¶</a> ACL支持</h3> <p>​ 在之前的版本中，Redis都会有这样的问题：用户执行FLUSHAL，现在整个数据库就空了在以前解决这个问题的办法可能是在Redis配置中将危险命令进行rename，这样将命令更名为随机字符串或者直接屏蔽掉，以满足需要。当有了ACL之后，你就可以控制比如：这个连接只允许使用RPOP，LPUSH这些命令，其他命令都无法调用。</p> <p>​ Redis ACL是Access Control List（访问控制列表）的缩写，该功能允许根据可以执行的命令和可以访问的键来限制某些连接。它的工作方式是：在客户端连接之后，需要客户端进行身份验证，以提供用户名和有效密码：如果身份验证阶段成功，则将连接与指定用户关联，并且该用户具有指定的限制。可以对Redis进行配置，使新连接通过“默认”用户进行身份验证（这是默认配置），但是只能提供特定的功能子集。</p> <p>​ 在默认配置中，Redis 6（第一个具有ACL的版本）的工作方式与Redis的旧版本完全相同，也就是说，每个新连接都能够调用每个可能的命令并访问每个键，因此ACL功能对于客户端和应用程序与旧版本向后兼容。同样，使用requirepass配置指令配置密码的旧方法仍然可以按预期工作，但是现在它的作用只是为默认用户设置密码。</p> <p>Redis AUTH命令在Redis 6中进行了扩展，因此现在可以在两个参数的形式中使用它：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>AUTH <span class="token operator">&lt;</span>username<span class="token operator">&gt;</span> <span class="token operator">&lt;</span>password<span class="token operator">&gt;</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><p>也可按照旧格式使用时，即：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>AUTH <span class="token operator">&lt;</span>password<span class="token operator">&gt;</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><p>Redis提供了一个新的命令ACL来维护Redis的访问控制信息，详情见：https://redis.io/topics/acl</p> <h3 id="resp3"><a href="#resp3" class="header-anchor">¶</a> RESP3</h3> <p>​ RESP（Redis Serialization Protocol）是 Redis 服务端与客户端之间通信的协议。Redis 6之前使用的是 RESP2，而Redis 6开始在兼容RESP2的基础上，开始支持RESP3。在Redis 6中我们可以使用HELLO命令在RESP2和RESP3协议之间进行切换：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token comment">#使用RESP2协议</span>
+HELLO <span class="token number">2</span>
+<span class="token comment">#使用RESP3协议</span>
+HELLO <span class="token number">3</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br></div></div><p>推出RESP3的目的：一是因为希望能为客户端提供更多的语义化响应（semantical replies），降低客户端的复杂性，以开发使用旧协议难以实现的功能；另一个原因是为了实现 Client side caching（客户端缓存）功能。详细见：https://github.com/antirez/RESP3/blob/master/spec.md</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token number">127.0</span>.0.1:638<span class="token operator"><span class="token file-descriptor important">0</span>&gt;</span> HSET myhash a <span class="token number">1</span> b <span class="token number">2</span> c <span class="token number">3</span>
+<span class="token punctuation">(</span>integer<span class="token punctuation">)</span> <span class="token number">3</span>
+<span class="token number">127.0</span>.0.1:638<span class="token operator"><span class="token file-descriptor important">0</span>&gt;</span> HGETALL myhash
+<span class="token number">1</span><span class="token punctuation">)</span> <span class="token string">&quot;a&quot;</span>
+<span class="token number">2</span><span class="token punctuation">)</span> <span class="token string">&quot;1&quot;</span>
+<span class="token number">3</span><span class="token punctuation">)</span> <span class="token string">&quot;b&quot;</span>
+<span class="token number">4</span><span class="token punctuation">)</span> <span class="token string">&quot;2&quot;</span>
+<span class="token number">5</span><span class="token punctuation">)</span> <span class="token string">&quot;c&quot;</span>
+<span class="token number">6</span><span class="token punctuation">)</span> <span class="token string">&quot;3&quot;</span>
+<span class="token number">127.0</span>.0.1:638<span class="token operator"><span class="token file-descriptor important">0</span>&gt;</span> HELLO <span class="token number">3</span>
+<span class="token number">1</span><span class="token comment"># &quot;server&quot; =&gt; &quot;redis&quot;</span>
+<span class="token number">2</span><span class="token comment"># &quot;version&quot; =&gt; &quot;6.0&quot;</span>
+<span class="token number">3</span><span class="token comment"># &quot;proto&quot; =&gt; (integer) 3</span>
+<span class="token number">4</span><span class="token comment"># &quot;id&quot; =&gt; (integer) 5</span>
+<span class="token number">5</span><span class="token comment"># &quot;mode&quot; =&gt; &quot;standalone&quot;</span>
+<span class="token number">6</span><span class="token comment"># &quot;role&quot; =&gt; &quot;master&quot;</span>
+<span class="token number">7</span><span class="token comment"># &quot;modules&quot; =&gt; (empty array)</span>
+<span class="token number">127.0</span>.0.1:638<span class="token operator"><span class="token file-descriptor important">0</span>&gt;</span> HGETALL myhash
+<span class="token number">1</span><span class="token comment"># &quot;a&quot; =&gt; &quot;1&quot;</span>
+<span class="token number">2</span><span class="token comment"># &quot;b&quot; =&gt; &quot;2&quot;</span>
+<span class="token number">3</span><span class="token comment"># &quot;c&quot; =&gt; &quot;3&quot;</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br></div></div><h3 id="客户端缓存"><a href="#客户端缓存" class="header-anchor">¶</a> 客户端缓存</h3> <p>​ 基于 RESP3 协议实现的客户端缓存功能。为了进一步提升缓存的性能，将客户端经常访问的数据cache到客户端。减少TCP网络交互。不过该特性目前合并到了unstable 分支，作者说等6.0 GA版本之前，还要修改很多。</p> <p>​ 客户端缓存的功能是该版本的全新特性，服务端能够支持让客户端缓存values，Redis作为一个本身作为一个缓存数据库，自身的性能是非常出色的，但是如果可以在Redis客户端再增加一层缓存结果，那么性能会更加的出色。Redis实现的是一个服务端协助的客户端缓存，叫做tracking。客户端缓存的命令是:</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>CLIENT TRACKING ON<span class="token operator">|</span>OFF <span class="token punctuation">[</span>REDIRECT client-id<span class="token punctuation">]</span> <span class="token punctuation">[</span>PREFIX prefix<span class="token punctuation">]</span> <span class="token punctuation">[</span>BCAST<span class="token punctuation">]</span> <span class="token punctuation">[</span>OPTIN<span class="token punctuation">]</span> <span class="token punctuation">[</span>OPTOUT<span class="token punctuation">]</span> <span class="token punctuation">[</span>NOLOOP<span class="token punctuation">]</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><p>​ 当tracking开启时， Redis会&quot;记住&quot;每个客户端请求的key，当key的值发现变化时会发送失效信息给客户端。失效信息可以通过 RESP3 协议发送给请求的客户端，或者转发给一个不同的连接(支持RESP2+ Pub/Sub)。</p> <p>更多信息见：http://antirez.com/news/130</p> <h3 id="集群代理"><a href="#集群代理" class="header-anchor">¶</a> 集群代理</h3> <p>​ 因为 Redis Cluster 内部使用的是P2P中的Gossip协议，每个节点既可以从其他节点得到服务，也可以向其他节点提供服务，没有中心的概念，通过一个节点可以获取到整个集群的所有信息。所以如果应用连接Redis Cluster可以配置一个节点地址，也可以配置多个节点地址。但需要注意如果集群进行了上下节点的的操作，其应用也需要进行修改，这样会导致需要重启应用，非常的不友好。从Redis 6.0开始支持了Prxoy，可以直接用Proxy来管理各个集群节点。本文来介绍下如何使用官方自带的proxy：redis-cluster-proxy
+​
+通过使用 redis-cluster-proxy 可以与组成Redis集群的一组实例进行通讯，就像是单个实例一样。Redis群集代理是多线程的，使用多路复用通信模型，因此每个线程都有自己的与群集的连接，该连接由属于该线程本身的所有客户端共享。</p> <p>在某些特殊情况下（例如MULTI事务或阻塞命令），多路复用将被禁用；并且客户端将拥有自己的集群连接。这样客户端仅发送诸如GET和SET之类的简单命令就不需要Redis集群的专有连接。</p> <p>redis-cluster-proxy的主要功能特点：</p> <ul><li>路由：每个查询都会自动路由到集群的正确节点</li> <li>多线程</li> <li>支持多路复用和专用连接模型</li> <li>在多路复用上下文中，可以确保查询执行和答复顺序</li> <li>发生ASK | MOVED错误后自动更新集群的配置：当答复中发生此类错误时，代理通过获取集群的更新配置并重新映射所有插槽来自动更新集群。 更新完成后所有查询将重新执行，因此，从客户端的角度来看，一切正常进行（客户端将不会收到ASK | MOVED错误：他们将在收到请求后直接收到预期的回复） 群集配置已更新）。</li> <li>跨槽/跨节点查询：支持许多命令，这些命令涉及属于不同插槽（甚至不同集群节点）的多个键。这些命令会将查询分为多个查询，这些查询将被路由到不同的插槽/节点。 这些命令的回复处理是特定于命令的。 某些命令（例如MGET）将合并所有答复，就好像它们是单个答复一样。 其他命令（例如MSET或DEL）将汇总所有答复的结果。 由于这些查询实际上破坏了命令的原子性，因此它们的用法是可选的（默认情况下禁用）。</li> <li>一些没有特定节点/插槽的命令（例如DBSIZE）将传递到所有节点，并且将对映射的回复进行映射缩减，以便得出所有回复中包含的所有值的总和。</li> <li>可用于执行某些特定于代理的操作的附加PROXY命令</li></ul> <h3 id="disque-module"><a href="#disque-module" class="header-anchor">¶</a> Disque module</h3> <p>​ 这个本来是作者几年前开发的一个基于 Redis 的消息队列工具，但多年来作者发现 Redis 在持续开发时，他也要持续把新的功能合并到这个Disque 项目里面，这里有大量无用的工作。因此这次他在 Redis 的基础上通过 Modules 功能实现 Disque。</p> <p>​ 如果业务并不需要保持严格消息的顺序，这个 Disque 能提供足够简单和快速的消息队列功能。</p> <h3 id="其他-3"><a href="#其他-3" class="header-anchor">¶</a> 其他</h3> <ul><li>新的Expire算法：用于定期删除过期key的函数activeExpireCycle被重写，以便更快地收回已经过期的key；</li> <li>提供了许多新的Module API；</li> <li>从服务器也支持无盘复制：在用户可以配置的特定条件下，从服务器现在可以在第一次同步时直接从套接字加载RDB到内存；</li> <li>SRANDMEMBER命令和类似的命令优化，使其结果具有更好的分布；</li> <li>重写了Systemd支持；</li> <li>官方redis-benchmark工具支持cluster模式；</li> <li>提升了RDB日志加载速度；</li></ul> <h3 id="文章来源"><a href="#文章来源" class="header-anchor">¶</a> 文章来源</h3> <p>本文主要来源于（参考redis4.0、5.0、6.0版本的release notes）</p> <p>https://blog.csdn.net/sinat_14840559/article/details/108326178</p></div> <div class="page-contract"><h2>联系我</h2> <div class="c-content"><span style="font-size:1rem;font-weight:bold;">添加@pdai微信</span><br> <img src="../../../pdai.jpg" height="280px" style="margin:10px;"><br>
+        PS：添加时请备注<b>Java全栈</b>，谢谢！
+      </div></div> <footer class="page-edit"><div class="edit-link"><a href="https://github.com/realpdai/tech-arch-doc/edit/master/md/db/nosql-redis/db-redis-x-version-lastest.md" target="_blank" rel="noopener noreferrer">在 GitHub 上编辑此页</a> <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></div> <div class="last-updated"><span class="prefix">上次更新: </span> <span class="time">3/29/2021,</span></div></footer> <div class="page-nav"><p class="inner"><span class="prev">
+        ←
+        <a href="db-redis-x-cache.html" class="prev">
+          Redis进阶 - 缓存问题：一致性, 穿击, 穿透, 雪崩, 污染等
+        </a></span> <span class="next"><a href="db-redis-y-monitor.html">
+          Redis进阶 - 运维监控：Redis的监控详解
+        </a>
+        →
+      </span></p></div> <div class="google_ad_bottom"><ins data-ad-client="ca-pub-5088193899865249" data-ad-slot="6822031208" data-ad-format="auto" data-full-width-responsive="true" class="adsbygoogle" style="display:block"></ins> <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script></div> </main></div> <aside class="page-sidebar"> <div class="page-side-toolbar"><div class="option-box-toc-fixed"><div class="toc-container-sidebar"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:650px"><div style="font-weight:bold;text-align:center;">Redis进阶 - 版本特性: Redis4.0、5.0、6.0特性整理</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="db-redis-x-version-lastest.html#redis-4" class="toc-sidebar-link">Redis 4</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#模块系统" class="toc-sidebar-link">模块系统</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#psync-20" class="toc-sidebar-link">PSYNC 2.0</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#缓存驱逐策略优化" class="toc-sidebar-link">缓存驱逐策略优化</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#lazy-free" class="toc-sidebar-link">Lazy Free</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#交换数据库" class="toc-sidebar-link">交换数据库</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#混合持久化" class="toc-sidebar-link">混合持久化</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#内存命令" class="toc-sidebar-link">内存命令</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#兼容-nat-和-docker" class="toc-sidebar-link">兼容 NAT 和 Docker</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#其他" class="toc-sidebar-link">其他</a></li></ul></li><li><a href="db-redis-x-version-lastest.html#redis-5" class="toc-sidebar-link">Redis 5</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#stream类型" class="toc-sidebar-link">Stream类型</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#新的redis模块api" class="toc-sidebar-link">新的Redis模块API</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#集群管理器更改" class="toc-sidebar-link">集群管理器更改</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#lua改进" class="toc-sidebar-link">Lua改进</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#rdb格式变化" class="toc-sidebar-link">RDB格式变化</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#动态hz" class="toc-sidebar-link">动态HZ</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#zpopminampzpopmax命令" class="toc-sidebar-link">ZPOPMIN&amp;ZPOPMAX命令</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#client新增命令" class="toc-sidebar-link">CLIENT新增命令</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#其他-2" class="toc-sidebar-link">其他</a></li></ul></li><li><a href="db-redis-x-version-lastest.html#redis-6" class="toc-sidebar-link">Redis 6</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#多线程io" class="toc-sidebar-link">多线程IO</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#ssl支持" class="toc-sidebar-link">SSL支持</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#acl支持" class="toc-sidebar-link">ACL支持</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#resp3" class="toc-sidebar-link">RESP3</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#客户端缓存" class="toc-sidebar-link">客户端缓存</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#集群代理" class="toc-sidebar-link">集群代理</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#disque-module" class="toc-sidebar-link">Disque module</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#其他-3" class="toc-sidebar-link">其他</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#文章来源" class="toc-sidebar-link">文章来源</a></li></ul></li></ul></div></div></div></div></div> <div class="option-box-toc-over"><img src="../../../toc.png" class="nozoom"> <span class="show-txt">目录</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:550px"><div style="font-weight:bold;text-align:center;">Redis进阶 - 版本特性: Redis4.0、5.0、6.0特性整理</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="db-redis-x-version-lastest.html#redis-4" class="toc-sidebar-link">Redis 4</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#模块系统" class="toc-sidebar-link">模块系统</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#psync-20" class="toc-sidebar-link">PSYNC 2.0</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#缓存驱逐策略优化" class="toc-sidebar-link">缓存驱逐策略优化</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#lazy-free" class="toc-sidebar-link">Lazy Free</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#交换数据库" class="toc-sidebar-link">交换数据库</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#混合持久化" class="toc-sidebar-link">混合持久化</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#内存命令" class="toc-sidebar-link">内存命令</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#兼容-nat-和-docker" class="toc-sidebar-link">兼容 NAT 和 Docker</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#其他" class="toc-sidebar-link">其他</a></li></ul></li><li><a href="db-redis-x-version-lastest.html#redis-5" class="toc-sidebar-link">Redis 5</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#stream类型" class="toc-sidebar-link">Stream类型</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#新的redis模块api" class="toc-sidebar-link">新的Redis模块API</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#集群管理器更改" class="toc-sidebar-link">集群管理器更改</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#lua改进" class="toc-sidebar-link">Lua改进</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#rdb格式变化" class="toc-sidebar-link">RDB格式变化</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#动态hz" class="toc-sidebar-link">动态HZ</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#zpopminampzpopmax命令" class="toc-sidebar-link">ZPOPMIN&amp;ZPOPMAX命令</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#client新增命令" class="toc-sidebar-link">CLIENT新增命令</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#其他-2" class="toc-sidebar-link">其他</a></li></ul></li><li><a href="db-redis-x-version-lastest.html#redis-6" class="toc-sidebar-link">Redis 6</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#多线程io" class="toc-sidebar-link">多线程IO</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#ssl支持" class="toc-sidebar-link">SSL支持</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#acl支持" class="toc-sidebar-link">ACL支持</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#resp3" class="toc-sidebar-link">RESP3</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#客户端缓存" class="toc-sidebar-link">客户端缓存</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#集群代理" class="toc-sidebar-link">集群代理</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#disque-module" class="toc-sidebar-link">Disque module</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#其他-3" class="toc-sidebar-link">其他</a></li><li class="toc-sidebar-sub-header"><a href="db-redis-x-version-lastest.html#文章来源" class="toc-sidebar-link">文章来源</a></li></ul></li></ul></div></div></div></div></div> <div class="option-box"><img src="../../../wechat.png" class="nozoom"> <span class="show-txt">手机看</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.9rem">微信扫一扫</span> <img height="180px" src="https://api.qrserver.com/v1/create-qr-code/?data=https://www.pdai.tech/md/db/nosql-redis/db-redis-x-version-lastest.html" style="margin:10px;">
+              可以<b>手机看</b>或分享至<b>朋友圈</b></div></div></div></div> <div class="option-box"><a title="点击切换全屏" style="text-align:center;padding-left:2px;"><img src="../../../full.png" width="30px" class="nozoom"> <span style="color:gray;font-size:11px;font-weight:400;">全屏看</span></a></div> <div class="option-box"><img src="../../../toggle.png" width="30px" class="nozoom"> <span class="show-txt">左栏</span></div> <div class="option-box"><img src="../../../wexin2.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:yellow">交流圈</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">添加pdai微信进《Java全栈知识体系》学习交流圈「无任何套路」</span> <img src="../../../pdai.jpg" height="180px" style="margin:10px;">
+              PS：添加时请备注<b>Java全栈</b>，谢谢！
+            </div></div></div></div> <div class="option-box"><img src="../../../download.jpg" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:#a6f792">下资料</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">扫描公众号，回复“资料”下载<font style="color:red;">10GB+</font>书籍资料「无任何套路」</span> <img src="../../../pdai_gzh.jpg" height="180px" style="margin:10px;"> <b>公众号:</b> Java全栈知识体系
+            </div></div></div></div> <div class="option-box"><img src="../../../heart.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;background-color:#gray">支持我</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">鼓励/支持/赞赏我</span> <img src="../../../pdai-guli.png" height="180px" width="200px" style="margin:5px;">
+              1. 不靠它生存但仍希望得到你的鼓励；<br> 2. 时刻警醒自己保持技术人的初心，恒心，简单，利他；
+            </div></div></div></div> <div title="Redis进阶 - 缓存问题：一致性, 穿击, 穿透, 雪崩, 污染等" class="option-box" style="padding-left:2px;text-align:center;"><a href="db-redis-x-cache.html"><img src="../../../pre2.png" width="30px" class="nozoom"> <span class="show-txt">上一篇</span></a></div> <div title="Redis进阶 - 运维监控：Redis的监控详解" class="option-box" style="padding-left:2px;text-align:center;"><a href="db-redis-y-monitor.html"><img src="../../../next2.png" width="30px" class="nozoom"> <span class="show-txt">下一篇</span></a></div></div>  <div class="page-side-sitemap"><div class="option-box"><img src="../../../sitemap.png" class="nozoom img"> <span class="show-txt">站点图</span> <div class="sitemap-container"><h4>站点导航图
+            <a href="../../about/me/about-me.html" class="sitemap-top-link"> 关于我</a> <a href="../../about/blog/blog-build-vuepress.html" class="sitemap-top-link"> 关于站点</a> <a href="../../about/me/blog-changelist.html" class="sitemap-top-link"> 最近更新记录</a> <a href="../../about/me/blog-question.html" class="sitemap-top-link"><font style="color:red;background-color:yellow;">问题反馈</font></a></h4> <table class="sitemap-table"><tr><td nowrap="nowrap"><div class="sitemap-col-group">常用搜索</div></td> <td><div class="sitemap-col-item"><a href="http://www.baidu.com/" target="_blank" title="百度">  
+            百度
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.google.com/" target="_blank" title="Google">  
+            Google
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.bing.com/" target="_blank" title="Bing">  
+            Bing
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://github.com/" target="_blank" title="Github">  
+            Github
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.programcreek.com/java-api-examples/index.php" target="_blank" title="搜代码">  
+            搜代码
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">技术社区</div></td> <td><div class="sitemap-col-item"><a href="http://www.csdn.net/" target="_blank" title="CDSN">  
+            CDSN
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.cnblogs.com/" target="_blank" title="博客园">  
+            博客园
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.oschina.net/" target="_blank" title="OSChina">  
+            OSChina
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://segmentfault.com/" target="_blank" title="知否">  
+            知否
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://juejin.im/" target="_blank" title="掘金">  
+            掘金
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.linuxidc.com/" target="_blank" title="Linux公社">  
+            Linux公社
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.ibm.com/developerworks/cn/" target="_blank" title="IBM 开发者">  
+            IBM 开发者
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://stackoverflow.com/" target="_blank" title="StackOverflow">  
+            StackOverflow
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">Java相关</div></td> <!----> <td><a href="../../java/basic/java-basic-oop.html" class="sitemap-col-item">
+            面向对象基础
+          </a><a href="../../java/basic/java-basic-lan-basic.html" class="sitemap-col-item">
+            语法基础
+          </a><a href="../../java/collection/java-collection-all.html" class="sitemap-col-item">
+            集合框架
+          </a><a href="../../java/thread/java-thread-x-overview.html" class="sitemap-col-item">
+            并发基础
+          </a><a href="../../java/thread/java-thread-x-key-synchronized.html" class="sitemap-col-item">
+            并发关键字
+          </a><a href="../../java/thread/java-thread-x-juc-overview.html" class="sitemap-col-item">
+            JUC并发框架
+          </a><a href="../../java/io/java-io-overview.html" class="sitemap-col-item">
+            IO框架
+          </a><a href="../../java/java8/java8.html" class="sitemap-col-item">
+            Java8 特性
+          </a><a href="../../java/jvm/java-jvm-x-overview.html" class="sitemap-col-item">
+            JVM基础
+          </a><a href="../../java/jvm/java-jvm-param.html" class="sitemap-col-item">
+            调试排错
+          </a><a href="../../java/others/java-others-awesome-java.html" class="sitemap-col-item">
+            更多资源
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">算法相关</div></td> <!----> <td><a href="../../algorithm/alg-basic-array.html" class="sitemap-col-item">
+            数组与线性表
+          </a><a href="../../algorithm/alg-basic-tree.html" class="sitemap-col-item">
+            树详解
+          </a><a href="../../algorithm/alg-basic-graph.html" class="sitemap-col-item">
+            图详解
+          </a><a href="../../algorithm/alg-sort-overview.html" class="sitemap-col-item">
+            内部排序
+          </a><a href="../../algorithm/alg-core-divide-and-conquer.html" class="sitemap-col-item">
+            算法思想
+          </a><a href="../../algorithm/alg-domain-security-degist.html" class="sitemap-col-item">
+            安全算法
+          </a><a href="../../algorithm/alg-domain-bigdata-overview.html" class="sitemap-col-item">
+            大数据处理
+          </a><a href="../../algorithm/alg-domain-distribute-overview.html" class="sitemap-col-item">
+            分布式算法
+          </a><a href="../../algorithm/alg-domain-load-balance.html" class="sitemap-col-item">
+            负载均衡算法
+          </a><a href="../../algorithm/alg-domain-suggest.html" class="sitemap-col-item">
+            推荐算法
+          </a><a href="../../algorithm/alg-other-mind.html" class="sitemap-col-item">
+            头脑风暴
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">数据库相关</div></td> <!----> <td><a href="../sql/sql-db-howitworks.html" class="sitemap-col-item">
+            数据库原理
+          </a><a href="../sql-lan/sql-lan.html" class="sitemap-col-item">
+            SQL语言
+          </a><a href="../sql-mysql/sql-mysql-theory.html" class="sitemap-col-item">
+            MySQL相关
+          </a><a href="../nosql-mongo/mongo-performance-improve.html" class="sitemap-col-item">
+            MongoDB
+          </a><a href="../nosql-es/elasticsearch.html" class="sitemap-col-item">
+            ElasticSearch
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">开发基础相关</div></td> <!----> <td><a href="../../develop/package/dev-package-x-apache-common.html" class="sitemap-col-item">
+            常用类库
+          </a><a href="../../develop/ut/dev-ut-x-junit.html" class="sitemap-col-item">
+            单元测试
+          </a><a href="../../develop/regex/dev-regex-all.html" class="sitemap-col-item">
+            正则表达式
+          </a><a href="../../develop/protocol/dev-protocol-overview.html" class="sitemap-col-item">
+            网络协议
+          </a><a href="../../develop/security/dev-security-overview.html" class="sitemap-col-item">
+            安全相关
+          </a><a href="../../develop/refactor/dev-refactor-if-else.html" class="sitemap-col-item">
+            常见重构技巧
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">架构相关</div></td> <!----> <td><a href="../../arch/arch-x-basic.html" class="sitemap-col-item">
+            架构基础
+          </a><a href="../../arch/arch-x-view.html" class="sitemap-col-item">
+            架构视角
+          </a><a href="../../arch/arch-x-evolution.html" class="sitemap-col-item">
+            架构演进
+          </a><a href="../../arch/arch-x-pattern.html" class="sitemap-col-item">
+            架构模式和要素
+          </a><a href="../../arch/arch-y-cache.html" class="sitemap-col-item">
+            高并发之缓存
+          </a><a href="../../arch/arch-y-ratelimit.html" class="sitemap-col-item">
+            高并发之限流
+          </a><a href="../../arch/arch-y-reduce.html" class="sitemap-col-item">
+            高并发之降级
+          </a><a href="../../arch/arch-y-loadbalance.html" class="sitemap-col-item">
+            负载均衡
+          </a><a href="../../arch/arch-y-backup.html" class="sitemap-col-item">
+            容灾备份
+          </a><a href="../../arch/arch-x-security.html" class="sitemap-col-item">
+            架构安全
+          </a><a href="../../arch/arch-example-seckill.html" class="sitemap-col-item">
+            秒杀系统设计
+          </a><a href="../../arch/arch-example-goods-detail.html" class="sitemap-col-item">
+            架构案例
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">工具和部署</div></td> <!----> <td><a href="../../devops/tool/tool-list-overview.html" class="sitemap-col-item">
+            工具集合
+          </a><a href="../../devops/tool/tool-ide.html" class="sitemap-col-item">
+            IDE相关
+          </a><a href="../../devops/tool/tool-git.html" class="sitemap-col-item">
+            Git
+          </a><a href="../../devops/tool/tool-maven.html" class="sitemap-col-item">
+            Maven
+          </a><a href="../../devops/linux/linux.html" class="sitemap-col-item">
+            Linux
+          </a><a href="../../devops/docker/docker-00-overview.html" class="sitemap-col-item">
+            Docker
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">方法论</div></td> <!----> <td><a href="../../dev-spec/spec/dev-th-solid.html" class="sitemap-col-item">
+            SOLID
+          </a><a href="../../dev-spec/spec/dev-th-cap.html" class="sitemap-col-item">
+            CAP
+          </a><a href="../../dev-spec/spec/dev-th-base.html" class="sitemap-col-item">
+            BASE
+          </a><a href="../../dev-spec/spec/dev-opensource.html" class="sitemap-col-item">
+            开源协议
+          </a><a href="../../dev-spec/code-style/code-style-alibaba.html" class="sitemap-col-item">
+            代码规范
+          </a><a href="../../dev-spec/pattern/1_overview.html" class="sitemap-col-item">
+            设计模式
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">产品和团队</div></td> <!----> <td><a href="../../team/team-z-wechat.html" class="sitemap-col-item">
+            产品相关
+          </a><a href="../../team/team-z-task-emergency.html" class="sitemap-col-item">
+            团队相关
+          </a><a href="../../team/team-z-arch-future.html" class="sitemap-col-item">
+            其它分享
+          </a></td></tr></table></div></div></div> <!----> </aside></div><div class="global-ui"></div></div>
+    <script src="../../../assets/js/app.691e72ae.js" defer></script><script src="../../../assets/js/4.2e3efdf6.js" defer></script><script src="../../../assets/js/3.d77b006c.js" defer></script><script src="../../../assets/js/217.cbe6dce6.js" defer></script>
+  </body>
+
+<!-- Mirrored from www.pdai.tech/md/db/nosql-redis/db-redis-x-version-lastest.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:31:01 GMT -->
+</html>

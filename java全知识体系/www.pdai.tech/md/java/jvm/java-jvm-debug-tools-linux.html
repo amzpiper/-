@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  
+<!-- Mirrored from www.pdai.tech/md/java/jvm/java-jvm-debug-tools-linux.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:29:01 GMT -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>调试排错 - Java问题排查：Linux命令 | Java 全栈知识体系</title>
+    <meta name="generator" content="VuePress 1.8.2">
+    <link rel="icon" href="../../../favicon.ico">
+    <script src="../../../../hm.baidu.com/hma448.js?525d4abc4a8675472736969f817ceb47"></script>
+    <script defer="defer" async="async" src="../../../../pagead2.googlesyndication.com/pagead/js/f.txt"></script>
+    <meta name="description" content="包含: Java 基础, Java 部分源码, JVM, Spring, Spring Boot, Spring Cloud, 数据库原理, MySQL, ElasticSearch, MongoDB, Docker, k8s, CI&CD, Linux, DevOps, 分布式, 中间件, 开发工具, Git, IDE, 源码阅读，读书笔记, 开源项目...">
+    <meta property="article:modified_time" content="2021-05-09T14:05:05.000Z">
+    <meta property="og:title" content="调试排错 - Java问题排查：Linux命令">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="/md/java/jvm/java-jvm-debug-tools-linux.html">
+    <meta name="twitter:title" content="调试排错 - Java问题排查：Linux命令">
+    <meta name="twitter:url" content="/md/java/jvm/java-jvm-debug-tools-linux.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="robots" content="all">
+    <meta name="author" content="pdai">
+    <meta name="keywords" content="Java 全栈知识体系, java体系, java知识体系, java框架,java全栈,java学习路线,java全栈知识, java面试, 知识体系, java技术体系, java编程, java编程指南,java开发体系, java开发,java教程,java,java数据结构, 算法, 开发基础">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <link rel="preload" href="../../../assets/css/0.styles.d4bb5489.css" as="style"><link rel="preload" href="../../../assets/js/app.691e72ae.js" as="script"><link rel="preload" href="../../../assets/js/4.2e3efdf6.js" as="script"><link rel="preload" href="../../../assets/js/3.d77b006c.js" as="script"><link rel="preload" href="../../../assets/js/471.7b32ff45.js" as="script">
+    <link rel="stylesheet" href="../../../assets/css/0.styles.d4bb5489.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="../../../index.html" class="home-link router-link-active"><!----> <span class="site-name">Java 全栈知识体系</span></a> <div class="links"><form id="search-form" role="search" class="algolia-search-wrapper search-box"><input id="algolia-search-input" class="search-query"></form> <nav class="nav-links can-hide"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="java-jvm-debug-tools-linux.html" aria-current="page" class="nav-link router-link-exact-active router-link-active">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="../../resource/tools.html" class="nav-link">
+  导航
+</a></div><div class="nav-item"><a href="../../outline/x-outline.html" class="nav-link">
+  导读
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Java" class="dropdown-title"><span class="title">Java</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Java 面向对象和基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../basic/java-basic-oop.html" class="nav-link">
+  Java 面向对象基础
+</a></li><li class="dropdown-subitem"><a href="../basic/java-basic-lan-basic.html" class="nav-link">
+  Java 基础知识体系
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 集合框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../collection/java-collection-all.html" class="nav-link">
+  Java 集合框架详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 并发框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../thread/java-thread-x-overview.html" class="nav-link">
+  Java 并发知识体系
+</a></li><li class="dropdown-subitem"><a href="../thread/java-thread-x-theorty.html" class="nav-link">
+  Java 并发理论基础
+</a></li><li class="dropdown-subitem"><a href="../thread/java-thread-x-thread-basic.html" class="nav-link">
+  Java 并发线程基础
+</a></li><li class="dropdown-subitem"><a href="../thread/java-thread-x-juc-overview.html" class="nav-link">
+  J.U.C 知识体系与详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - IO框架
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../io/java-io-overview.html" class="nav-link">
+  Java IO/NIO/AIO详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - 新版本特性
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../java8/java8.html" class="nav-link">
+  Java 8 特性详解
+</a></li><li class="dropdown-subitem"><a href="../java8up/java-8-up-overview.html" class="nav-link">
+  Java 8 以上版本特性
+</a></li></ul></li><li class="dropdown-item"><h4>
+          Java进阶 - JVM相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="java-jvm-classload.html" class="nav-link">
+  Java 类加载机制
+</a></li><li class="dropdown-subitem"><a href="java-jvm-struct.html" class="nav-link">
+  JVM 内存结构详解
+</a></li><li class="dropdown-subitem"><a href="java-jvm-gc.html" class="nav-link">
+  JVM 垃圾回收机制
+</a></li><li class="dropdown-subitem"><a href="java-jvm-debug-tools-linux.html" aria-current="page" class="nav-link router-link-exact-active router-link-active">
+  Java 调试排错相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="算法" class="dropdown-title"><span class="title">算法</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          算法基础和思想
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-basic-overview.html" class="nav-link">
+  数据结构基础
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-sort-overview.html" class="nav-link">
+  常见排序算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-core-divide-and-conquer.html" class="nav-link">
+  算法思想
+</a></li></ul></li><li class="dropdown-item"><h4>
+          一些领域算法
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-security-degist.html" class="nav-link">
+  安全算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-char-match.html" class="nav-link">
+  字符串匹配算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-distribute-overview.html" class="nav-link">
+  分布式系统算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-bigdata-overview.html" class="nav-link">
+  海量数据处理
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-load-balance.html" class="nav-link">
+  负载均衡算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-suggest.html" class="nav-link">
+  推荐算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-machine.html" class="nav-link">
+  数据挖掘算法
+</a></li><li class="dropdown-subitem"><a href="../../algorithm/alg-domain-id-snowflake.html" class="nav-link">
+  ID生成算法
+</a></li></ul></li><li class="dropdown-item"><h4>
+          其它算法相关
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../algorithm/alg-other-mind.html" class="nav-link">
+  头脑风暴
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="数据库" class="dropdown-title"><span class="title">数据库</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          数据库基础和原理
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql/sql-db.html" class="nav-link">
+  数据库原理
+</a></li><li class="dropdown-subitem"><a href="../../db/sql-lan/sql-lan.html" class="nav-link">
+  SQL语言
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/sql-mysql/sql-mysql-overview.html" class="nav-link">
+  MySQL 详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          NoSQL 数据库
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../db/nosql-redis/db-redis-overview.html" class="nav-link">
+  Redis 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-mongo/mongo.html" class="nav-link">
+  MongoDB 详解
+</a></li><li class="dropdown-subitem"><a href="../../db/nosql-es/elasticsearch.html" class="nav-link">
+  ElasticSearch 详解
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="开发" class="dropdown-title"><span class="title">开发</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          开发 - 常用开发基础
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/package/dev-package-x-overview.html" class="nav-link">
+  常用类库详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/regex/dev-regex-all.html" class="nav-link">
+  正则表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/cron/dev-cron-x-usage.html" class="nav-link">
+  CRON表达式详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/protocol/dev-protocol-overview.html" class="nav-link">
+  网络协议和工具详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/security/dev-security-overview.html" class="nav-link">
+  安全相关详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 质量保障
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/ut/dev-ut-unit-test.html" class="nav-link">
+  单元测试详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-code-style.html" class="nav-link">
+  统一风格详解
+</a></li><li class="dropdown-subitem"><a href="../../develop/ut/dev-qt-sonarlint.html" class="nav-link">
+  质量管理详解
+</a></li></ul></li><li class="dropdown-item"><h4>
+          开发 - 代码重构
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../develop/refactor/dev-refactor-if-else.html" class="nav-link">
+  代码重构相关
+</a></li></ul></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Spring" class="dropdown-title"><span class="title">Spring</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><h4>
+          Spring Framework(v5.3)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-introduce.html" class="nav-link">
+  Spring框架组成
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-ioc.html" class="nav-link">
+  控制反转(IOC)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-aop.html" class="nav-link">
+  向切面编程(AOP)
+</a></li><li class="dropdown-subitem"><a href="../../spring/spring-x-framework-springmvc.html" class="nav-link">
+  SpringMVC
+</a></li></ul></li><li class="dropdown-item"><h4>
+          SpringBoot系列(v2.5)
+        </h4> <ul class="dropdown-subitem-wrapper"><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-hello-world.html" class="nav-link">
+  SpringBoot入门
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-interface-response.html" class="nav-link">
+  SpringBoot接口设计和实现
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-mysql-jpa.html" class="nav-link">
+  SpringBoot集成MySQL
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-redis-jedis.html" class="nav-link">
+  SpringBoot集成Redis
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-postgre-jpa.html" class="nav-link">
+  SpringBoot集成Postgre
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-elastic-template.html" class="nav-link">
+  SpringBoot集成ElasticSearch
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-socket-websocket.html" class="nav-link">
+  SpringBoot集成Socket
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-task-timer.html" class="nav-link">
+  SpringBoot定时任务
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-view-thymeleaf.html" class="nav-link">
+  SpringBoot后端视图
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-x-monitor-actuartor.html" class="nav-link">
+  SpringBoot监控
+</a></li><li class="dropdown-subitem"><a href="../../spring/springboot/springboot-y-auo-config.html" class="nav-link">
+  SpringBoot进阶
+</a></li></ul></li></ul></div></div><div class="nav-item"><a href="../../framework/tomcat/tomcat-x-design-web-container.html" class="nav-link">
+  框架
+</a></div><div class="nav-item"><a href="../../arch/arch-x-overview.html" class="nav-link">
+  架构
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="工具|部署" class="dropdown-title"><span class="title">工具|部署</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-list-overview.html" class="nav-link">
+  开发工具
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/tool/tool-git.html" class="nav-link">
+  Git详解
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/linux/linux.html" class="nav-link">
+  Linux
+</a></li><li class="dropdown-item"><!----> <a href="../../devops/docker/docker-00-overview.html" class="nav-link">
+  Docker
+</a></li></ul></div></div><div class="nav-item"><a href="../../project/project-x-overview.html" class="nav-link">
+  项目
+</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="方法论" class="dropdown-title"><span class="title">方法论</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-solid.html" class="nav-link">
+  开发原则(SOLID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-cap.html" class="nav-link">
+  分布式理论(CAP)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-base.html" class="nav-link">
+  分布式理论(BASE)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-th-acid.html" class="nav-link">
+  事务理论(ACID)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-microservice-kangwei.html" class="nav-link">
+  微服务理论(康威定律)
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-workflow.html" class="nav-link">
+  开发流程详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/spec/dev-opensource.html" class="nav-link">
+  开源协议详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/code-style/code-style-alibaba.html" class="nav-link">
+  代码规范详解
+</a></li><li class="dropdown-item"><!----> <a href="../../dev-spec/pattern/1_overview.html" class="nav-link">
+  设计模式详解
+</a></li></ul></div></div><div class="nav-item"><a href="../../team/team-z-tixi.html" class="nav-link">
+  产品|团队
+</a></div><div class="nav-item"><a href="../../about/me/about-me.html" class="nav-link">
+  关于
+</a></div> <!----></nav>  <ul class="sidebar-links"><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Java 基础</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../basic/java-basic-oop.html" class="sidebar-link">Java 基础 - 面向对象</a></li><li><a href="../basic/java-basic-lan-basic.html" class="sidebar-link">Java 基础 - 知识点</a></li><li><a href="../basic/java-basic-lan-sum.html" class="sidebar-link">Java 基础 - 图谱 &amp; Q/A</a></li><li><a href="../basic/java-basic-x-generic.html" class="sidebar-link">Java 基础 - 泛型机制详解</a></li><li><a href="../basic/java-basic-x-annotation.html" class="sidebar-link">Java 基础 - 注解机制详解</a></li><li><a href="../basic/java-basic-x-exception.html" class="sidebar-link">Java 基础 - 异常机制详解</a></li><li><a href="../basic/java-basic-x-reflection.html" class="sidebar-link">Java 基础 - 反射机制详解</a></li><li><a href="../advanced/java-advanced-spi.html" class="sidebar-link">Java常用机制 - SPI机制详解</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Java 集合框架</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../collection/java-collection-all.html" class="sidebar-link">Collection 类关系图</a></li><li><a href="../collection/java-collection-ArrayList.html" class="sidebar-link">Collection - ArrayList 源码解析</a></li><li><a href="../collection/java-collection-LinkedList.html" class="sidebar-link">Collection - LinkedList源码解析</a></li><li><a href="../collection/java-collection-Queue%26Stack.html" class="sidebar-link">Collection - Stack &amp; Queue 源码解析</a></li><li><a href="../collection/java-collection-PriorityQueue.html" class="sidebar-link">Collection - PriorityQueue源码解析</a></li><li><a href="../collection/java-map-HashMap%26HashSet.html" class="sidebar-link">Map - HashSet &amp; HashMap 源码解析</a></li><li><a href="../collection/java-map-LinkedHashMap%26LinkedHashSet.html" class="sidebar-link">Map - LinkedHashSet&amp;Map源码解析</a></li><li><a href="../collection/java-map-TreeMap%26TreeSet.html" class="sidebar-link">Map - TreeSet &amp; TreeMap 源码解析</a></li><li><a href="../collection/java-map-WeakHashMap.html" class="sidebar-link">Map - WeakHashMap源码解析</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Java 多线程与并发</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../thread/java-thread-x-overview.html" class="sidebar-link">♥Java并发知识体系详解♥</a></li><li><a href="../thread/java-thread-x-theorty.html" class="sidebar-link">Java 并发 - 理论基础</a></li><li><a href="../thread/java-thread-x-thread-basic.html" class="sidebar-link">Java 并发 - 线程基础</a></li><li><a href="../thread/java-thread-x-key-synchronized.html" class="sidebar-link">关键字: synchronized详解</a></li><li><a href="../thread/java-thread-x-key-volatile.html" class="sidebar-link">关键字: volatile详解</a></li><li><a href="../thread/java-thread-x-key-final.html" class="sidebar-link">关键字: final详解</a></li><li><a href="../thread/java-thread-x-juc-overview.html" class="sidebar-link">JUC - 类汇总和学习指南</a></li><li><a href="../thread/java-thread-x-juc-AtomicInteger.html" class="sidebar-link">JUC原子类: CAS, Unsafe和原子类详解</a></li><li><a href="../thread/java-thread-x-lock-LockSupport.html" class="sidebar-link">JUC锁: LockSupport详解</a></li><li><a href="../thread/java-thread-x-lock-AbstractQueuedSynchronizer.html" class="sidebar-link">JUC锁: 锁核心类AQS详解</a></li><li><a href="../thread/java-thread-x-lock-ReentrantLock.html" class="sidebar-link">JUC锁: ReentrantLock详解</a></li><li><a href="../thread/java-thread-x-lock-ReentrantReadWriteLock.html" class="sidebar-link">JUC锁: ReentrantReadWriteLock详解</a></li><li><a href="../thread/java-thread-x-juc-collection-ConcurrentHashMap.html" class="sidebar-link">JUC集合: ConcurrentHashMap详解</a></li><li><a href="../thread/java-thread-x-juc-collection-CopyOnWriteArrayList.html" class="sidebar-link">JUC集合: CopyOnWriteArrayList详解</a></li><li><a href="../thread/java-thread-x-juc-collection-ConcurrentLinkedQueue.html" class="sidebar-link">JUC集合: ConcurrentLinkedQueue详解</a></li><li><a href="../thread/java-thread-x-juc-collection-BlockingQueue.html" class="sidebar-link">JUC集合: BlockingQueue详解</a></li><li><a href="../thread/java-thread-x-juc-executor-FutureTask.html" class="sidebar-link">JUC线程池: FutureTask详解</a></li><li><a href="../thread/java-thread-x-juc-executor-ThreadPoolExecutor.html" class="sidebar-link">JUC线程池: ThreadPoolExecutor详解</a></li><li><a href="../thread/java-thread-x-juc-executor-ScheduledThreadPoolExecutor.html" class="sidebar-link">JUC线程池: ScheduledThreadPoolExecutor详解</a></li><li><a href="../thread/java-thread-x-juc-executor-ForkJoinPool.html" class="sidebar-link">JUC线程池: Fork/Join框架详解</a></li><li><a href="../thread/java-thread-x-juc-tool-countdownlatch.html" class="sidebar-link">JUC工具类: CountDownLatch详解</a></li><li><a href="../thread/java-thread-x-juc-tool-cyclicbarrier.html" class="sidebar-link">JUC工具类: CyclicBarrier详解</a></li><li><a href="../thread/java-thread-x-juc-tool-semaphore.html" class="sidebar-link">JUC工具类: Semaphore详解</a></li><li><a href="../thread/java-thread-x-juc-tool-phaser.html" class="sidebar-link">JUC工具类: Phaser详解</a></li><li><a href="../thread/java-thread-x-juc-tool-exchanger.html" class="sidebar-link">JUC工具类: Exchanger详解</a></li><li><a href="../thread/java-thread-x-threadlocal.html" class="sidebar-link">Java 并发 - ThreadLocal详解</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Java IO/NIO/AIO</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../io/java-io-overview.html" class="sidebar-link">♥Java IO知识体系详解♥</a></li><li><a href="../io/java-io-basic-category.html" class="sidebar-link">Java IO - 分类(传输，操作)</a></li><li><a href="../io/java-io-basic-design-pattern.html" class="sidebar-link">Java IO - 设计模式(装饰者模式)</a></li><li><a href="../io/java-io-basic-code-inputstream.html" class="sidebar-link">Java IO - 源码: InputStream</a></li><li><a href="../io/java-io-basic-code-outputstream.html" class="sidebar-link">Java IO - 源码: OutputStream</a></li><li><a href="../io/java-io-basic-usage.html" class="sidebar-link">Java IO - 常见类使用</a></li><li><a href="../io/java-io-model.html" class="sidebar-link">IO 模型 - Unix IO 模型</a></li><li><a href="../io/java-io-bio.html" class="sidebar-link">Java IO - BIO 详解</a></li><li><a href="../io/java-io-nio.html" class="sidebar-link">Java NIO - 基础详解</a></li><li><a href="../io/java-io-nio-select-epoll.html" class="sidebar-link">Java NIO - IO多路复用详解</a></li><li><a href="../io/java-io-aio.html" class="sidebar-link">Java AIO - 异步IO详解</a></li><li><a href="../io/java-io-nio-netty.html" class="sidebar-link">Java N(A)IO - 框架: Netty</a></li><li><a href="../io/java-io-nio-zerocopy.html" class="sidebar-link">Java NIO - 零拷贝实现</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Java8 特性详解</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../java8/java8.html" class="sidebar-link">♥Java8特性知识体系详解♥</a></li><li><a href="../java8/java8-stream.html" class="sidebar-link">Java 8 - 函数编程(lambda表达式)</a></li><li><a href="../java8/java8-optional.html" class="sidebar-link">Java 8 - Optional类深度解析</a></li><li><a href="../java8/java8-default.html" class="sidebar-link">Java 8 - 默认方法</a></li><li><a href="../java8/java8-type-anno.html" class="sidebar-link">Java 8 - 类型注解</a></li><li><a href="../java8/java8-anno-repeat.html" class="sidebar-link">Java 8 - 重复注解</a></li><li><a href="../java8/java8-type.html" class="sidebar-link">Java 8 - 类型推断优化</a></li><li><a href="../java8/java8-jre.html" class="sidebar-link">Java 8 - JRE精简</a></li><li><a href="../java8/java8-permgen.html" class="sidebar-link">Java 8 - 移除Permgen</a></li><li><a href="../java8/java8-stampedlock.html" class="sidebar-link">Java 8 - StampedLock</a></li><li><a href="../java8/java8-localdatetime.html" class="sidebar-link">Java 8 - LocalDate/LocalDateTime</a></li><li><a href="../java8/java8-javafx.html" class="sidebar-link">Java 8 - JavaFx 2.0</a></li><li><a href="../java8/java8-others.html" class="sidebar-link">Java 8 - 其它更新: 字符串，base64,...</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Java8 以上特性概述</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../java8up/java-8-up-overview.html" class="sidebar-link">♥Java8+特性知识体系详解♥</a></li><li><a href="../java8up/java9.html" class="sidebar-link">Java 9 新特性概述</a></li><li><a href="../java8up/java10.html" class="sidebar-link">Java 10 新特性概述</a></li><li><a href="../java8up/java11.html" class="sidebar-link">Java 11 新特性概述</a></li><li><a href="../java8up/java13.html" class="sidebar-link">Java 13 新特性概述</a></li><li><a href="../java8up/java14.html" class="sidebar-link">Java 14 新特性概述</a></li><li><a href="../java8up/java15.html" class="sidebar-link">Java 15 新特性概述</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading open"><span>JVM相关</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="java-jvm-x-overview.html" class="sidebar-link">♥JVM相关知识体系详解♥</a></li><li><a href="java-jvm-class.html" class="sidebar-link">JVM 基础 - 类字节码详解</a></li><li><a href="java-jvm-classload.html" class="sidebar-link">JVM 基础 - Java 类加载机制</a></li><li><a href="java-jvm-struct.html" class="sidebar-link">JVM 基础 - JVM 内存结构</a></li><li><a href="java-jvm-x-introduce.html" class="sidebar-link">JVM 基础 - Java 内存模型引入</a></li><li><a href="java-jvm-jmm.html" class="sidebar-link">JVM 基础 - Java 内存模型详解</a></li><li><a href="java-jvm-gc.html" class="sidebar-link">JVM 基础 - Java 垃圾回收基础</a></li><li><a href="java-jvm-gc-g1.html" class="sidebar-link">JVM 基础 - Java 垃圾回收器G1详解</a></li><li><a href="java-jvm-param.html" class="sidebar-link">调试排错 - JVM 调优参数</a></li><li><a href="java-jvm-oom.html" class="sidebar-link">调试排错 - Java OOM 分析</a></li><li><a href="java-jvm-thread-dump.html" class="sidebar-link">调试排错 - Java线程Dump分析</a></li><li><a href="java-jvm-debug-tools-linux.html" aria-current="page" class="active sidebar-link">调试排错 - Java问题排查：Linux命令</a></li><li><a href="java-jvm-debug-tools-list.html" class="sidebar-link">调试排错 - Java问题排查：工具单</a></li><li><a href="java-jvm-cms-gc.html" class="sidebar-link">调试排错 - 9种常见的CMS GC问题分析与解决</a></li><li><a href="java-jvm-agent-usage.html" class="sidebar-link">调试排错 - Java动态调试技术原理</a></li><li><a href="java-jvm-agent-arthas.html" class="sidebar-link">调试排错 - Java应用在线调试Arthas</a></li><li><a href="java-jvm-debug-idea.html" class="sidebar-link">调试排错 - 使用IDEA本地调试和远程调试</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>Java其它相关</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="../others/java-others-awesome-java.html" class="sidebar-link">Awesome Java</a></li><li><a href="../others/java-others-better-java.html" class="sidebar-link">Better Java</a></li></ul></section></li></ul> </aside> <div><main class="page"> <div class="theme-default-content content__default"><h1 id="调试排错---java问题排查：linux命令"><a href="#调试排错---java问题排查：linux命令" class="header-anchor">¶</a> 调试排错 - Java问题排查：Linux命令</h1> <blockquote><p>Java 在线问题排查主要分两篇：本文是第一篇，通过linux常用命令排查。@pdai</p></blockquote> <ul><li><a href="#%E8%B0%83%E8%AF%95%E6%8E%92%E9%94%99---java%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5linux%E5%91%BD%E4%BB%A4">调试排错 - Java问题排查：Linux命令</a> <ul><li><a href="#%E6%96%87%E6%9C%AC%E6%93%8D%E4%BD%9C">文本操作</a> <ul><li><a href="#%E6%96%87%E6%9C%AC%E6%9F%A5%E6%89%BE---grep">文本查找 - grep</a></li> <li><a href="#%E6%96%87%E6%9C%AC%E5%88%86%E6%9E%90---awk">文本分析 - awk</a></li> <li><a href="#%E6%96%87%E6%9C%AC%E5%A4%84%E7%90%86---sed">文本处理 - sed</a></li></ul></li> <li><a href="#%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C">文件操作</a> <ul><li><a href="#%E6%96%87%E4%BB%B6%E7%9B%91%E5%90%AC---tail">文件监听 - tail</a></li> <li><a href="#%E6%96%87%E4%BB%B6%E6%9F%A5%E6%89%BE---find">文件查找 - find</a></li> <li><a href="#pgm">pgm</a></li></ul></li> <li><a href="#%E6%9F%A5%E7%9C%8B%E7%BD%91%E7%BB%9C%E5%92%8C%E8%BF%9B%E7%A8%8B">查看网络和进程</a> <ul><li><a href="#%E6%9F%A5%E7%9C%8B%E6%89%80%E6%9C%89%E7%BD%91%E7%BB%9C%E6%8E%A5%E5%8F%A3%E7%9A%84%E5%B1%9E%E6%80%A7">查看所有网络接口的属性</a></li> <li><a href="#%E6%9F%A5%E7%9C%8B%E9%98%B2%E7%81%AB%E5%A2%99%E8%AE%BE%E7%BD%AE">查看防火墙设置</a></li> <li><a href="#%E6%9F%A5%E7%9C%8B%E8%B7%AF%E7%94%B1%E8%A1%A8">查看路由表</a></li> <li><a href="#netstat">netstat</a></li> <li><a href="#%E6%9F%A5%E7%9C%8B%E6%89%80%E6%9C%89%E8%BF%9B%E7%A8%8B">查看所有进程</a></li> <li><a href="#top">top</a></li></ul></li> <li><a href="#%E6%9F%A5%E7%9C%8B%E7%A3%81%E7%9B%98%E5%92%8C%E5%86%85%E5%AD%98%E7%9B%B8%E5%85%B3">查看磁盘和内存相关</a> <ul><li><a href="#%E6%9F%A5%E7%9C%8B%E5%86%85%E5%AD%98%E4%BD%BF%E7%94%A8---free--m">查看内存使用 - free -m</a></li> <li><a href="#%E6%9F%A5%E7%9C%8B%E5%90%84%E5%88%86%E5%8C%BA%E4%BD%BF%E7%94%A8%E6%83%85%E5%86%B5">查看各分区使用情况</a></li> <li><a href="#%E6%9F%A5%E7%9C%8B%E6%8C%87%E5%AE%9A%E7%9B%AE%E5%BD%95%E7%9A%84%E5%A4%A7%E5%B0%8F">查看指定目录的大小</a></li> <li><a href="#%E6%9F%A5%E7%9C%8B%E5%86%85%E5%AD%98%E6%80%BB%E9%87%8F">查看内存总量</a></li> <li><a href="#%E6%9F%A5%E7%9C%8B%E7%A9%BA%E9%97%B2%E5%86%85%E5%AD%98%E9%87%8F">查看空闲内存量</a></li> <li><a href="#%E6%9F%A5%E7%9C%8B%E7%B3%BB%E7%BB%9F%E8%B4%9F%E8%BD%BD%E7%A3%81%E7%9B%98%E5%92%8C%E5%88%86%E5%8C%BA">查看系统负载磁盘和分区</a></li> <li><a href="#%E6%9F%A5%E7%9C%8B%E7%B3%BB%E7%BB%9F%E8%B4%9F%E8%BD%BD%E7%A3%81%E7%9B%98%E5%92%8C%E5%88%86%E5%8C%BA-1">查看系统负载磁盘和分区</a></li> <li><a href="#%E6%9F%A5%E7%9C%8B%E6%8C%82%E6%8E%A5%E7%9A%84%E5%88%86%E5%8C%BA%E7%8A%B6%E6%80%81">查看挂接的分区状态</a></li> <li><a href="#%E6%9F%A5%E7%9C%8B%E6%89%80%E6%9C%89%E5%88%86%E5%8C%BA">查看所有分区</a></li> <li><a href="#%E6%9F%A5%E7%9C%8B%E6%89%80%E6%9C%89%E4%BA%A4%E6%8D%A2%E5%88%86%E5%8C%BA">查看所有交换分区</a></li> <li><a href="#%E6%9F%A5%E7%9C%8B%E7%A1%AC%E7%9B%98%E5%A4%A7%E5%B0%8F">查看硬盘大小</a></li></ul></li> <li><a href="#%E6%9F%A5%E7%9C%8B%E7%94%A8%E6%88%B7%E5%92%8C%E7%BB%84%E7%9B%B8%E5%85%B3">查看用户和组相关</a> <ul><li><a href="#%E6%9F%A5%E7%9C%8B%E6%B4%BB%E5%8A%A8%E7%94%A8%E6%88%B7">查看活动用户</a></li> <li><a href="#%E6%9F%A5%E7%9C%8B%E6%8C%87%E5%AE%9A%E7%94%A8%E6%88%B7%E4%BF%A1%E6%81%AF">查看指定用户信息</a></li> <li><a href="#%E6%9F%A5%E7%9C%8B%E7%94%A8%E6%88%B7%E7%99%BB%E5%BD%95%E6%97%A5%E5%BF%97">查看用户登录日志</a></li> <li><a href="#%E6%9F%A5%E7%9C%8B%E7%B3%BB%E7%BB%9F%E6%89%80%E6%9C%89%E7%94%A8%E6%88%B7">查看系统所有用户</a></li> <li><a href="#%E6%9F%A5%E7%9C%8B%E7%B3%BB%E7%BB%9F%E6%89%80%E6%9C%89%E7%BB%84">查看系统所有组</a></li></ul></li> <li><a href="#%E6%9F%A5%E7%9C%8B%E6%9C%8D%E5%8A%A1%E6%A8%A1%E5%9D%97%E5%92%8C%E5%8C%85%E7%9B%B8%E5%85%B3">查看服务，模块和包相关</a></li> <li><a href="#%E6%9F%A5%E7%9C%8B%E7%B3%BB%E7%BB%9F%E8%AE%BE%E5%A4%87%E7%8E%AF%E5%A2%83%E4%BF%A1%E6%81%AF">查看系统，设备，环境信息</a></li> <li><a href="#tsar">tsar</a></li></ul></li></ul> <h2 id="文本操作"><a href="#文本操作" class="header-anchor">¶</a> 文本操作</h2> <h3 id="文本查找---grep"><a href="#文本查找---grep" class="header-anchor">¶</a> 文本查找 - grep</h3> <p>grep常用命令：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token comment"># 基本使用</span>
+<span class="token function">grep</span> yoursearchkeyword f.txt     <span class="token comment">#文件查找</span>
+<span class="token function">grep</span> <span class="token string">'KeyWord otherKeyWord'</span> f.txt cpf.txt <span class="token comment">#多文件查找, 含空格加引号</span>
+<span class="token function">grep</span> <span class="token string">'KeyWord'</span> /home/admin -r -n <span class="token comment">#目录下查找所有符合关键字的文件</span>
+<span class="token function">grep</span> <span class="token string">'keyword'</span> /home/admin -r -n -i <span class="token comment"># -i 忽略大小写</span>
+<span class="token function">grep</span> <span class="token string">'KeyWord'</span> /home/admin -r -n --include *.<span class="token punctuation">{</span>vm,java<span class="token punctuation">}</span> <span class="token comment">#指定文件后缀</span>
+<span class="token function">grep</span> <span class="token string">'KeyWord'</span> /home/admin -r -n --exclude *.<span class="token punctuation">{</span>vm,java<span class="token punctuation">}</span> <span class="token comment">#反匹配</span>
+
+<span class="token comment"># cat + grep</span>
+<span class="token function">cat</span> f.txt <span class="token operator">|</span> <span class="token function">grep</span> -i keyword <span class="token comment"># 查找所有keyword且不分大小写  </span>
+<span class="token function">cat</span> f.txt <span class="token operator">|</span> <span class="token function">grep</span> -c <span class="token string">'KeyWord'</span> <span class="token comment"># 统计Keyword次数</span>
+
+<span class="token comment"># seq + grep</span>
+<span class="token function">seq</span> <span class="token number">10</span> <span class="token operator">|</span> <span class="token function">grep</span> <span class="token number">5</span> -A <span class="token number">3</span>    <span class="token comment">#上匹配</span>
+<span class="token function">seq</span> <span class="token number">10</span> <span class="token operator">|</span> <span class="token function">grep</span> <span class="token number">5</span> -B <span class="token number">3</span>    <span class="token comment">#下匹配</span>
+<span class="token function">seq</span> <span class="token number">10</span> <span class="token operator">|</span> <span class="token function">grep</span> <span class="token number">5</span> -C <span class="token number">3</span>    <span class="token comment">#上下匹配，平时用这个就妥了</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br></div></div><p>Grep的参数：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>--color<span class="token operator">=</span>auto：显示颜色<span class="token punctuation">;</span>
+-i, --ignore-case：忽略字符大小写<span class="token punctuation">;</span>
+-o, --only-matching：只显示匹配到的部分<span class="token punctuation">;</span>
+-n, --line-number：显示行号<span class="token punctuation">;</span>
+-v, --invert-match：反向显示,显示未匹配到的行<span class="token punctuation">;</span>
+-E, --extended-regexp：支持使用扩展的正则表达式<span class="token punctuation">;</span>
+-q, --quiet, --silent：静默模式,即不输出任何信息<span class="token punctuation">;</span>
+-w, --word-regexp：整行匹配整个单词<span class="token punctuation">;</span>
+-c, --count：统计匹配到的行数<span class="token punctuation">;</span> print a count of matching lines<span class="token punctuation">;</span>
+
+-B, --before-context<span class="token operator">=</span>NUM：print NUM lines of leading context   后<span class="token comment">#行 </span>
+-A, --after-context<span class="token operator">=</span>NUM：print NUM lines of trailing context   前<span class="token comment">#行 </span>
+-C, --context<span class="token operator">=</span>NUM：print NUM lines of output context           前后各<span class="token comment">#行 </span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br></div></div><h3 id="文本分析---awk"><a href="#文本分析---awk" class="header-anchor">¶</a> 文本分析 - awk</h3> <p>awk基本命令：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token comment"># 基本使用</span>
+<span class="token function">awk</span> <span class="token string">'{print <span class="token variable">$4</span>,<span class="token variable">$6</span>}'</span> f.txt
+<span class="token function">awk</span> <span class="token string">'{print NR,<span class="token variable">$0</span>}'</span> f.txt cpf.txt    
+<span class="token function">awk</span> <span class="token string">'{print FNR,<span class="token variable">$0</span>}'</span> f.txt cpf.txt
+<span class="token function">awk</span> <span class="token string">'{print FNR,FILENAME,<span class="token variable">$0</span>}'</span> f.txt cpf.txt
+<span class="token function">awk</span> <span class="token string">'{print FILENAME,&quot;NR=&quot;NR,&quot;FNR=&quot;FNR,&quot;$&quot;NF&quot;=&quot;<span class="token variable">$NF</span>}'</span> f.txt cpf.txt
+<span class="token builtin class-name">echo</span> <span class="token number">1</span>:2:3:4 <span class="token operator">|</span> <span class="token function">awk</span> -F: <span class="token string">'{print <span class="token variable">$1</span>,<span class="token variable">$2</span>,<span class="token variable">$3</span>,<span class="token variable">$4</span>}'</span>
+
+<span class="token comment"># 匹配</span>
+<span class="token function">awk</span> <span class="token string">'/ldb/ {print}'</span> f.txt   <span class="token comment">#匹配ldb</span>
+<span class="token function">awk</span> <span class="token string">'!/ldb/ {print}'</span> f.txt  <span class="token comment">#不匹配ldb</span>
+<span class="token function">awk</span> <span class="token string">'/ldb/ &amp;&amp; /LISTEN/ {print}'</span> f.txt   <span class="token comment">#匹配ldb和LISTEN</span>
+<span class="token function">awk</span> <span class="token string">'<span class="token variable">$5</span> ~ /ldb/ {print}'</span> f.txt <span class="token comment">#第五列匹配ldb</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br></div></div><p>内建变量</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token variable"><span class="token variable">`</span>NR<span class="token variable">`</span></span><span class="token builtin class-name">:</span> NR表示从awk开始执行后，按照记录分隔符读取的数据次数，默认的记录分隔符为换行符，因此默认的就是读取的数据行数，NR可以理解为Number of Record的缩写。
+
+<span class="token variable"><span class="token variable">`</span>FNR<span class="token variable">`</span></span><span class="token builtin class-name">:</span> 在awk处理多个输入文件的时候，在处理完第一个文件后，NR并不会从1开始，而是继续累加，因此就出现了FNR，每当处理一个新文件的时候，FNR就从1开始计数，FNR可以理解为File Number of Record。
+
+<span class="token variable"><span class="token variable">`</span>NF<span class="token variable">`</span></span><span class="token builtin class-name">:</span> NF表示目前的记录被分割的字段的数目，NF可以理解为Number of Field。
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br></div></div><p>更多请参考：<a href="https://www.runoob.com/linux/linux-comm-awk.html" target="_blank" rel="noopener noreferrer">Linux awk 命令<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></p> <h3 id="文本处理---sed"><a href="#文本处理---sed" class="header-anchor">¶</a> 文本处理 - sed</h3> <p>sed常用：</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token comment"># 文本打印</span>
+<span class="token function">sed</span> -n <span class="token string">'3p'</span> xxx.log <span class="token comment">#只打印第三行</span>
+<span class="token function">sed</span> -n <span class="token string">'<span class="token variable">$p</span>'</span> xxx.log <span class="token comment">#只打印最后一行</span>
+<span class="token function">sed</span> -n <span class="token string">'3,9p'</span> xxx.log <span class="token comment">#只查看文件的第3行到第9行</span>
+<span class="token function">sed</span> -n -e <span class="token string">'3,9p'</span> -e <span class="token string">'='</span> xxx.log <span class="token comment">#打印3-9行，并显示行号</span>
+<span class="token function">sed</span> -n <span class="token string">'/root/p'</span> xxx.log <span class="token comment">#显示包含root的行</span>
+<span class="token function">sed</span> -n <span class="token string">'/hhh/,/omc/p'</span> xxx.log <span class="token comment"># 显示包含&quot;hhh&quot;的行到包含&quot;omc&quot;的行之间的行</span>
+
+<span class="token comment"># 文本替换</span>
+<span class="token function">sed</span> -i <span class="token string">'s/root/world/g'</span> xxx.log <span class="token comment"># 用world 替换xxx.log文件中的root; s==search  查找并替换, g==global  全部替换, -i: implace</span>
+
+<span class="token comment"># 文本插入</span>
+<span class="token function">sed</span> <span class="token string">'1,4i hahaha'</span> xxx.log <span class="token comment"># 在文件第一行和第四行的每行下面添加hahaha</span>
+<span class="token function">sed</span> -e <span class="token string">'1i happy'</span> -e <span class="token string">'<span class="token variable">$a</span> new year'</span> xxx.log  <span class="token comment">#【界面显示】在文件第一行添加happy,文件结尾添加new year</span>
+<span class="token function">sed</span> -i -e <span class="token string">'1i happy'</span> -e <span class="token string">'<span class="token variable">$a</span> new year'</span> xxx.log <span class="token comment">#【真实写入文件】在文件第一行添加happy,文件结尾添加new year</span>
+
+<span class="token comment"># 文本删除</span>
+<span class="token function">sed</span>  <span class="token string">'3,9d'</span> xxx.log <span class="token comment"># 删除第3到第9行,只是不显示而已</span>
+<span class="token function">sed</span> <span class="token string">'/hhh/,/omc/d'</span> xxx.log <span class="token comment"># 删除包含&quot;hhh&quot;的行到包含&quot;omc&quot;的行之间的行</span>
+<span class="token function">sed</span> <span class="token string">'/omc/,10d'</span> xxx.log <span class="token comment"># 删除包含&quot;omc&quot;的行到第十行的内容</span>
+
+<span class="token comment"># 与find结合</span>
+<span class="token function">find</span> <span class="token builtin class-name">.</span> -name  <span class="token string">&quot;*.txt&quot;</span> <span class="token operator">|</span><span class="token function">xargs</span>   <span class="token function">sed</span> -i <span class="token string">'s/hhhh/\hHHh/g'</span>
+<span class="token function">find</span> <span class="token builtin class-name">.</span> -name  <span class="token string">&quot;*.txt&quot;</span> <span class="token operator">|</span><span class="token function">xargs</span>   <span class="token function">sed</span> -i <span class="token string">'s#hhhh#hHHh#g'</span>
+<span class="token function">find</span> <span class="token builtin class-name">.</span> -name  <span class="token string">&quot;*.txt&quot;</span> -exec <span class="token function">sed</span> -i <span class="token string">'s/hhhh/\hHHh/g'</span> <span class="token punctuation">{</span><span class="token punctuation">}</span> <span class="token punctuation">\</span><span class="token punctuation">;</span>
+<span class="token function">find</span> <span class="token builtin class-name">.</span> -name  <span class="token string">&quot;*.txt&quot;</span> <span class="token operator">|</span><span class="token function">xargs</span> <span class="token function">cat</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br></div></div><p>更多请参考：<a href="https://www.runoob.com/linux/linux-comm-sed.html" target="_blank" rel="noopener noreferrer">Linux sed 命令<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a> 或者 <a href="https://www.cnblogs.com/ftl1012/p/9250171.html" target="_blank" rel="noopener noreferrer">Linux sed命令详解<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></p> <h2 id="文件操作"><a href="#文件操作" class="header-anchor">¶</a> 文件操作</h2> <h3 id="文件监听---tail"><a href="#文件监听---tail" class="header-anchor">¶</a> 文件监听 - tail</h3> <p>最常用的<code>tail -f filename</code></p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token comment"># 基本使用</span>
+<span class="token function">tail</span> -f xxx.log <span class="token comment"># 循环监听文件</span>
+<span class="token function">tail</span> -300f xxx.log <span class="token comment">#倒数300行并追踪文件</span>
+<span class="token function">tail</span> +20 xxx.log <span class="token comment">#从第 20 行至文件末尾显示文件内容</span>
+
+<span class="token comment"># tailf使用</span>
+tailf xxx.log <span class="token comment">#等同于tail -f -n 10 打印最后10行，然后追踪文件</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br></div></div><p>tail -f 与tail F 与tailf三者区别</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token variable"><span class="token variable">`</span><span class="token function">tail</span>  -f <span class="token variable">`</span></span>  等于--follow<span class="token operator">=</span>descriptor，根据文件描述进行追踪，当文件改名或删除后，停止追踪。
+
+<span class="token variable"><span class="token variable">`</span><span class="token function">tail</span> -F<span class="token variable">`</span></span> 等于 --follow<span class="token operator">=</span>name <span class="token operator">==</span>retry，根据文件名字进行追踪，当文件改名或删除后，保持重试，当有新的文件和他同名时，继续追踪
+
+<span class="token variable"><span class="token variable">`</span>tailf<span class="token variable">`</span></span> 等于tail -f -n <span class="token number">10</span>（tail -f或-F默认也是打印最后10行，然后追踪文件），与tail -f不同的是，如果文件不增长，它不会去访问磁盘文件，所以tailf特别适合那些便携机上跟踪日志文件，因为它减少了磁盘访问，可以省电。
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br></div></div><p>tail的参数</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>-f 循环读取
+-q 不显示处理信息
+-v 显示详细的处理信息
+-c<span class="token operator">&lt;</span>数目<span class="token operator">&gt;</span> 显示的字节数
+-n<span class="token operator">&lt;</span>行数<span class="token operator">&gt;</span> 显示文件的尾部 n 行内容
+--pid<span class="token operator">=</span>PID 与-f合用,表示在进程ID,PID死掉之后结束
+-q, --quiet, --silent 从不输出给出文件名的首部
+-s, --sleep-interval<span class="token operator">=</span>S 与-f合用,表示在每次反复的间隔休眠S秒
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br></div></div><h3 id="文件查找---find"><a href="#文件查找---find" class="header-anchor">¶</a> 文件查找 - find</h3> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token function">sudo</span> -u admin <span class="token function">find</span> /home/admin /tmp /usr -name <span class="token punctuation">\</span>*.log<span class="token punctuation">(</span>多个目录去找<span class="token punctuation">)</span>
+<span class="token function">find</span> <span class="token builtin class-name">.</span> -iname <span class="token punctuation">\</span>*.txt<span class="token punctuation">(</span>大小写都匹配<span class="token punctuation">)</span>
+<span class="token function">find</span> <span class="token builtin class-name">.</span> -type d<span class="token punctuation">(</span>当前目录下的所有子目录<span class="token punctuation">)</span>
+<span class="token function">find</span> /usr -type l<span class="token punctuation">(</span>当前目录下所有的符号链接<span class="token punctuation">)</span>
+<span class="token function">find</span> /usr -type l -name <span class="token string">&quot;z*&quot;</span> -ls<span class="token punctuation">(</span>符号链接的详细信息 eg:inode,目录<span class="token punctuation">)</span>
+<span class="token function">find</span> /home/admin -size +250000k<span class="token punctuation">(</span>超过250000k的文件，当然+改成-就是小于了<span class="token punctuation">)</span>
+<span class="token function">find</span> /home/admin f -perm <span class="token number">777</span> -exec <span class="token function">ls</span> -l <span class="token punctuation">{</span><span class="token punctuation">}</span> <span class="token punctuation">\</span><span class="token punctuation">;</span> <span class="token punctuation">(</span>按照权限查询文件<span class="token punctuation">)</span>
+<span class="token function">find</span> /home/admin -atime -1  <span class="token number">1</span>天内访问过的文件
+<span class="token function">find</span> /home/admin -ctime -1  <span class="token number">1</span>天内状态改变过的文件    
+<span class="token function">find</span> /home/admin -mtime -1  <span class="token number">1</span>天内修改过的文件
+<span class="token function">find</span> /home/admin -amin -1  <span class="token number">1</span>分钟内访问过的文件
+<span class="token function">find</span> /home/admin -cmin -1  <span class="token number">1</span>分钟内状态改变过的文件    
+<span class="token function">find</span> /home/admin -mmin -1  <span class="token number">1</span>分钟内修改过的文件
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br></div></div><h3 id="pgm"><a href="#pgm" class="header-anchor">¶</a> pgm</h3> <p>批量查询vm-shopbase满足条件的日志</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>pgm -A -f vm-shopbase <span class="token string">'cat /home/admin/shopbase/logs/shopbase.log.2017-01-17|grep 2069861630'</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><h2 id="查看网络和进程"><a href="#查看网络和进程" class="header-anchor">¶</a> 查看网络和进程</h2> <h3 id="查看所有网络接口的属性"><a href="#查看所有网络接口的属性" class="header-anchor">¶</a> 查看所有网络接口的属性</h3> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai.tech ~<span class="token punctuation">]</span><span class="token comment"># ifconfig</span>
+eth0: <span class="token assign-left variable">flags</span><span class="token operator">=</span><span class="token number">416</span><span class="token operator"><span class="token file-descriptor important">3</span>&lt;</span>UP,BROADCAST,RUNNING,MULTICAST<span class="token operator">&gt;</span>  mtu <span class="token number">1500</span>
+        inet <span class="token number">172.31</span>.165.194  netmask <span class="token number">255.255</span>.240.0  broadcast <span class="token number">172.31</span>.175.255
+        ether 00:16:3e:08:c1:ea  txqueuelen <span class="token number">1000</span>  <span class="token punctuation">(</span>Ethernet<span class="token punctuation">)</span>
+        RX packets <span class="token number">21213152</span>  bytes <span class="token number">2812084823</span> <span class="token punctuation">(</span><span class="token number">2.6</span> GiB<span class="token punctuation">)</span>
+        RX errors <span class="token number">0</span>  dropped <span class="token number">0</span>  overruns <span class="token number">0</span>  frame <span class="token number">0</span>
+        TX packets <span class="token number">25264438</span>  bytes <span class="token number">46566724676</span> <span class="token punctuation">(</span><span class="token number">43.3</span> GiB<span class="token punctuation">)</span>
+        TX errors <span class="token number">0</span>  dropped <span class="token number">0</span> overruns <span class="token number">0</span>  carrier <span class="token number">0</span>  collisions <span class="token number">0</span>
+
+lo: <span class="token assign-left variable">flags</span><span class="token operator">=</span><span class="token number">7</span><span class="token operator"><span class="token file-descriptor important">3</span>&lt;</span>UP,LOOPBACK,RUNNING<span class="token operator">&gt;</span>  mtu <span class="token number">65536</span>
+        inet <span class="token number">127.0</span>.0.1  netmask <span class="token number">255.0</span>.0.0
+        loop  txqueuelen <span class="token number">1000</span>  <span class="token punctuation">(</span>Local Loopback<span class="token punctuation">)</span>
+        RX packets <span class="token number">502</span>  bytes <span class="token number">86350</span> <span class="token punctuation">(</span><span class="token number">84.3</span> KiB<span class="token punctuation">)</span>
+        RX errors <span class="token number">0</span>  dropped <span class="token number">0</span>  overruns <span class="token number">0</span>  frame <span class="token number">0</span>
+        TX packets <span class="token number">502</span>  bytes <span class="token number">86350</span> <span class="token punctuation">(</span><span class="token number">84.3</span> KiB<span class="token punctuation">)</span>
+        TX errors <span class="token number">0</span>  dropped <span class="token number">0</span> overruns <span class="token number">0</span>  carrier <span class="token number">0</span>  collisions <span class="token number">0</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br></div></div><h3 id="查看防火墙设置"><a href="#查看防火墙设置" class="header-anchor">¶</a> 查看防火墙设置</h3> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai.tech ~<span class="token punctuation">]</span><span class="token comment"># iptables -L</span>
+Chain INPUT <span class="token punctuation">(</span>policy ACCEPT<span class="token punctuation">)</span>
+target     prot opt <span class="token builtin class-name">source</span>               destination
+
+Chain FORWARD <span class="token punctuation">(</span>policy ACCEPT<span class="token punctuation">)</span>
+target     prot opt <span class="token builtin class-name">source</span>               destination
+
+Chain OUTPUT <span class="token punctuation">(</span>policy ACCEPT<span class="token punctuation">)</span>
+target     prot opt <span class="token builtin class-name">source</span>               destination
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br></div></div><h3 id="查看路由表"><a href="#查看路由表" class="header-anchor">¶</a> 查看路由表</h3> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai.tech ~<span class="token punctuation">]</span><span class="token comment"># route -n</span>
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+<span class="token number">0.0</span>.0.0         <span class="token number">172.31</span>.175.253  <span class="token number">0.0</span>.0.0         UG    <span class="token number">0</span>      <span class="token number">0</span>        <span class="token number">0</span> eth0
+<span class="token number">169.254</span>.0.0     <span class="token number">0.0</span>.0.0         <span class="token number">255.255</span>.0.0     U     <span class="token number">1002</span>   <span class="token number">0</span>        <span class="token number">0</span> eth0
+<span class="token number">172.31</span>.160.0    <span class="token number">0.0</span>.0.0         <span class="token number">255.255</span>.240.0   U     <span class="token number">0</span>      <span class="token number">0</span>        <span class="token number">0</span> eth0
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br></div></div><h3 id="netstat"><a href="#netstat" class="header-anchor">¶</a> netstat</h3> <p>查看所有监听端口</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai.tech ~<span class="token punctuation">]</span><span class="token comment"># netstat -lntp</span>
+Active Internet connections <span class="token punctuation">(</span>only servers<span class="token punctuation">)</span>
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name  
+tcp        <span class="token number">0</span>      <span class="token number">0</span> <span class="token number">0.0</span>.0.0:443             <span class="token number">0.0</span>.0.0:*               LISTEN      <span class="token number">970</span>/nginx: master p
+tcp        <span class="token number">0</span>      <span class="token number">0</span> <span class="token number">0.0</span>.0.0:9999            <span class="token number">0.0</span>.0.0:*               LISTEN      <span class="token number">1249</span>/java         
+tcp        <span class="token number">0</span>      <span class="token number">0</span> <span class="token number">0.0</span>.0.0:80              <span class="token number">0.0</span>.0.0:*               LISTEN      <span class="token number">970</span>/nginx: master p
+tcp        <span class="token number">0</span>      <span class="token number">0</span> <span class="token number">0.0</span>.0.0:22              <span class="token number">0.0</span>.0.0:*               LISTEN      <span class="token number">1547</span>/sshd         
+tcp6       <span class="token number">0</span>      <span class="token number">0</span> :::3306                 :::*                    LISTEN      <span class="token number">1894</span>/mysqld       
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br></div></div><p>查看所有已经建立的连接</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai.tech ~<span class="token punctuation">]</span><span class="token comment"># netstat -antp</span>
+Active Internet connections <span class="token punctuation">(</span>servers and established<span class="token punctuation">)</span>
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name
+tcp        <span class="token number">0</span>      <span class="token number">0</span> <span class="token number">0.0</span>.0.0:443             <span class="token number">0.0</span>.0.0:*               LISTEN      <span class="token number">970</span>/nginx: master p
+tcp        <span class="token number">0</span>      <span class="token number">0</span> <span class="token number">0.0</span>.0.0:9999            <span class="token number">0.0</span>.0.0:*               LISTEN      <span class="token number">1249</span>/java
+tcp        <span class="token number">0</span>      <span class="token number">0</span> <span class="token number">0.0</span>.0.0:80              <span class="token number">0.0</span>.0.0:*               LISTEN      <span class="token number">970</span>/nginx: master p
+tcp        <span class="token number">0</span>      <span class="token number">0</span> <span class="token number">0.0</span>.0.0:22              <span class="token number">0.0</span>.0.0:*               LISTEN      <span class="token number">1547</span>/sshd
+tcp        <span class="token number">0</span>      <span class="token number">0</span> <span class="token number">172.31</span>.165.194:53874    <span class="token number">100.100</span>.30.25:80        ESTABLISHED <span class="token number">18041</span>/AliYunDun
+tcp        <span class="token number">0</span>     <span class="token number">64</span> <span class="token number">172.31</span>.165.194:22       xxx.194.1.200:2649      ESTABLISHED <span class="token number">32516</span>/sshd: root@pt
+tcp6       <span class="token number">0</span>      <span class="token number">0</span> :::3306                 :::*                    LISTEN      <span class="token number">1894</span>/m
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br></div></div><p>查看当前连接</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai.tech ~<span class="token punctuation">]</span><span class="token comment"># netstat -nat|awk  '{print $6}'|sort|uniq -c|sort -rn</span>
+      <span class="token number">5</span> LISTEN
+      <span class="token number">2</span> ESTABLISHED
+      <span class="token number">1</span> Foreign
+      <span class="token number">1</span> established<span class="token punctuation">)</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br></div></div><p>查看网络统计信息进程</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai.tech ~<span class="token punctuation">]</span><span class="token comment"># netstat -s</span>
+Ip:
+    <span class="token number">21017132</span> total packets received
+    <span class="token number">0</span> forwarded
+    <span class="token number">0</span> incoming packets discarded
+    <span class="token number">21017131</span> incoming packets delivered
+    <span class="token number">25114367</span> requests sent out
+    <span class="token number">324</span> dropped because of missing route
+Icmp:
+    <span class="token number">18088</span> ICMP messages received
+    <span class="token number">692</span> input ICMP message failed.
+    ICMP input histogram:
+        destination unreachable: <span class="token number">4241</span>
+        <span class="token function">timeout</span> <span class="token keyword">in</span> transit: <span class="token number">19</span>
+        <span class="token builtin class-name">echo</span> requests: <span class="token number">13791</span>
+        <span class="token builtin class-name">echo</span> replies: <span class="token number">4</span>
+        timestamp request: <span class="token number">33</span>
+    <span class="token number">13825</span> ICMP messages sent
+    <span class="token number">0</span> ICMP messages failed
+    ICMP output histogram:
+        destination unreachable: <span class="token number">1</span>
+        <span class="token builtin class-name">echo</span> replies: <span class="token number">13791</span>
+        timestamp replies: <span class="token number">33</span>
+IcmpMsg:
+        InType0: <span class="token number">4</span>
+        InType3: <span class="token number">4241</span>
+        InType8: <span class="token number">13791</span>
+        InType11: <span class="token number">19</span>
+        InType13: <span class="token number">33</span>
+        OutType0: <span class="token number">13791</span>
+        OutType3: <span class="token number">1</span>
+        OutType14: <span class="token number">33</span>
+Tcp:
+    <span class="token number">12210</span> active connections openings
+    <span class="token number">208820</span> passive connection openings
+    <span class="token number">54198</span> failed connection attempts
+    <span class="token number">9805</span> connection resets received
+<span class="token punctuation">..</span>.
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br><span class="line-number">35</span><br><span class="line-number">36</span><br><span class="line-number">37</span><br><span class="line-number">38</span><br></div></div><p>netstat 请参考这篇文章: <a href="https://www.cnblogs.com/ftl1012/p/netstat.html" target="_blank" rel="noopener noreferrer">Linux netstat命令详解<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></p> <h3 id="查看所有进程"><a href="#查看所有进程" class="header-anchor">¶</a> 查看所有进程</h3> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai.tech ~<span class="token punctuation">]</span><span class="token comment"># ps -ef | grep java</span>
+root      <span class="token number">1249</span>     <span class="token number">1</span>  <span class="token number">0</span> Nov04 ?        00:58:05 java -jar /opt/tech_doc/bin/tech_arch-0.0.1-RELEASE.jar --server.port<span class="token operator">=</span><span class="token number">9999</span>
+root     <span class="token number">32718</span> <span class="token number">32518</span>  <span class="token number">0</span> 08:36 pts/0    00:00:00 <span class="token function">grep</span> --color<span class="token operator">=</span>auto java
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br></div></div><h3 id="top"><a href="#top" class="header-anchor">¶</a> top</h3> <p>top除了看一些基本信息之外，剩下的就是配合来查询vm的各种问题了</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token comment"># top -H -p pid</span>
+<span class="token function">top</span> - 08:37:51 up <span class="token number">45</span> days, <span class="token number">18</span>:45,  <span class="token number">1</span> user,  load average: <span class="token number">0.01</span>, <span class="token number">0.03</span>, <span class="token number">0.05</span>
+Threads:  <span class="token number">28</span> total,   <span class="token number">0</span> running,  <span class="token number">28</span> sleeping,   <span class="token number">0</span> stopped,   <span class="token number">0</span> zombie
+%Cpu<span class="token punctuation">(</span>s<span class="token punctuation">)</span>:  <span class="token number">0.7</span> us,  <span class="token number">0.7</span> sy,  <span class="token number">0.0</span> ni, <span class="token number">98.6</span> id,  <span class="token number">0.0</span> wa,  <span class="token number">0.0</span> hi,  <span class="token number">0.0</span> si,  <span class="token number">0.0</span> st
+KiB Mem <span class="token builtin class-name">:</span>  <span class="token number">1882088</span> total,    <span class="token number">74608</span> free,   <span class="token number">202228</span> used,  <span class="token number">1605252</span> buff/cache
+KiB Swap:  <span class="token number">2097148</span> total,  <span class="token number">1835392</span> free,   <span class="token number">261756</span> used.  <span class="token number">1502036</span> avail Mem
+
+  PID <span class="token environment constant">USER</span>      PR  NI    VIRT    RES    SHR S %CPU %MEM     TIME+ COMMAND
+ <span class="token number">1347</span> root      <span class="token number">20</span>   <span class="token number">0</span> <span class="token number">2553808</span> <span class="token number">113752</span>   <span class="token number">1024</span> S  <span class="token number">0.3</span>  <span class="token number">6.0</span>  <span class="token number">48</span>:46.74 VM Periodic Tas
+ <span class="token number">1249</span> root      <span class="token number">20</span>   <span class="token number">0</span> <span class="token number">2553808</span> <span class="token number">113752</span>   <span class="token number">1024</span> S  <span class="token number">0.0</span>  <span class="token number">6.0</span>   <span class="token number">0</span>:00.00 java
+ <span class="token number">1289</span> root      <span class="token number">20</span>   <span class="token number">0</span> <span class="token number">2553808</span> <span class="token number">113752</span>   <span class="token number">1024</span> S  <span class="token number">0.0</span>  <span class="token number">6.0</span>   <span class="token number">0</span>:03.74 java
+<span class="token punctuation">..</span>.
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br></div></div><h2 id="查看磁盘和内存相关"><a href="#查看磁盘和内存相关" class="header-anchor">¶</a> 查看磁盘和内存相关</h2> <h3 id="查看内存使用---free--m"><a href="#查看内存使用---free--m" class="header-anchor">¶</a> 查看内存使用 - free -m</h3> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai.tech ~<span class="token punctuation">]</span><span class="token comment"># free -m</span>
+              total        used        <span class="token function">free</span>      shared  buff/cache   available
+Mem:           <span class="token number">1837</span>         <span class="token number">196</span>         <span class="token number">824</span>           <span class="token number">0</span>         <span class="token number">816</span>        <span class="token number">1469</span>
+Swap:          <span class="token number">2047</span>         <span class="token number">255</span>        <span class="token number">1792</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br></div></div><h3 id="查看各分区使用情况"><a href="#查看各分区使用情况" class="header-anchor">¶</a> 查看各分区使用情况</h3> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai.tech ~<span class="token punctuation">]</span><span class="token comment"># df -h</span>
+Filesystem      Size  Used Avail Use% Mounted on
+devtmpfs        909M     <span class="token number">0</span>  909M   <span class="token number">0</span>% /dev
+tmpfs           919M     <span class="token number">0</span>  919M   <span class="token number">0</span>% /dev/shm
+tmpfs           919M  452K  919M   <span class="token number">1</span>% /run
+tmpfs           919M     <span class="token number">0</span>  919M   <span class="token number">0</span>% /sys/fs/cgroup
+/dev/vda1        40G   15G   23G  <span class="token number">40</span>% /
+tmpfs           184M     <span class="token number">0</span>  184M   <span class="token number">0</span>% /run/user/0
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br></div></div><h3 id="查看指定目录的大小"><a href="#查看指定目录的大小" class="header-anchor">¶</a> 查看指定目录的大小</h3> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai.tech ~<span class="token punctuation">]</span><span class="token comment"># du -sh</span>
+803M
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br></div></div><h3 id="查看内存总量"><a href="#查看内存总量" class="header-anchor">¶</a> 查看内存总量</h3> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai.tech ~<span class="token punctuation">]</span><span class="token comment"># grep MemTotal /proc/meminfo</span>
+MemTotal:        <span class="token number">1882088</span> kB
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br></div></div><h3 id="查看空闲内存量"><a href="#查看空闲内存量" class="header-anchor">¶</a> 查看空闲内存量</h3> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai.tech ~<span class="token punctuation">]</span><span class="token comment"># grep MemFree /proc/meminfo</span>
+MemFree:           <span class="token number">74120</span> kB
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br></div></div><h3 id="查看系统负载磁盘和分区"><a href="#查看系统负载磁盘和分区" class="header-anchor">¶</a> 查看系统负载磁盘和分区</h3> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai.tech ~<span class="token punctuation">]</span><span class="token comment"># grep MemFree /proc/meminfo</span>
+MemFree:           <span class="token number">74120</span> kB
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br></div></div><h3 id="查看系统负载磁盘和分区-2"><a href="#查看系统负载磁盘和分区-2" class="header-anchor">¶</a> 查看系统负载磁盘和分区</h3> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai.tech ~<span class="token punctuation">]</span><span class="token comment"># cat /proc/loadavg</span>
+<span class="token number">0.01</span> <span class="token number">0.04</span> <span class="token number">0.05</span> <span class="token number">2</span>/174 <span class="token number">32751</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br></div></div><h3 id="查看挂接的分区状态"><a href="#查看挂接的分区状态" class="header-anchor">¶</a> 查看挂接的分区状态</h3> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai.tech ~<span class="token punctuation">]</span><span class="token comment"># mount | column -t</span>
+sysfs       on  /sys                             <span class="token builtin class-name">type</span>  sysfs       <span class="token punctuation">(</span>rw,nosuid,nodev,noexec,relatime<span class="token punctuation">)</span>
+proc        on  /proc                            <span class="token builtin class-name">type</span>  proc        <span class="token punctuation">(</span>rw,nosuid,nodev,noexec,relatime<span class="token punctuation">)</span>
+devtmpfs    on  /dev                             <span class="token builtin class-name">type</span>  devtmpfs    <span class="token punctuation">(</span>rw,nosuid,size<span class="token operator">=</span>930732k,nr_inodes<span class="token operator">=</span><span class="token number">232683</span>,mode<span class="token operator">=</span><span class="token number">755</span><span class="token punctuation">)</span>
+securityfs  on  /sys/kernel/security             <span class="token builtin class-name">type</span>  securityfs  <span class="token punctuation">(</span>rw,nosuid,nodev,noexec,relatime<span class="token punctuation">)</span>
+<span class="token punctuation">..</span>.
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br></div></div><h3 id="查看所有分区"><a href="#查看所有分区" class="header-anchor">¶</a> 查看所有分区</h3> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai.tech ~<span class="token punctuation">]</span><span class="token comment"># fdisk -l</span>
+
+Disk /dev/vda: <span class="token number">42.9</span> GB, <span class="token number">42949672960</span> bytes, <span class="token number">83886080</span> sectors
+Units <span class="token operator">=</span> sectors of <span class="token number">1</span> * <span class="token number">512</span> <span class="token operator">=</span> <span class="token number">512</span> bytes
+Sector size <span class="token punctuation">(</span>logical/physical<span class="token punctuation">)</span>: <span class="token number">512</span> bytes / <span class="token number">512</span> bytes
+I/O size <span class="token punctuation">(</span>minimum/optimal<span class="token punctuation">)</span>: <span class="token number">512</span> bytes / <span class="token number">512</span> bytes
+Disk label type: dos
+Disk identifier: 0x0008d73a
+
+   Device Boot      Start         End      Blocks   Id  System
+/dev/vda1   *        <span class="token number">2048</span>    <span class="token number">83884031</span>    <span class="token number">41940992</span>   <span class="token number">83</span>  Linux
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br></div></div><h3 id="查看所有交换分区"><a href="#查看所有交换分区" class="header-anchor">¶</a> 查看所有交换分区</h3> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai.tech ~<span class="token punctuation">]</span><span class="token comment"># swapon -s</span>
+Filename                                Type            Size    Used    Priority
+/etc/swap                               <span class="token function">file</span>    <span class="token number">2097148</span> <span class="token number">261756</span>  -2
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br></div></div><h3 id="查看硬盘大小"><a href="#查看硬盘大小" class="header-anchor">¶</a> 查看硬盘大小</h3> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai.tech ~<span class="token punctuation">]</span><span class="token comment"># fdisk -l |grep Disk</span>
+Disk /dev/vda: <span class="token number">42.9</span> GB, <span class="token number">42949672960</span> bytes, <span class="token number">83886080</span> sectors
+Disk label type: dos
+Disk identifier: 0x0008d73a
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br></div></div><h2 id="查看用户和组相关"><a href="#查看用户和组相关" class="header-anchor">¶</a> 查看用户和组相关</h2> <h3 id="查看活动用户"><a href="#查看活动用户" class="header-anchor">¶</a> 查看活动用户</h3> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai.tech ~<span class="token punctuation">]</span><span class="token comment"># w</span>
+ 08:47:20 up <span class="token number">45</span> days, <span class="token number">18</span>:54,  <span class="token number">1</span> user,  load average: <span class="token number">0.01</span>, <span class="token number">0.03</span>, <span class="token number">0.05</span>
+<span class="token environment constant">USER</span>     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
+root     pts/0    xxx.194.1.200    08:32    <span class="token number">0</span>.00s  <span class="token number">0</span>.32s  <span class="token number">0</span>.32s -bash
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br></div></div><h3 id="查看指定用户信息"><a href="#查看指定用户信息" class="header-anchor">¶</a> 查看指定用户信息</h3> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai.tech ~<span class="token punctuation">]</span><span class="token comment"># id</span>
+<span class="token assign-left variable">uid</span><span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">(</span>root<span class="token punctuation">)</span> <span class="token assign-left variable">gid</span><span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">(</span>root<span class="token punctuation">)</span> <span class="token assign-left variable">groups</span><span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">(</span>root<span class="token punctuation">)</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br></div></div><h3 id="查看用户登录日志"><a href="#查看用户登录日志" class="header-anchor">¶</a> 查看用户登录日志</h3> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai.tech ~<span class="token punctuation">]</span><span class="token comment"># last</span>
+root     pts/0        xxx.194.1.200    Fri Dec <span class="token number">20</span> 08:32   still logged <span class="token keyword">in</span>
+root     pts/0        xxx.73.164.60     Thu Dec <span class="token number">19</span> <span class="token number">21</span>:47 - 00:28  <span class="token punctuation">(</span>02:41<span class="token punctuation">)</span>
+root     pts/0        xxx.106.236.255  Thu Dec <span class="token number">19</span> <span class="token number">16</span>:00 - <span class="token number">18</span>:24  <span class="token punctuation">(</span>02:23<span class="token punctuation">)</span>
+root     pts/1        xxx.194.3.173    Tue Dec <span class="token number">17</span> <span class="token number">13</span>:35 - <span class="token number">17</span>:37  <span class="token punctuation">(</span>04:01<span class="token punctuation">)</span>
+root     pts/0        xxx.194.3.173    Tue Dec <span class="token number">17</span> <span class="token number">13</span>:35 - <span class="token number">17</span>:37  <span class="token punctuation">(</span>04:02<span class="token punctuation">)</span>
+<span class="token punctuation">..</span>.
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br></div></div><h3 id="查看系统所有用户"><a href="#查看系统所有用户" class="header-anchor">¶</a> 查看系统所有用户</h3> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token punctuation">[</span>root@pdai.tech ~<span class="token punctuation">]</span><span class="token comment"># cut -d: -f1 /etc/passwd</span>
+root
+bin
+daemon
+adm
+<span class="token punctuation">..</span>.
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br></div></div><h3 id="查看系统所有组"><a href="#查看系统所有组" class="header-anchor">¶</a> 查看系统所有组</h3> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token function">cut</span> -d: -f1 /etc/group
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br></div></div><h2 id="查看服务模块和包相关"><a href="#查看服务模块和包相关" class="header-anchor">¶</a> 查看服务，模块和包相关</h2> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token comment"># 查看当前用户的计划任务服务</span>
+<span class="token function">crontab</span> -l 
+
+<span class="token comment"># 列出所有系统服务</span>
+<span class="token function">chkconfig</span> –list 
+
+<span class="token comment"># 列出所有启动的系统服务程序</span>
+<span class="token function">chkconfig</span> –list <span class="token operator">|</span> <span class="token function">grep</span> on 
+
+<span class="token comment"># 查看所有安装的软件包</span>
+<span class="token function">rpm</span> -qa 
+
+<span class="token comment"># 列出加载的内核模块</span>
+lsmod 
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br></div></div><h2 id="查看系统设备环境信息"><a href="#查看系统设备环境信息" class="header-anchor">¶</a> 查看系统，设备，环境信息</h2> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code><span class="token comment"># 常用</span>
+<span class="token function">env</span> <span class="token comment"># 查看环境变量资源</span>
+<span class="token function">uptime</span> <span class="token comment"># 查看系统运行时间、用户数、负载</span>
+lsusb -tv <span class="token comment"># 列出所有USB设备的linux系统信息命令</span>
+lspci -tv <span class="token comment"># 列出所有PCI设备</span>
+<span class="token function">head</span> -n <span class="token number">1</span> /etc/issue <span class="token comment"># 查看操作系统版本，是数字1不是字母L</span>
+<span class="token function">uname</span> -a <span class="token comment"># 查看内核/操作系统/CPU信息的linux系统信息命令</span>
+
+<span class="token comment"># /proc/</span>
+<span class="token function">cat</span> /proc/cpuinfo ：查看CPU相关参数的linux系统命令
+<span class="token function">cat</span> /proc/partitions ：查看linux硬盘和分区信息的系统信息命令
+<span class="token function">cat</span> /proc/meminfo ：查看linux系统内存信息的linux系统命令
+<span class="token function">cat</span> /proc/version ：查看版本，类似uname -r
+<span class="token function">cat</span> /proc/ioports ：查看设备io端口
+<span class="token function">cat</span> /proc/interrupts ：查看中断
+<span class="token function">cat</span> /proc/pci ：查看pci设备的信息
+<span class="token function">cat</span> /proc/swaps ：查看所有swap分区的信息
+<span class="token function">cat</span> /proc/cpuinfo <span class="token operator">|</span><span class="token function">grep</span> <span class="token string">&quot;model name&quot;</span> <span class="token operator">&amp;&amp;</span> <span class="token function">cat</span> /proc/cpuinfo <span class="token operator">|</span><span class="token function">grep</span> <span class="token string">&quot;physical id&quot;</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br></div></div><h2 id="tsar"><a href="#tsar" class="header-anchor">¶</a> tsar</h2> <p>tsar是淘宝开源的的采集工具。很好用, 将历史收集到的数据持久化在磁盘上，所以我们快速来查询历史的系统数据。当然实时的应用情况也是可以查询的啦。大部分机器上都有安装。</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>tsar  <span class="token comment">##可以查看最近一天的各项指标</span>
+tsar --live <span class="token comment">##可以查看实时指标，默认五秒一刷</span>
+tsar -d <span class="token number">20161218</span> <span class="token comment">##指定查看某天的数据，貌似最多只能看四个月的数据</span>
+tsar --mem
+tsar --load
+tsar --cpu <span class="token comment">##当然这个也可以和-d参数配合来查询某天的单个指标的情况 </span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br></div></div><p>具体可以看这篇文章：<a href="https://www.jianshu.com/p/5562854ed901" target="_blank" rel="noopener noreferrer">linux 淘宝开源监控工具tsar<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></p></div> <div class="page-contract"><h2>联系我</h2> <div class="c-content"><span style="font-size:1rem;font-weight:bold;">添加@pdai微信</span><br> <img src="../../../pdai.jpg" height="280px" style="margin:10px;"><br>
+        PS：添加时请备注<b>Java全栈</b>，谢谢！
+      </div></div> <footer class="page-edit"><div class="edit-link"><a href="https://github.com/realpdai/tech-arch-doc/edit/master/md/java/jvm/java-jvm-debug-tools-linux.md" target="_blank" rel="noopener noreferrer">在 GitHub 上编辑此页</a> <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></div> <div class="last-updated"><span class="prefix">上次更新: </span> <span class="time">5/9/2021,</span></div></footer> <div class="page-nav"><p class="inner"><span class="prev">
+        ←
+        <a href="java-jvm-thread-dump.html" class="prev">
+          调试排错 - Java线程Dump分析
+        </a></span> <span class="next"><a href="java-jvm-debug-tools-list.html">
+          调试排错 - Java问题排查：工具单
+        </a>
+        →
+      </span></p></div> <div class="google_ad_bottom"><ins data-ad-client="ca-pub-5088193899865249" data-ad-slot="6822031208" data-ad-format="auto" data-full-width-responsive="true" class="adsbygoogle" style="display:block"></ins> <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script></div> </main></div> <aside class="page-sidebar"> <div class="page-side-toolbar"><div class="option-box-toc-fixed"><div class="toc-container-sidebar"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:650px"><div style="font-weight:bold;text-align:center;">调试排错 - Java问题排查：Linux命令</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="java-jvm-debug-tools-linux.html#文本操作" class="toc-sidebar-link">文本操作</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#文本查找---grep" class="toc-sidebar-link">文本查找 - grep</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#文本分析---awk" class="toc-sidebar-link">文本分析 - awk</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#文本处理---sed" class="toc-sidebar-link">文本处理 - sed</a></li></ul></li><li><a href="java-jvm-debug-tools-linux.html#文件操作" class="toc-sidebar-link">文件操作</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#文件监听---tail" class="toc-sidebar-link">文件监听 - tail</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#文件查找---find" class="toc-sidebar-link">文件查找 - find</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#pgm" class="toc-sidebar-link">pgm</a></li></ul></li><li><a href="java-jvm-debug-tools-linux.html#查看网络和进程" class="toc-sidebar-link">查看网络和进程</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看所有网络接口的属性" class="toc-sidebar-link">查看所有网络接口的属性</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看防火墙设置" class="toc-sidebar-link">查看防火墙设置</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看路由表" class="toc-sidebar-link">查看路由表</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#netstat" class="toc-sidebar-link">netstat</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看所有进程" class="toc-sidebar-link">查看所有进程</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#top" class="toc-sidebar-link">top</a></li></ul></li><li><a href="java-jvm-debug-tools-linux.html#查看磁盘和内存相关" class="toc-sidebar-link">查看磁盘和内存相关</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看内存使用---free--m" class="toc-sidebar-link">查看内存使用 - free -m</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看各分区使用情况" class="toc-sidebar-link">查看各分区使用情况</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看指定目录的大小" class="toc-sidebar-link">查看指定目录的大小</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看内存总量" class="toc-sidebar-link">查看内存总量</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看空闲内存量" class="toc-sidebar-link">查看空闲内存量</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看系统负载磁盘和分区" class="toc-sidebar-link">查看系统负载磁盘和分区</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看系统负载磁盘和分区-2" class="toc-sidebar-link">查看系统负载磁盘和分区</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看挂接的分区状态" class="toc-sidebar-link">查看挂接的分区状态</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看所有分区" class="toc-sidebar-link">查看所有分区</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看所有交换分区" class="toc-sidebar-link">查看所有交换分区</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看硬盘大小" class="toc-sidebar-link">查看硬盘大小</a></li></ul></li><li><a href="java-jvm-debug-tools-linux.html#查看用户和组相关" class="toc-sidebar-link">查看用户和组相关</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看活动用户" class="toc-sidebar-link">查看活动用户</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看指定用户信息" class="toc-sidebar-link">查看指定用户信息</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看用户登录日志" class="toc-sidebar-link">查看用户登录日志</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看系统所有用户" class="toc-sidebar-link">查看系统所有用户</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看系统所有组" class="toc-sidebar-link">查看系统所有组</a></li></ul></li><li><a href="java-jvm-debug-tools-linux.html#查看服务模块和包相关" class="toc-sidebar-link">查看服务，模块和包相关</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="java-jvm-debug-tools-linux.html#查看系统设备环境信息" class="toc-sidebar-link">查看系统，设备，环境信息</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="java-jvm-debug-tools-linux.html#tsar" class="toc-sidebar-link">tsar</a><ul class="toc-sidebar-sub-headers"></ul></li></ul></div></div></div></div></div> <div class="option-box-toc-over"><img src="../../../toc.png" class="nozoom"> <span class="show-txt">目录</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="max-height:550px"><div style="font-weight:bold;text-align:center;">调试排错 - Java问题排查：Linux命令</div> <hr> <div class="toc-box"><ul class="toc-sidebar-links"><li><a href="java-jvm-debug-tools-linux.html#文本操作" class="toc-sidebar-link">文本操作</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#文本查找---grep" class="toc-sidebar-link">文本查找 - grep</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#文本分析---awk" class="toc-sidebar-link">文本分析 - awk</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#文本处理---sed" class="toc-sidebar-link">文本处理 - sed</a></li></ul></li><li><a href="java-jvm-debug-tools-linux.html#文件操作" class="toc-sidebar-link">文件操作</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#文件监听---tail" class="toc-sidebar-link">文件监听 - tail</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#文件查找---find" class="toc-sidebar-link">文件查找 - find</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#pgm" class="toc-sidebar-link">pgm</a></li></ul></li><li><a href="java-jvm-debug-tools-linux.html#查看网络和进程" class="toc-sidebar-link">查看网络和进程</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看所有网络接口的属性" class="toc-sidebar-link">查看所有网络接口的属性</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看防火墙设置" class="toc-sidebar-link">查看防火墙设置</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看路由表" class="toc-sidebar-link">查看路由表</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#netstat" class="toc-sidebar-link">netstat</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看所有进程" class="toc-sidebar-link">查看所有进程</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#top" class="toc-sidebar-link">top</a></li></ul></li><li><a href="java-jvm-debug-tools-linux.html#查看磁盘和内存相关" class="toc-sidebar-link">查看磁盘和内存相关</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看内存使用---free--m" class="toc-sidebar-link">查看内存使用 - free -m</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看各分区使用情况" class="toc-sidebar-link">查看各分区使用情况</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看指定目录的大小" class="toc-sidebar-link">查看指定目录的大小</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看内存总量" class="toc-sidebar-link">查看内存总量</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看空闲内存量" class="toc-sidebar-link">查看空闲内存量</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看系统负载磁盘和分区" class="toc-sidebar-link">查看系统负载磁盘和分区</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看系统负载磁盘和分区-2" class="toc-sidebar-link">查看系统负载磁盘和分区</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看挂接的分区状态" class="toc-sidebar-link">查看挂接的分区状态</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看所有分区" class="toc-sidebar-link">查看所有分区</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看所有交换分区" class="toc-sidebar-link">查看所有交换分区</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看硬盘大小" class="toc-sidebar-link">查看硬盘大小</a></li></ul></li><li><a href="java-jvm-debug-tools-linux.html#查看用户和组相关" class="toc-sidebar-link">查看用户和组相关</a><ul class="toc-sidebar-sub-headers"><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看活动用户" class="toc-sidebar-link">查看活动用户</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看指定用户信息" class="toc-sidebar-link">查看指定用户信息</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看用户登录日志" class="toc-sidebar-link">查看用户登录日志</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看系统所有用户" class="toc-sidebar-link">查看系统所有用户</a></li><li class="toc-sidebar-sub-header"><a href="java-jvm-debug-tools-linux.html#查看系统所有组" class="toc-sidebar-link">查看系统所有组</a></li></ul></li><li><a href="java-jvm-debug-tools-linux.html#查看服务模块和包相关" class="toc-sidebar-link">查看服务，模块和包相关</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="java-jvm-debug-tools-linux.html#查看系统设备环境信息" class="toc-sidebar-link">查看系统，设备，环境信息</a><ul class="toc-sidebar-sub-headers"></ul></li><li><a href="java-jvm-debug-tools-linux.html#tsar" class="toc-sidebar-link">tsar</a><ul class="toc-sidebar-sub-headers"></ul></li></ul></div></div></div></div></div> <div class="option-box"><img src="../../../wechat.png" class="nozoom"> <span class="show-txt">手机看</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.9rem">微信扫一扫</span> <img height="180px" src="https://api.qrserver.com/v1/create-qr-code/?data=https://www.pdai.tech/md/java/jvm/java-jvm-debug-tools-linux.html" style="margin:10px;">
+              可以<b>手机看</b>或分享至<b>朋友圈</b></div></div></div></div> <div class="option-box"><a title="点击切换全屏" style="text-align:center;padding-left:2px;"><img src="../../../full.png" width="30px" class="nozoom"> <span style="color:gray;font-size:11px;font-weight:400;">全屏看</span></a></div> <div class="option-box"><img src="../../../toggle.png" width="30px" class="nozoom"> <span class="show-txt">左栏</span></div> <div class="option-box"><img src="../../../wexin2.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:yellow">交流圈</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">添加pdai微信进《Java全栈知识体系》学习交流圈「无任何套路」</span> <img src="../../../pdai.jpg" height="180px" style="margin:10px;">
+              PS：添加时请备注<b>Java全栈</b>，谢谢！
+            </div></div></div></div> <div class="option-box"><img src="../../../download.jpg" width="25px" class="nozoom"> <span class="show-txt" style="color:red;font-weight:bold;background-color:#a6f792">下资料</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">扫描公众号，回复“资料”下载<font style="color:red;">10GB+</font>书籍资料「无任何套路」</span> <img src="../../../pdai_gzh.jpg" height="180px" style="margin:10px;"> <b>公众号:</b> Java全栈知识体系
+            </div></div></div></div> <div class="option-box"><img src="../../../heart.png" width="25px" class="nozoom"> <span class="show-txt" style="color:red;background-color:#gray">支持我</span> <div class="toc-container"><div class="pos-box"><div class="icon-arrow"></div> <div class="scroll-box" style="text-align:center"><span style="font-size:0.8rem;font-weight:bold;">鼓励/支持/赞赏我</span> <img src="../../../pdai-guli.png" height="180px" width="200px" style="margin:5px;">
+              1. 不靠它生存但仍希望得到你的鼓励；<br> 2. 时刻警醒自己保持技术人的初心，恒心，简单，利他；
+            </div></div></div></div> <div title="调试排错 - Java线程Dump分析" class="option-box" style="padding-left:2px;text-align:center;"><a href="java-jvm-thread-dump.html"><img src="../../../pre2.png" width="30px" class="nozoom"> <span class="show-txt">上一篇</span></a></div> <div title="调试排错 - Java问题排查：工具单" class="option-box" style="padding-left:2px;text-align:center;"><a href="java-jvm-debug-tools-list.html"><img src="../../../next2.png" width="30px" class="nozoom"> <span class="show-txt">下一篇</span></a></div></div>  <div class="page-side-sitemap"><div class="option-box"><img src="../../../sitemap.png" class="nozoom img"> <span class="show-txt">站点图</span> <div class="sitemap-container"><h4>站点导航图
+            <a href="../../about/me/about-me.html" class="sitemap-top-link"> 关于我</a> <a href="../../about/blog/blog-build-vuepress.html" class="sitemap-top-link"> 关于站点</a> <a href="../../about/me/blog-changelist.html" class="sitemap-top-link"> 最近更新记录</a> <a href="../../about/me/blog-question.html" class="sitemap-top-link"><font style="color:red;background-color:yellow;">问题反馈</font></a></h4> <table class="sitemap-table"><tr><td nowrap="nowrap"><div class="sitemap-col-group">常用搜索</div></td> <td><div class="sitemap-col-item"><a href="http://www.baidu.com/" target="_blank" title="百度">  
+            百度
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.google.com/" target="_blank" title="Google">  
+            Google
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.bing.com/" target="_blank" title="Bing">  
+            Bing
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://github.com/" target="_blank" title="Github">  
+            Github
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.programcreek.com/java-api-examples/index.php" target="_blank" title="搜代码">  
+            搜代码
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">技术社区</div></td> <td><div class="sitemap-col-item"><a href="http://www.csdn.net/" target="_blank" title="CDSN">  
+            CDSN
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="http://www.cnblogs.com/" target="_blank" title="博客园">  
+            博客园
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.oschina.net/" target="_blank" title="OSChina">  
+            OSChina
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://segmentfault.com/" target="_blank" title="知否">  
+            知否
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://juejin.im/" target="_blank" title="掘金">  
+            掘金
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.linuxidc.com/" target="_blank" title="Linux公社">  
+            Linux公社
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://www.ibm.com/developerworks/cn/" target="_blank" title="IBM 开发者">  
+            IBM 开发者
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div><div class="sitemap-col-item"><a href="https://stackoverflow.com/" target="_blank" title="StackOverflow">  
+            StackOverflow
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div></td> <!----></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">Java相关</div></td> <!----> <td><a href="../basic/java-basic-oop.html" class="sitemap-col-item">
+            面向对象基础
+          </a><a href="../basic/java-basic-lan-basic.html" class="sitemap-col-item">
+            语法基础
+          </a><a href="../collection/java-collection-all.html" class="sitemap-col-item">
+            集合框架
+          </a><a href="../thread/java-thread-x-overview.html" class="sitemap-col-item">
+            并发基础
+          </a><a href="../thread/java-thread-x-key-synchronized.html" class="sitemap-col-item">
+            并发关键字
+          </a><a href="../thread/java-thread-x-juc-overview.html" class="sitemap-col-item">
+            JUC并发框架
+          </a><a href="../io/java-io-overview.html" class="sitemap-col-item">
+            IO框架
+          </a><a href="../java8/java8.html" class="sitemap-col-item">
+            Java8 特性
+          </a><a href="java-jvm-x-overview.html" class="sitemap-col-item">
+            JVM基础
+          </a><a href="java-jvm-param.html" class="sitemap-col-item">
+            调试排错
+          </a><a href="../others/java-others-awesome-java.html" class="sitemap-col-item">
+            更多资源
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">算法相关</div></td> <!----> <td><a href="../../algorithm/alg-basic-array.html" class="sitemap-col-item">
+            数组与线性表
+          </a><a href="../../algorithm/alg-basic-tree.html" class="sitemap-col-item">
+            树详解
+          </a><a href="../../algorithm/alg-basic-graph.html" class="sitemap-col-item">
+            图详解
+          </a><a href="../../algorithm/alg-sort-overview.html" class="sitemap-col-item">
+            内部排序
+          </a><a href="../../algorithm/alg-core-divide-and-conquer.html" class="sitemap-col-item">
+            算法思想
+          </a><a href="../../algorithm/alg-domain-security-degist.html" class="sitemap-col-item">
+            安全算法
+          </a><a href="../../algorithm/alg-domain-bigdata-overview.html" class="sitemap-col-item">
+            大数据处理
+          </a><a href="../../algorithm/alg-domain-distribute-overview.html" class="sitemap-col-item">
+            分布式算法
+          </a><a href="../../algorithm/alg-domain-load-balance.html" class="sitemap-col-item">
+            负载均衡算法
+          </a><a href="../../algorithm/alg-domain-suggest.html" class="sitemap-col-item">
+            推荐算法
+          </a><a href="../../algorithm/alg-other-mind.html" class="sitemap-col-item">
+            头脑风暴
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">数据库相关</div></td> <!----> <td><a href="../../db/sql/sql-db-howitworks.html" class="sitemap-col-item">
+            数据库原理
+          </a><a href="../../db/sql-lan/sql-lan.html" class="sitemap-col-item">
+            SQL语言
+          </a><a href="../../db/sql-mysql/sql-mysql-theory.html" class="sitemap-col-item">
+            MySQL相关
+          </a><a href="../../db/nosql-mongo/mongo-performance-improve.html" class="sitemap-col-item">
+            MongoDB
+          </a><a href="../../db/nosql-es/elasticsearch.html" class="sitemap-col-item">
+            ElasticSearch
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">开发基础相关</div></td> <!----> <td><a href="../../develop/package/dev-package-x-apache-common.html" class="sitemap-col-item">
+            常用类库
+          </a><a href="../../develop/ut/dev-ut-x-junit.html" class="sitemap-col-item">
+            单元测试
+          </a><a href="../../develop/regex/dev-regex-all.html" class="sitemap-col-item">
+            正则表达式
+          </a><a href="../../develop/protocol/dev-protocol-overview.html" class="sitemap-col-item">
+            网络协议
+          </a><a href="../../develop/security/dev-security-overview.html" class="sitemap-col-item">
+            安全相关
+          </a><a href="../../develop/refactor/dev-refactor-if-else.html" class="sitemap-col-item">
+            常见重构技巧
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">架构相关</div></td> <!----> <td><a href="../../arch/arch-x-basic.html" class="sitemap-col-item">
+            架构基础
+          </a><a href="../../arch/arch-x-view.html" class="sitemap-col-item">
+            架构视角
+          </a><a href="../../arch/arch-x-evolution.html" class="sitemap-col-item">
+            架构演进
+          </a><a href="../../arch/arch-x-pattern.html" class="sitemap-col-item">
+            架构模式和要素
+          </a><a href="../../arch/arch-y-cache.html" class="sitemap-col-item">
+            高并发之缓存
+          </a><a href="../../arch/arch-y-ratelimit.html" class="sitemap-col-item">
+            高并发之限流
+          </a><a href="../../arch/arch-y-reduce.html" class="sitemap-col-item">
+            高并发之降级
+          </a><a href="../../arch/arch-y-loadbalance.html" class="sitemap-col-item">
+            负载均衡
+          </a><a href="../../arch/arch-y-backup.html" class="sitemap-col-item">
+            容灾备份
+          </a><a href="../../arch/arch-x-security.html" class="sitemap-col-item">
+            架构安全
+          </a><a href="../../arch/arch-example-seckill.html" class="sitemap-col-item">
+            秒杀系统设计
+          </a><a href="../../arch/arch-example-goods-detail.html" class="sitemap-col-item">
+            架构案例
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">工具和部署</div></td> <!----> <td><a href="../../devops/tool/tool-list-overview.html" class="sitemap-col-item">
+            工具集合
+          </a><a href="../../devops/tool/tool-ide.html" class="sitemap-col-item">
+            IDE相关
+          </a><a href="../../devops/tool/tool-git.html" class="sitemap-col-item">
+            Git
+          </a><a href="../../devops/tool/tool-maven.html" class="sitemap-col-item">
+            Maven
+          </a><a href="../../devops/linux/linux.html" class="sitemap-col-item">
+            Linux
+          </a><a href="../../devops/docker/docker-00-overview.html" class="sitemap-col-item">
+            Docker
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">方法论</div></td> <!----> <td><a href="../../dev-spec/spec/dev-th-solid.html" class="sitemap-col-item">
+            SOLID
+          </a><a href="../../dev-spec/spec/dev-th-cap.html" class="sitemap-col-item">
+            CAP
+          </a><a href="../../dev-spec/spec/dev-th-base.html" class="sitemap-col-item">
+            BASE
+          </a><a href="../../dev-spec/spec/dev-opensource.html" class="sitemap-col-item">
+            开源协议
+          </a><a href="../../dev-spec/code-style/code-style-alibaba.html" class="sitemap-col-item">
+            代码规范
+          </a><a href="../../dev-spec/pattern/1_overview.html" class="sitemap-col-item">
+            设计模式
+          </a></td></tr><tr><td nowrap="nowrap"><div class="sitemap-col-group">产品和团队</div></td> <!----> <td><a href="../../team/team-z-wechat.html" class="sitemap-col-item">
+            产品相关
+          </a><a href="../../team/team-z-task-emergency.html" class="sitemap-col-item">
+            团队相关
+          </a><a href="../../team/team-z-arch-future.html" class="sitemap-col-item">
+            其它分享
+          </a></td></tr></table></div></div></div> <!----> </aside></div><div class="global-ui"></div></div>
+    <script src="../../../assets/js/app.691e72ae.js" defer></script><script src="../../../assets/js/4.2e3efdf6.js" defer></script><script src="../../../assets/js/3.d77b006c.js" defer></script><script src="../../../assets/js/471.7b32ff45.js" defer></script>
+  </body>
+
+<!-- Mirrored from www.pdai.tech/md/java/jvm/java-jvm-debug-tools-linux.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 05 Jan 2022 03:29:03 GMT -->
+</html>
